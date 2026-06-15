@@ -1,0 +1,150 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.megaMenu {
+    width: 100%;
+    height: 30rem;
+    padding: 1rem;
+
+  padding: $spacing-md;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-xl;
+  @include flex-column;
+  
+}
+
+/* ================= Header ================= */
+.header {
+  @include flex-between;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $color-border-light;
+
+  .headerRight {
+    @include flex-center;
+    justify-content: flex-start;
+    gap: $spacing-sm;
+    color: $color-primary-dark;
+
+    .headerIcon {
+      color: $color-primary;
+    }
+
+    .headerTitle {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      margin: 0;
+    }
+  }
+
+  .viewAllBtn {
+    @include flex-center;
+    gap: $spacing-xs;
+    font-size: $font-size-sm;
+    color: $color-primary;
+    text-decoration: none;
+    font-weight: $font-weight-medium;
+    @include transition-ease;
+
+    &:hover {
+      color: $color-primary-dark;
+      transform: translateX(-4px); // یک افکت حرکت کوچک به سمت چپ
+    }
+  }
+}
+
+/* ================= Grid Container ================= */
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); // ۴ ستون مساوی
+  gap: $spacing-lg $spacing-md; // فاصله عمودی و افقی بین کارت‌ها
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: $spacing-sm; 
+  @include custom-scrollbar;
+}
+
+/* ================= Brand Card (Item) ================= */
+.brandCard {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md; // فاصله بین باکس آبی و متن
+  padding: $spacing-sm;
+  border-radius: $border-radius-md;
+  text-decoration: none;
+  @include transition-ease;
+  border: 1px solid transparent;
+
+  &:hover {
+    background-color: $color-neutral-50; // بک‌گراند خیلی روشن در حالت هاور
+    border-color: $color-border-light;
+    
+    .iconBox {
+      background-color: $color-primary; // در هاور، باکس آبی تیره تر میشه
+      
+      .defaultIcon {
+        color: $color-white; // رنگ آیکون سفید میشه
+      }
+      .logoImage {
+        transform: scale(1.1); // لوگو کمی بزرگتر میشه
+      }
+    }
+
+    .brandName {
+      color: $color-primary; // اسم برند آبی میشه
+    }
+  }
+}
+
+/* ================= Icon / Logo Box ================= */
+.iconBox {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0; // جلوگیری از جمع شدن باکس
+  @include flex-center;
+  background-color: $color-primary-light; // بک گراند آبی روشن که خواستید
+  border-radius: $border-radius-md; // لبه های گرد
+  @include transition-ease;
+
+  .defaultIcon {
+    color: $color-primary; // رنگ آیکون پیش فرض
+    @include transition-ease;
+  }
+
+  .logoImage {
+    width: 65%;
+    height: 65%;
+    object-fit: contain; // حفظ تناسب لوگو
+    @include transition-ease;
+  }
+}
+
+/* ================= Texts ================= */
+.brandInfo {
+  @include flex-column;
+  gap: $spacing-md; // فاصله کم بین اسم و کشور
+  overflow: hidden; // برای کار کردن text-truncate
+}
+
+.brandName {
+  font-size: $font-size-md;
+  font-weight: 500;
+  color: $color-text-main;
+  @include text-truncate; // جلوگیری از بیرون زدن متن طولانی
+  @include transition-ease;
+}
+
+.brandCountry {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  @include text-truncate;
+}
+
+/* ================= Empty State ================= */
+.emptyState {
+    @include flex-center;
+    padding: $spacing-xxl;
+    color: $color-text-muted;
+    font-size: $font-size-md;
+    grid-column: 1 / -1; // در کل عرض گرید کشیده شود
+}

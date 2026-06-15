@@ -1,0 +1,78 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.stepperContainer {
+  display: flex;
+  justify-content: center;
+  padding-top: $spacing-xl;
+  background-color: $color-white;
+  margin-bottom: $spacing-xl;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+
+  .stepBox {
+    width: 48px;
+    height: 48px;
+    border: 2px solid $color-border-light;
+    border-radius: $border-radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: $font-weight-bold;
+    color: $color-text-muted;
+    background-color: $color-white;
+    transition: all 0.3s;
+
+    .checkmark {
+      color: $color-white;
+    }
+  }
+
+  .stepLabel {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+  }
+
+  &.active {
+    .stepBox {
+      border-color: $color-primary;
+      color: $color-primary;
+    }
+    .stepLabel {
+      color: $color-primary;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  &.completed {
+    .stepBox {
+      background-color: $color-primary;
+      border-color: $color-primary;
+      color: $color-white;
+    }
+    .stepLabel {
+      color: $color-primary;
+    }
+  }
+}
+
+.connector {
+  width: 60px;
+  height: 2px;
+  background-color: $color-border-light;
+
+  &.connectorCompleted {
+    background-color: $color-primary;
+  }
+}

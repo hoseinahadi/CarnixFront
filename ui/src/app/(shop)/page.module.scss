@@ -1,0 +1,6 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.container{
+padding: $spacing-xl $spacing-xxxl;
+}

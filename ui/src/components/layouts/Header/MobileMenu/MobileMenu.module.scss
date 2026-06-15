@@ -1,0 +1,184 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: $z-index-modal;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 85%;
+  max-width: 380px;
+  height: 100vh;
+  background-color: $color-white;
+  z-index: $z-index-modal + 1;
+  animation: slideIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.header {
+  padding: $spacing-md $spacing-lg;
+  background-color: $color-primary-dark;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 64px;
+
+  h3 {
+    color: $color-white;
+    font-size: $font-size-lg;
+    margin: 0;
+    font-weight: $font-weight-medium;
+  }
+
+  .closeBtn {
+    background: none;
+    border: none;
+    color: $color-white;
+    cursor: pointer;
+    padding: $spacing-xs;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $border-radius-sm;
+    transition: background 0.2s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: $spacing-md $spacing-lg;
+  @include custom-scrollbar(4px, $color-gray-300);
+
+  .section {
+    margin-bottom: $spacing-lg;
+
+    .sectionHeader {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+      font-size: $font-size-base;
+      font-weight: $font-weight-bold;
+      color: $color-text-main;
+      margin-bottom: $spacing-md;
+
+      svg {
+        color: $color-primary;
+      }
+    }
+
+    .sectionContent {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-sm;
+    }
+  }
+
+  .categoryItem {
+    border: 1px solid $color-gray-200;
+    border-radius: $border-radius-md;
+    padding: $spacing-sm;
+    background-color: $color-gray-50;
+
+    .categoryLink {
+      display: block;
+      font-weight: $font-weight-medium;
+      color: $color-text-main;
+      text-decoration: none;
+      padding: $spacing-sm;
+      font-size: $font-size-sm;
+      transition: color 0.2s;
+
+      &:hover {
+        color: $color-primary;
+      }
+    }
+
+    .subCategories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $spacing-xs;
+      padding: $spacing-sm;
+      border-top: 1px solid $color-gray-200;
+
+      .subCategoryLink {
+        font-size: $font-size-xs;
+        color: $color-text-muted;
+        text-decoration: none;
+        padding: 2px 8px;
+        border-radius: $border-radius-sm;
+        background-color: $color-white;
+        border: 1px solid $color-gray-200;
+        transition: all 0.2s;
+
+        &:hover {
+          color: $color-primary;
+          border-color: $color-primary;
+        }
+      }
+    }
+  }
+
+  .simpleLink {
+    display: block;
+    padding: $spacing-sm $spacing-xs;
+    color: $color-text-muted;
+    text-decoration: none;
+    font-size: $font-size-sm;
+    transition: color 0.2s;
+    border-radius: $border-radius-sm;
+
+    &:hover {
+      color: $color-primary;
+      background-color: $color-primary-light;
+    }
+  }
+
+  .viewAll {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    color: $color-primary;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    text-decoration: none;
+    padding: $spacing-sm;
+    transition: color 0.2s;
+
+    &:hover {
+      color: darken($color-primary, 10%);
+    }
+  }
+}
+
+.divider {
+  height: 1px;
+  background-color: $color-gray-200;
+  margin: $spacing-md 0 $spacing-lg 0;
+}

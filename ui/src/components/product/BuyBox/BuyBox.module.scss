@@ -1,0 +1,243 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.buyBoxContainer {
+  background-color: $color-white;
+
+  @include respond-down('md') {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: $z-index-sticky;
+    padding: $spacing-sm;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  @include respond-to('lg') {
+    position: sticky;
+    top: 120px;
+    border: 1px solid $color-border-light;
+    border-radius: $border-radius-lg;
+    padding: $spacing-lg;
+    box-shadow: $shadow-md;
+    z-index: 10;
+  }
+}
+
+.desktopInfo {
+  display: none;
+
+  @include respond-to('lg') {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: $spacing-lg;
+  }
+
+  .sellerTitle {
+    font-size: $font-size-md;
+    font-weight: $font-weight-bold;
+    color: $color-text-main;
+    margin-bottom: $spacing-md;
+  }
+
+  .infoRow {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    color: $color-text-main;
+    font-size: $font-size-sm;
+    padding: $spacing-xs 0;
+
+    .icon { color: $color-text-muted; }
+    .iconSuccess { color: $color-success; }
+    .iconInfo { color: $color-primary; }
+    .stockText { color: $color-success; font-weight: $font-weight-medium; }
+    .mutedText { color: $color-text-muted; }
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid $color-gray-100;
+    margin: $spacing-sm 0;
+  }
+}
+
+.actionSection {
+  @include flex-column;
+  gap: $spacing-md;
+  width: 100%;
+
+  @include respond-down('md') {
+    gap: $spacing-sm;
+  }
+}
+
+.priceContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  @include respond-to('lg') {
+    align-items: flex-end;
+  }
+
+  .oldPriceWrapper {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-xs;
+
+    .oldPrice {
+      font-size: $font-size-sm;
+      color: $color-text-muted;
+      text-decoration: line-through;
+
+      @include respond-down('sm') {
+        font-size: $font-size-xs;
+      }
+    }
+
+    .discountBadge {
+      background-color: $color-danger;
+      color: $color-white;
+      padding: 2px 6px;
+      border-radius: $border-radius-sm;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  .finalPrice {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-text-main;
+
+    @include respond-down('sm') {
+      font-size: $font-size-lg;
+    }
+
+    .currency {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-regular;
+
+      @include respond-down('sm') {
+        font-size: $font-size-xs;
+      }
+    }
+  }
+}
+
+.buttonContainer {
+  width: 100%;
+
+  .addToCartBtn {
+    width: 100%;
+    height: 48px;
+    background-color: $color-primary;
+    color: $color-white;
+    border: none;
+    border-radius: $border-radius-md;
+    font-size: $font-size-md;
+    font-weight: $font-weight-bold;
+    @include flex-center;
+    cursor: pointer;
+    @include transition-ease;
+
+    @include respond-down('sm') {
+      height: 40px;
+      font-size: $font-size-sm;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: $color-primary-dark;
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  .cartControls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 48px;
+    border: 1px solid $color-border-light;
+    border-radius: $border-radius-md;
+    background-color: $color-white;
+    padding: 0 $spacing-sm;
+    box-shadow: $shadow-sm;
+
+    @include respond-down('sm') {
+      height: 40px;
+    }
+
+    .controlBtn {
+      @include flex-center;
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: none;
+      color: $color-primary;
+      cursor: pointer;
+      @include transition-ease;
+
+      @include respond-down('sm') {
+        width: 28px;
+        height: 28px;
+      }
+
+      &.danger {
+        color: $color-danger;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+
+    .quantityNumber {
+      font-size: $font-size-md;
+      font-weight: $font-weight-bold;
+      color: $color-primary;
+      min-width: 24px;
+      text-align: center;
+
+      @include respond-down('sm') {
+        font-size: $font-size-sm;
+      }
+    }
+  }
+}
+
+.skeletonBuyBox {
+  width: 100%;
+  height: 120px;
+  background-color: $color-gray-100;
+  border-radius: $border-radius-md;
+  animation: pulse 1.5s infinite ease-in-out;
+
+  @include respond-to('lg') {
+    height: 400px;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

@@ -1,0 +1,28 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.layout {
+  width: 100%;
+  min-height: 100vh;
+  background: $color-neutral-50;
+  padding: $spacing-xl 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-lg;
+  display: flex;
+  gap: $spacing-xl;
+  align-items: flex-start;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 0 $spacing-md;
+  }
+}
+
+.content {
+  flex: 1;
+  min-width: 0; // جلوگیری از overflow
+}

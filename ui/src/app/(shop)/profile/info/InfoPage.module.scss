@@ -1,0 +1,8 @@
+@import '@/assets/styles/utils/variables';
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  width: 100%;
+}

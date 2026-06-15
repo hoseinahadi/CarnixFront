@@ -1,0 +1,162 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.heroContainer {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  // ❌ حذف margin-bottom: $spacing-xxxl; چون دسته‌بندی‌ها پایین‌تر می‌آیند
+  margin-bottom: $spacing-xl;
+  background-color: $color-background;
+
+  // دسکتاپ بزرگ
+  @include respond-to('xl') {
+    height: 550px;
+  }
+
+  // لپ‌تاپ
+  @include respond-to('lg') {
+    height: 450px;
+  }
+
+  // تبلت
+  @include respond-to('md') {
+    height: 350px;
+  }
+
+  // موبایل
+  @include respond-down('md') {
+    height: 280px;
+  }
+
+  // موبایل کوچک
+  @include respond-down('sm') {
+    height: 220px;
+  }
+}
+
+.sliderWrapper {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: $border-radius-lg;
+
+  
+}
+
+.swiperRoot {
+  width: 100%;
+  height: 100%;
+
+  :global(.swiper-pagination-bullet) {
+    background-color: $color-white;
+    opacity: 0.7;
+    @include transition-ease;
+  }
+  :global(.swiper-pagination-bullet-active) {
+    background-color: $color-primary;
+    opacity: 1;
+    width: 24px;
+    border-radius: $border-radius-sm;
+  }
+}
+
+.slideImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.imageOverlay {
+  @include cover-absolute;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba($color-primary-dark, 0.3) 100%
+  );
+  z-index: 1;
+}
+
+// دکمه‌های ناوبری Swiper
+:global(.swiper-button-prev),
+:global(.swiper-button-next) {
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  padding: 5px;
+
+  @include respond-down('md') {
+    display: none !important;
+  }
+
+  &::after {
+    font-size: 10px;
+    font-weight: bold;
+  }
+}
+
+// ✅ باکس جستجوی شناور - پایین اسلایدر
+.searchOverlay {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: $container-max-width;
+  z-index: $z-index-sticky;
+
+  @include respond-down('md') {
+    width: 95%;
+    bottom: -200px;
+    
+  }
+
+  @include respond-down('sm') {
+    width: 98%;
+    bottom: -20px;
+  }
+}
+
+.searchBoxPlaceholder {
+  @include flex-center;
+  background-color: $color-surface;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-lg;
+  padding: $spacing-lg;
+  min-height: 80px;
+  border: 1px solid $color-border-light;
+
+  @include respond-down('md') {
+    min-height: 60px;
+    padding: $spacing-md;
+  }
+
+  @include respond-down('sm') {
+    min-height: 50px;
+    padding: $spacing-sm;
+    border-radius: $border-radius-sm;
+  }
+
+  p {
+    color: $color-text-muted;
+    font-family: $font-family-main;
+    font-size: $font-size-md;
+    font-weight: $font-weight-medium;
+
+    @include respond-down('md') {
+      font-size: $font-size-sm;
+    }
+
+    @include respond-down('sm') {
+      font-size: $font-size-xs;
+    }
+  }
+}

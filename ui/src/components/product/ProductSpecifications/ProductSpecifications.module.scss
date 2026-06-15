@@ -1,0 +1,75 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.specContainer {
+  width: 100%;
+}
+
+.title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin-bottom: $spacing-lg;
+  padding-right: $spacing-sm;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 10%;
+    height: 80%;
+    width: 3px;
+    background: $color-primary;
+    border-radius: 4px;
+  }
+}
+
+.specTable {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  overflow: hidden;
+}
+
+.specRow {
+  display: flex;
+  border-bottom: 1px solid $color-border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:nth-child(even) {
+    background: $color-gray-50;
+  }
+}
+
+.specLabel {
+  width: 35%;
+  padding: $spacing-md $spacing-lg;
+  background: $color-gray-50;
+  border-left: 1px solid $color-border-light;
+
+  span {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-main;
+  }
+}
+
+.specValue {
+  flex: 1;
+  padding: $spacing-md $spacing-lg;
+
+  span {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+  }
+}
+
+.empty {
+  @include flex-center;
+  padding: $spacing-xxl;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}

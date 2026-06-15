@@ -1,0 +1,119 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.container {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: $spacing-xl $spacing-xxxl;
+  gap: 36px;
+  background: #fff;
+  z-index: $z-index-sticky - 1;
+  position: relative;
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  z-index: $z-index-overlay + 1;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+.triggerText {
+  font-family: 'IRANYEKAN';
+  font-weight: 400;
+  font-size: 19px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh);
+  background: rgba(0, 0, 0, 0.35);
+  z-index: $z-index-dropdown;
+}
+
+.megaMenu {
+  z-index: 1100;
+    background: none;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 1400px;
+    padding: 1px 0;
+    position: fixed;
+    top: 140px;
+    left: 55%;
+    transform: translateX(-50%);
+}
+
+/* ============ Media Queries برای منو ============ */
+@media (max-width: 1399.98px) {
+  .container {
+    padding: $spacing-xl 3rem;
+    gap: 30px;
+  }
+  
+  .megaMenu {
+    width: 85%;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .container {
+    padding: $spacing-lg 2rem;
+    gap: 24px;
+  }
+  
+  .triggerText {
+    font-size: 17px;
+  }
+  
+  .megaMenu {
+    width: 90%;
+    top: 148px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .container {
+    padding: $spacing-md $spacing-lg;
+    gap: 20px;
+    height: 44px;
+  }
+  
+  .triggerText {
+    font-size: 15px;
+  }
+  
+  .megaMenu {
+    width: 95%;
+    top: 144px;
+  }
+}
+
+/* ============ موبایل (در هدر موبایل جابجا می‌شود) ============ */
+@media (max-width: 767.98px) {
+  .container {
+    display: none;
+  }
+  
+  .megaMenu {
+    display: none;
+  }
+  
+  .overlay {
+    display: none;
+  }
+}

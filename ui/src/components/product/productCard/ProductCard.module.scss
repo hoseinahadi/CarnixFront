@@ -1,0 +1,197 @@
+@import '@/assets/styles/utils/variables'; 
+@import '@/assets/styles/utils/mixins';
+
+.card {
+  @include flex-column;
+  border: 1px solid $color-border-dark;
+  border-radius: $border-radius-lg;
+  background-color: $color-white;
+  height: 80%;
+  width: 95%;
+  box-shadow: $shadow-sm;
+  @include transition-ease(box-shadow, 0.3s);
+
+  &:hover {
+    box-shadow: $shadow-lg;
+    border-color: $color-primary;
+  }
+}
+
+.link {
+  display: block;
+  flex-grow: 1;
+  text-decoration: none;
+  height: 60%;
+}
+
+.imageWrapper {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background-color: $color-gray-50;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-md;
+  @include flex-center;
+  overflow: hidden;
+  height: 70%;
+  width: 100%;
+  border-radius: 11;
+  // استایل تصویر محصول
+  .productImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // برای اینکه عکس دفرمه نشود
+    @include transition-ease(transform, 0.4s);
+  }
+
+  .placeholder {
+    color: $color-gray-400;
+    font-size: $font-size-sm;
+  }
+
+  // وقتی روی باکس عکس هاور می‌شود
+  &:hover {
+    .productImage {
+      transform: scale(1.05); // زوم شدن ملایم عکس
+    }
+    
+    .hoverActions {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0); // افکت نمایش از بالا
+    }
+  }
+}
+
+// دکمه‌های روی عکس
+.hoverActions {
+  position: absolute;
+  top: $spacing-sm;
+  right: $spacing-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px); // حالت اولیه قبل از هاور
+  @include transition-ease(all, 0.3s);
+  z-index: 2;
+
+  .actionBtn {
+    background-color: $color-white;
+    color: $color-text-main;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid $color-border-light;
+    cursor: pointer;
+    box-shadow: $shadow-sm;
+    @include flex-center;
+    @include transition-ease(all, 0.2s);
+
+    &:hover {
+      color: $color-primary;
+      border-color: $color-primary;
+      background-color: $color-gray-50;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.title {
+  padding: $spacing-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-main;
+  font-size: $font-size-sm;
+  line-height: 1.6;
+  margin-bottom: $spacing-md;
+  @include line-clamp(2); 
+  @include transition-ease(color, 0.2s);
+
+  @include respond-to('md') {
+    font-size: $font-size-base;
+  }
+
+  &:hover {
+    color: $color-primary;
+  }
+}
+
+.footer {
+  padding: $spacing-md;
+  margin-top: auto;
+  padding-top: $spacing-sm;
+  @include flex-between;
+}
+
+.priceWrapper {
+  @include flex-column;
+
+  .priceLabel {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
+    margin-bottom: $spacing-xs;
+  }
+
+  .priceValue {
+    font-weight: $font-weight-bold;
+    color: $color-primary-dark;
+    font-size: $font-size-md;
+
+    .currency {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-regular;
+      color: $color-text-secondary;
+    }
+  }
+}
+
+.cartBtn {
+  background-color: $color-primary;
+  color: $color-white;
+  padding: $spacing-sm;
+  border-radius: $border-radius-md;
+  border: none;
+  cursor: pointer;
+  box-shadow: $shadow-sm;
+  @include flex-center;
+  @include transition-ease(background-color, 0.3s);
+
+  &:hover {
+    background-color: darken(#2563eb, 10%);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+
+
+
+// نشان تخفیف روی عکس محصول
+.discountBadge {
+  position: absolute;
+  top: $spacing-sm;
+  left: $spacing-sm; // سمت چپ قرار می‌گیرد (چون دکمه‌ها سمت راست هستند)
+  background-color: #ef4444; // قرمز رنگ
+  color: $color-white;
+  padding: 4px 8px;
+  border-radius: $border-radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  z-index: 2;
+  box-shadow: $shadow-sm;
+}
+
+// قیمت قبلی (خط خورده)
+.oldPrice {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  text-decoration: line-through;
+  margin-bottom: 2px;
+}

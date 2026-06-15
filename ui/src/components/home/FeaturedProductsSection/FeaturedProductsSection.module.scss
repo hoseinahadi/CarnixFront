@@ -1,0 +1,176 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.featuredSection {
+  background-color: white;
+  border: 1px solid $color-border-dark;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xl $spacing-md 0 $spacing-md;
+  margin-top: $spacing-xxxl;
+
+  @include respond-down('md') {
+    padding: $spacing-md $spacing-sm 0 $spacing-sm;
+    border-radius: $border-radius-md;
+  }
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+
+  @include respond-down('md') {
+    gap: $spacing-md;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  padding-bottom: $spacing-md;
+
+  @include respond-down('md') {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-sm;
+  }
+}
+
+.titleAndTabs {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xxl;
+  flex-wrap: wrap;
+
+  @include respond-down('lg') {
+    gap: $spacing-xl;
+  }
+
+  @include respond-down('md') {
+    gap: $spacing-md;
+    width: 100%;
+  }
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin: 0;
+
+  @include respond-down('md') {
+    font-size: $font-size-lg;
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: $spacing-xl;
+
+  @include respond-down('lg') {
+    gap: $spacing-md;
+  }
+
+  @include respond-down('md') {
+    gap: $spacing-sm;
+    width: 100%;
+  }
+}
+
+.tabBtn {
+  background: transparent;
+  border: 1px solid $color-border-dark;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-lg;
+  color: $color-text-secondary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: $font-size-base;
+  font-weight: 500;
+  font-family: 'IRANYEKAN';
+  border-color: $color-primary-dark;
+  color: $color-primary-dark;
+
+  @include respond-down('lg') {
+    padding: $spacing-sm;
+    font-size: $font-size-sm;
+  }
+
+  @include respond-down('md') {
+    font-size: $font-size-xs;
+    padding: $spacing-xs $spacing-sm;
+    flex: 1;
+  }
+
+  &:hover {
+    border-color: $color-primary-dark;
+    color: $color-primary-dark;
+  }
+
+  &.activeTab {
+    background-color: $color-primary-dark;
+    color: $color-white;
+    border-color: $color-primary-dark;
+  }
+}
+
+.viewAllLink {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  color: $color-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  text-decoration: none;
+
+  @include respond-down('md') {
+    font-size: $font-size-xs;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.grid {
+  display: grid;
+  // موبایل: 1 ستون
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+
+  @include respond-to('sm') {
+    // از 576 به بالا: 2 ستون
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to('lg') {
+    // از 992 به بالا: 3 ستون
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include respond-to('xl') {
+    // از 1200 به بالا: 4 ستون
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.skeletonCard {
+  background-color: #eee;
+  border-radius: $border-radius-md;
+  height: 350px;
+  animation: pulse 1.5s infinite ease-in-out;
+
+  @include respond-down('sm') {
+    height: 280px;
+  }
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}

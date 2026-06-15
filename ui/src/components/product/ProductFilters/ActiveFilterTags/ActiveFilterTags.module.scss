@@ -1,0 +1,30 @@
+// components/product/ProductFilters/ActiveFilterTags/ActiveFilterTags.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-lg $spacing-md;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 2px 8px;
+  background: $color-primary-light;
+  color: $color-primary;
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: $color-primary;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+}

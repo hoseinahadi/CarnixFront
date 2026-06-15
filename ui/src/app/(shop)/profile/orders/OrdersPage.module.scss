@@ -1,0 +1,222 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.container {
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+  padding: $spacing-xl;
+  width: 100%;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin-bottom: $spacing-xl;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $color-border-light;
+}
+
+/* ─── Loading ─── */
+.loadingContainer {
+  @include flex-center;
+  @include flex-column;
+  gap: $spacing-md;
+  padding: $spacing-xxl;
+  color: $color-text-muted;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid $color-border-light;
+  border-top-color: $color-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Empty State ─── */
+.emptyState {
+  @include flex-center;
+  @include flex-column;
+  gap: $spacing-md;
+  padding: $spacing-xxl;
+  text-align: center;
+  
+  h3 {
+    font-size: $font-size-lg;
+    color: $color-text-main;
+  }
+  
+  p {
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+  }
+}
+
+.emptyIcon {
+  color: $color-text-muted;
+  opacity: 0.5;
+}
+
+.shopButton {
+  padding: $spacing-md $spacing-xl;
+  background: $color-primary;
+  color: $color-white;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  margin-top: $spacing-md;
+  
+  &:hover {
+    background: $color-primary-dark;
+  }
+}
+
+/* ─── Order List ─── */
+.orderList {
+  @include flex-column;
+  gap: $spacing-md;
+}
+
+.orderCard {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  overflow: hidden;
+  @include transition-ease;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  background: $color-neutral-50;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.orderInfo {
+  display: flex;
+  gap: $spacing-lg;
+}
+
+.orderNumber {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-main;
+}
+
+.orderDate {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+}
+
+/* ─── Status Badges ─── */
+.statusBadge {
+  padding: $spacing-xs $spacing-md;
+  border-radius: 20px;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.pending { background: #fff3e0; color: #e65100; }
+.processing { background: #e3f2fd; color: #1565c0; }
+.shipped { background: #f3e5f5; color: #7b1fa2; }
+.delivered { background: #e8f5e9; color: #2e7d32; }
+.cancelled { background: #ffebee; color: #c62828; }
+
+.orderBody {
+  padding: $spacing-md $spacing-lg;
+}
+
+.orderMeta {
+  display: flex;
+  gap: $spacing-xl;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+
+  svg {
+    color: $color-primary;
+  }
+}
+
+.orderFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: $spacing-md $spacing-lg;
+  border-top: 1px solid $color-border-light;
+}
+
+.detailButton {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: $color-primary-light;
+  color: $color-primary;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  @include transition-ease;
+
+  &:hover {
+    background: $color-primary;
+    color: $color-white;
+  }
+}
+
+// اضافه کن به انتهای فایل OrdersPage.module.scss
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-xs;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-border-light;
+}
+
+.pageButton {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  background: $color-white;
+  color: $color-text-main;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  @include transition-ease;
+
+  &:hover {
+    background: $color-primary-light;
+    color: $color-primary;
+    border-color: $color-primary;
+  }
+
+  &.activePage {
+    background: $color-primary;
+    color: $color-white;
+    border-color: $color-primary;
+  }
+}

@@ -1,0 +1,239 @@
+// app/products/ProductsPage.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.page {
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: $spacing-lg;
+
+  @include respond-down('md') {
+    padding: $spacing-md;
+  }
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  margin-bottom: $spacing-lg;
+
+  a {
+    color: $color-primary;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+
+  span {
+    @include text-truncate;
+  }
+}
+
+.header {
+  @include flex-between;
+  margin-bottom: $spacing-lg;
+  flex-wrap: nowrap;
+  gap: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $color-border-light;
+
+  @include respond-down('md') {
+    gap: $spacing-sm;
+  }
+}
+
+.headerRight {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-md;
+  flex-shrink: 0;
+
+  @include respond-down('sm') {
+    gap: $spacing-sm;
+  }
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin: 0;
+  @include text-truncate;
+  max-width: 200px;
+
+  @include respond-down('sm') {
+    font-size: $font-size-lg;
+    max-width: 150px;
+  }
+}
+
+.count {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  white-space: nowrap;
+
+  @include respond-down('sm') {
+    font-size: $font-size-xs;
+  }
+}
+
+// مرتب‌سازی دسکتاپ
+.desktopSort {
+  display: block;
+  flex-shrink: 0;
+
+  @include respond-down('md') {
+    display: none;
+  }
+}
+
+// مرتب‌سازی + فیلتر موبایل
+.mobileSort {
+  display: none;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-shrink: 0;
+
+  @include respond-down('md') {
+    display: flex;
+  }
+}
+
+.filterToggle {
+  @include flex-center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  @include transition-ease;
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.content {
+  display: flex;
+  gap: $spacing-xl;
+  align-items: flex-start;
+
+  @include respond-down('md') {
+    flex-direction: column;
+    gap: $spacing-lg;
+  }
+}
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+
+  @include respond-down('md') {
+    display: none;
+  }
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+// پاگینیشن
+.pagination {
+  @include flex-center;
+  gap: $spacing-xs;
+  margin-top: $spacing-xl;
+
+  @include respond-down('sm') {
+    gap: 4px;
+  }
+}
+
+.pageBtn {
+  @include flex-center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 $spacing-sm;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  cursor: pointer;
+  @include transition-ease;
+
+  &:hover:not(:disabled) {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.active {
+    background: $color-primary;
+    border-color: $color-primary;
+    color: $color-white;
+  }
+
+  @include respond-down('sm') {
+    min-width: 36px;
+    height: 36px;
+    font-size: $font-size-xs;
+    padding: 0 $spacing-xs;
+  }
+}
+
+.dots {
+  @include flex-center;
+  width: 40px;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+
+  @include respond-down('sm') {
+    width: 36px;
+    font-size: $font-size-xs;
+  }
+}
+
+// دراور فیلتر موبایل
+.filterOverlay {
+  display: none;
+
+  @include respond-down('md') {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: $z-index-modal;
+  }
+}
+
+.filterDrawer {
+  @include custom-scrollbar(4px, $color-primary, transparent);
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 300px;
+  max-width: 85vw;
+  background: $color-white;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}

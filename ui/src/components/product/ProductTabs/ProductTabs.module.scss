@@ -1,0 +1,75 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.tabsContainer {
+  width: 100%;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+.tabHeader {
+  display: flex;
+  border-bottom: 2px solid $color-border-light;
+  background: $color-white;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 0;
+  }
+
+  @include respond-down('md') {
+    padding: 0 $spacing-sm;
+  }
+}
+
+.tabButton {
+  padding: $spacing-md $spacing-xl;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-muted;
+  cursor: pointer;
+  white-space: nowrap;
+  @include transition-ease;
+
+  @include respond-down('md') {
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-xs;
+  }
+
+  @include respond-down('sm') {
+    padding: $spacing-xs $spacing-sm;
+    font-size: 11px;
+  }
+
+  &:hover {
+    color: $color-text-main;
+  }
+
+  &.active {
+    color: $color-primary;
+    border-bottom-color: $color-primary;
+    font-weight: $font-weight-bold;
+  }
+}
+
+.tabContent {
+  padding: $spacing-lg;
+  min-height: 300px;
+
+  @include respond-down('md') {
+    padding: $spacing-md;
+    min-height: 200px;
+  }
+
+  @include respond-down('sm') {
+    padding: $spacing-sm;
+    min-height: 150px;
+  }
+}

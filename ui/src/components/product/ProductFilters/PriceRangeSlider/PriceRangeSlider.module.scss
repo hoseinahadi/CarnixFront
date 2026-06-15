@@ -1,0 +1,75 @@
+// components/product/ProductFilters/PriceRangeSlider/PriceRangeSlider.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.container {
+  padding: $spacing-sm 0;
+}
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+  margin-bottom: $spacing-md;
+}
+
+.sliderTrack {
+  position: relative;
+  height: 4px;
+  background: $color-gray-200;
+  border-radius: 2px;
+  margin: $spacing-lg 0;
+}
+
+.sliderFill {
+  position: absolute;
+  height: 100%;
+  background: $color-primary;
+  border-radius: 2px;
+}
+
+.slider {
+  position: absolute;
+  top: -6px;
+  width: 100%;
+  height: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  z-index: 2;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: $color-white;
+    border: 2px solid $color-primary;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: $shadow-sm;
+  }
+
+  &.sliderMin {
+    z-index: 3;
+  }
+}
+
+.applyBtn {
+  width: 100%;
+  padding: $spacing-sm;
+  background: $color-primary;
+  color: $color-white;
+  border: none;
+  border-radius: $border-radius-md;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  margin-top: $spacing-md;
+
+  &:hover {
+    background: $color-primary-dark;
+  }
+}

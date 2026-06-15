@@ -1,0 +1,272 @@
+// components/product/ProductSort/ProductSort.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.sortContainer {
+  position: relative;
+  min-width: auto;
+
+  @include respond-to('lg') {
+    min-width: 180px;
+  }
+}
+
+.sortButton {
+  @include flex-center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  @include transition-ease;
+
+  @include respond-to('lg') {
+    @include flex-between;
+    width: 100%;
+    height: auto;
+    padding: $spacing-sm $spacing-md;
+  }
+
+  &:hover {
+    border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.sortLabel {
+  display: none;
+
+  @include respond-to('lg') {
+    display: inline;
+    flex: 1;
+    text-align: right;
+  }
+}
+
+// ==================== دراپ‌داون دسکتاپ ====================
+.dropdown {
+  @include custom-scrollbar(4px, $color-primary, $color-gray-50);
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 200px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-lg;
+  z-index: $z-index-dropdown;
+  animation: fadeInDown 0.2s ease;
+
+  @include respond-to('lg') {
+    left: 0;
+    right: 0;
+    min-width: auto;
+  }
+}
+
+.dropdownItem {
+  @include flex-between;
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  background: none;
+  border: none;
+  border-bottom: 1px solid $color-border-light;
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  cursor: pointer;
+  @include transition-ease(background, 0.15s);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: $color-gray-50;
+  }
+
+  &.active {
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+    background: $color-primary-light;
+  }
+}
+
+.checkIcon {
+  color: $color-primary;
+}
+
+// ==================== مودال موبایل (Bottom Sheet) ====================
+.overlay {
+  display: none;
+
+  @include respond-down('md') {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: $z-index-modal;
+    animation: fadeIn 0.3s ease;
+  }
+}
+
+.bottomSheet {
+  display: none;
+
+  @include respond-down('md') {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 60vh;
+    background: $color-white;
+    border-radius: $border-radius-lg $border-radius-lg 0 0;
+    z-index: $z-index-modal + 1;
+    animation: slideUp 0.3s ease;
+    overflow: hidden;
+  }
+}
+
+.bottomSheetHeader {
+  @include flex-between;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+  position: sticky;
+  top: 0;
+  background: $color-white;
+  z-index: 1;
+}
+
+.bottomSheetTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin: 0;
+}
+
+.closeButton {
+  @include flex-center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: $border-radius-full;
+  color: $color-text-muted;
+  cursor: pointer;
+  @include transition-ease;
+
+  &:hover {
+    background: $color-gray-100;
+    color: $color-text-main;
+  }
+}
+
+.bottomSheetContent {
+  padding: $spacing-sm 0;
+  padding-bottom: $spacing-xl; // جای Safe Area
+}
+
+.radioItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  width: 100%;
+  padding: $spacing-md $spacing-lg;
+  background: none;
+  border: none;
+  cursor: pointer;
+  @include transition-ease(background, 0.15s);
+
+  &:hover {
+    background: $color-gray-50;
+  }
+
+  &.radioActive {
+    background: $color-primary-light;
+  }
+}
+
+.radioCircle {
+  @include flex-center;
+  width: 22px;
+  height: 22px;
+  border-radius: $border-radius-full;
+  border: 2px solid $color-border-light;
+  flex-shrink: 0;
+  @include transition-ease(border-color, 0.2s);
+
+  .radioActive & {
+    border-color: $color-primary;
+  }
+}
+
+.radioDot {
+  width: 12px;
+  height: 12px;
+  border-radius: $border-radius-full;
+  background: $color-primary;
+  animation: scaleIn 0.2s ease;
+}
+
+.radioLabel {
+  flex: 1;
+  text-align: right;
+  font-size: $font-size-sm;
+  color: $color-text-main;
+
+  .radioActive & {
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.radioItem .checkIcon {
+  flex-shrink: 0;
+}
+
+// ==================== انیمیشن‌ها ====================
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}

@@ -1,0 +1,37 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.pageContainer {
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: $spacing-xl;
+  background-color: $color-white;
+  min-height: 60vh;
+  font-family: $font-family-main;
+}
+
+.title {
+  text-align: center;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-regular;
+  color: $color-text-main;
+  font-family: $font-family-main;
+}
+
+.content {
+  margin-top: $spacing-xl;
+}
+
+.loading {
+  text-align: center;
+  padding: $spacing-xxl;
+  font-size: $font-size-lg;
+  color: $color-text-muted;
+}
+
+.emptyCart {
+  text-align: center;
+  padding: $spacing-xxl;
+  font-size: $font-size-lg;
+  color: $color-text-muted;
+}

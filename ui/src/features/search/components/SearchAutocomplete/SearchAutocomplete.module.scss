@@ -1,0 +1,301 @@
+@use "../../../../assets/styles/utils/variables" as *;
+@use "../../../../assets/styles/utils/mixins" as *;
+
+.searchContainer {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+
+  &.activeContainer {
+    z-index: $z-index-megamenu;
+  }
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: -1;
+  animation: fadeInOverlay 0.2s ease-out;
+  cursor: default;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.searchBox {
+  position: relative;
+  @include flex-between;
+  background-color: $color-gray-50;
+  border: 1px solid $color-gray-200;
+  border-radius: $border-radius-md;
+  padding: 6px $spacing-sm;
+  cursor: text;
+  @include transition-ease(all, 0.2s);
+  height: 44px;
+
+  &.active, &:focus-within {
+    background-color: $color-white;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+    border-radius: $border-radius-md $border-radius-md 0 0;
+    z-index: $z-index-megamenu;
+  }
+}
+
+.input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: $spacing-sm $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  font-family: inherit;
+  height: 100%;
+
+  &::placeholder {
+    color: $color-text-placeholder;
+  }
+}
+
+.inputOpen {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: $spacing-sm $spacing-xs;
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  font-family: inherit;
+  border-radius: 0;
+  height: 100%;
+
+  &::placeholder {
+    color: $color-text-placeholder;
+  }
+}
+
+.searchIcon {
+  color: $color-gray-400;
+  min-width: 20px;
+  padding: 0 $spacing-xs;
+}
+
+.dropdown {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background-color: $color-white;
+  border-radius: 0 0 $border-radius-md $border-radius-md;
+  box-shadow: $shadow-xl;
+  z-index: $z-index-modal;
+  border: 1px solid $color-gray-100;
+  overflow-y: auto;
+  @include custom-scrollbar(6px, $color-gray-300, transparent);
+  animation: fadeIn 0.15s ease-out;
+  max-height: 400px;
+}
+
+.defaultState {
+  padding: $spacing-md;
+}
+
+.sectionHeader {
+  @include flex-center;
+  justify-content: flex-start;
+  gap: $spacing-sm;
+  color: $color-text-main;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-md;
+
+  svg {
+    color: $color-gray-400;
+  }
+}
+
+.popularTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.tag {
+  background-color: $color-gray-50;
+  border: 1px solid $color-gray-200;
+  color: $color-text-muted;
+  padding: 4px 12px;
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+  cursor: pointer;
+  @include transition-ease(all);
+
+  &:hover {
+    background-color: $color-primary-light;
+    color: $color-primary;
+    border-color: $color-primary-light;
+  }
+}
+
+.divider {
+  height: 1px;
+  background-color: $color-gray-100;
+  margin: $spacing-md 0;
+}
+
+.popularCategories {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li a {
+    @include flex-between;
+    padding: $spacing-sm 0;
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    text-decoration: none;
+    @include transition-ease(color);
+
+    &:hover {
+      color: $color-primary;
+    }
+  }
+}
+
+.suggestionItem {
+  display: flex;
+  padding: $spacing-sm $spacing-md;
+  border-bottom: 1px solid $color-gray-50;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: $color-gray-50;
+  }
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemName {
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  font-weight: $font-weight-medium;
+}
+
+.itemMeta {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+}
+
+.statusMessage {
+  padding: $spacing-xl $spacing-md;
+  @include flex-center;
+  gap: $spacing-sm;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid $color-gray-200;
+  border-top-color: $color-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ Media Queries برای سرچ ============ */
+@media (max-width: 991.98px) {
+  .searchContainer {
+    max-width: 100%;
+  }
+  
+  .searchBox {
+    height: 40px;
+  }
+  
+  .dropdown {
+    max-height: 350px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .searchBox {
+    height: 44px;
+    border-radius: $border-radius-md;
+  }
+  
+  .searchBox.active, .searchBox:focus-within {
+    border-radius: $border-radius-md;
+  }
+  
+  .dropdown {
+    max-height: 300px;
+    border-radius: 0 0 $border-radius-md $border-radius-md;
+  }
+  
+  .defaultState {
+    padding: $spacing-sm;
+  }
+  
+  .tag {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .searchBox {
+    height: 40px;
+    padding: 4px $spacing-sm;
+  }
+  
+  .input, .inputOpen {
+    font-size: $font-size-xs;
+  }
+  
+  .searchIcon {
+    min-width: 16px;
+    padding: 0 4px;
+    width: 16px;
+    height: 16px;
+  }
+  
+  .dropdown {
+    max-height: 250px;
+  }
+  
+  .suggestionItem {
+    padding: $spacing-sm;
+  }
+  
+  .itemName {
+    font-size: $font-size-xs;
+  }
+}

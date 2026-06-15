@@ -1,0 +1,60 @@
+// src/assets/styles/base/_fonts.scss
+
+// نام مشترک برای همه وزن‌ها
+$font-name: 'IRANYEKAN'; // یا هر نام دیگری که برای فونت خود انتخاب می‌کنید
+
+// =============================================
+// وزن 300 (Regular)
+// =============================================
+@font-face {
+  font-family: $font-name;
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../../../assets/fonts/300/regular.eot'); // آدرس‌دهی به پوشه 300
+  src: 
+       url('../../../assets/fonts/300/regular.woff') format('woff'),
+       url('../../../assets/fonts/300/regular.ttf') format('truetype');
+}
+
+// =============================================
+// وزن 400 (Medium)
+// =============================================
+@font-face {
+  font-family: $font-name;
+  font-style: normal;
+  font-weight: 400; // یا normal
+  font-display: swap;
+  src: url('../../../assets/fonts/400/medium.eot'); // آدرس‌دهی به پوشه 400
+  src: 
+       url('../../../assets/fonts/400/medium.woff') format('woff'),
+       url('../../../assets/fonts/400/medium.ttf') format('truetype');
+}
+
+// =============================================
+// وزن 500 (Bold)
+// =============================================
+@font-face {
+  font-family: $font-name;
+  font-style: normal;
+  font-weight: 500; // یا medium در برخی فونت‌ها
+  font-display: swap;
+  src: url('../../../assets/fonts/500/bold.eot'); // آدرس‌دهی به پوشه 500
+  src: 
+       url('../../../assets/fonts/500/bold.woff') format('woff'),
+       url('../../../assets/fonts/500/bold.ttf') format('truetype');
+}
+
+// =============================================
+// وزن 700 (Heavy)
+// =============================================
+@font-face {
+  font-family: $font-name;
+  font-style: normal;
+  font-weight: 700; // یا bold
+  font-display: swap;
+  src: url('../../../assets/fonts/700/heavy.eot'); // آدرس‌دهی به پوشه 700
+  src: 
+       url('../../../assets/fonts/700/heavy.woff') format('woff'),
+       url('../../../assets/fonts/700/heavy.ttf') format('truetype');
+}

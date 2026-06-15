@@ -1,0 +1,142 @@
+@import '../../../../assets/styles/utils/variables';
+@import '../../../../assets/styles/utils/mixins';
+
+.heroSearchWrapper {
+  z-index: 10;
+  width: 100%;
+  padding: 0 1rem;
+  position: relative;
+  height: auto;
+  min-height: 60px;
+
+  @include respond-down('md') {
+    min-height: 80px;
+  }
+
+  @include respond-down('sm') {
+    min-height: 120px;
+  }
+}
+
+.searchForm {
+  height: 100%;
+  background-color: transparent;
+  box-shadow: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  
+  @include respond-down('md') {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  @include respond-down('sm') {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+}
+
+.formGroup {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 120px;
+
+  @include respond-down('md') {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+.selectInput {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: $color-text-main;
+  font-size: $font-size-base;
+  font-family: $font-family-main;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: left 1rem center;
+  background-size: 1em;
+
+  @include respond-down('md') {
+    font-size: $font-size-sm;
+    padding: 0.5rem 0.75rem;
+    background-position: left 0.5rem center;
+  }
+
+  @include respond-down('sm') {
+    font-size: $font-size-xs;
+    padding: 0.4rem 0.5rem;
+  }
+
+  &:disabled {
+    color: $color-text-placeholder;
+    cursor: not-allowed;
+  }
+}
+
+.divider {
+  width: 1px;
+  height: 40px;
+  background-color: $color-border-light;
+  margin: 0 0.5rem;
+
+  @include respond-down('md') {
+    display: none;
+  }
+}
+
+.searchBtn {
+  background-color: $color-primary;
+  color: $color-white;
+  border: none;
+  border-radius: $border-radius-md;
+  padding: 0.6rem 2rem;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  font-family: $font-family-main;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: darken($color-primary, 10%);
+  }
+
+  @include respond-down('md') {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  @include respond-down('sm') {
+    padding: 0.5rem;
+    font-size: $font-size-sm;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

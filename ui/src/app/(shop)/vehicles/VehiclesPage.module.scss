@@ -1,0 +1,411 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.page {
+  width: 100%;
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: $spacing-xl $spacing-lg;
+
+  @include respond-down('md') {
+    padding: $spacing-md;
+  }
+
+  @include respond-down('sm') {
+    padding: $spacing-sm;
+  }
+}
+
+/* ================= Header ================= */
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+  padding-bottom: $spacing-lg;
+  border-bottom: 2px solid $color-border-light;
+
+  @include respond-down('md') {
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-md;
+  }
+
+  @include respond-down('sm') {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-sm;
+  }
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  @include transition-ease;
+  flex-shrink: 0;
+
+  @include respond-down('sm') {
+    font-size: $font-size-xs;
+    padding: $spacing-xs $spacing-sm;
+  }
+
+  &:hover {
+    background: $color-neutral-50;
+    color: $color-text-main;
+  }
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+
+  @include respond-down('sm') {
+    gap: $spacing-xs;
+  }
+
+  .headerIcon {
+    color: $color-primary;
+
+    @include respond-down('sm') {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .pageTitle {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-text-main;
+    margin: 0;
+
+    @include respond-down('md') {
+      font-size: $font-size-lg;
+    }
+
+    @include respond-down('sm') {
+      font-size: $font-size-md;
+    }
+  }
+}
+
+/* ================= Main Content ================= */
+.content {
+  display: flex;
+  gap: $spacing-xl;
+  min-height: 500px;
+
+  @include respond-down('md') {
+    flex-direction: column;
+    gap: $spacing-md;
+    min-height: 400px;
+  }
+
+  @include respond-down('sm') {
+    min-height: 300px;
+  }
+}
+
+/* ================= Sidebar (برندهای ماشین) ================= */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-lg;
+  padding: $spacing-sm;
+  box-shadow: $shadow-sm;
+  overflow-y: auto;
+  max-height: 600px;
+  @include custom-scrollbar(5px, $color-gray-300, transparent);
+
+  @include respond-down('md') {
+    width: 100%;
+    max-height: 200px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+    padding: $spacing-xs;
+    border-radius: $border-radius-md;
+  }
+
+  @include respond-down('sm') {
+    max-height: 150px;
+  }
+}
+
+.sidebarTitle {
+  display: none;
+
+  @include respond-down('md') {
+    display: block;
+    width: 100%;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    color: $color-text-main;
+    padding: $spacing-xs $spacing-sm;
+    margin-bottom: $spacing-xs;
+  }
+}
+
+.sidebarItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-lg;
+  cursor: pointer;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: $color-text-main;
+  border-radius: $border-radius-md;
+  @include transition-ease;
+
+  @include respond-down('md') {
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    flex: 0 0 auto;
+  }
+
+  @include respond-down('sm') {
+    padding: $spacing-xs $spacing-sm;
+    font-size: $font-size-xs;
+    gap: $spacing-xs;
+  }
+
+  &:hover {
+    background: $color-primary-light;
+    color: $color-primary;
+  }
+
+  &.active {
+    background: $color-primary-light;
+    color: $color-primary;
+    font-weight: $font-weight-bold;
+  }
+
+  svg {
+    stroke-width: 1.8;
+    width: 20px;
+    height: 20px;
+
+    @include respond-down('sm') {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+/* ================= Models Section ================= */
+.models {
+  flex: 1;
+  @include flex-column;
+}
+
+.modelsHeader {
+  @include flex-between;
+  margin-bottom: $spacing-lg;
+
+  @include respond-down('md') {
+    margin-bottom: $spacing-md;
+  }
+
+  @include respond-down('sm') {
+    margin-bottom: $spacing-sm;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-xs;
+  }
+}
+
+.modelsTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+
+  @include respond-down('md') {
+    font-size: $font-size-md;
+  }
+
+  @include respond-down('sm') {
+    font-size: $font-size-base;
+  }
+}
+
+.modelsCount {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+
+  @include respond-down('sm') {
+    font-size: $font-size-xs;
+  }
+}
+
+/* ================= Models Grid ================= */
+.modelsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+  overflow-y: auto;
+  padding: $spacing-xs;
+  padding-left: $spacing-sm;
+  @include custom-scrollbar(5px, $color-gray-300, transparent);
+  max-height: 500px;
+
+  @include respond-down('lg') {
+    grid-template-columns: repeat(2, 1fr);
+    max-height: 400px;
+  }
+
+  @include respond-down('md') {
+    grid-template-columns: repeat(2, 1fr);
+    max-height: 350px;
+    gap: $spacing-sm;
+  }
+
+  @include respond-down('sm') {
+    grid-template-columns: 1fr;
+    max-height: 300px;
+    gap: $spacing-sm;
+  }
+}
+
+/* ================= Model Card ================= */
+.modelCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  background-color: #f4f5f7;
+  border-radius: $border-radius-md;
+  text-decoration: none;
+  cursor: pointer;
+  direction: ltr;
+  @include transition-ease;
+  border: 1px solid transparent;
+
+  @include respond-down('md') {
+    padding: $spacing-sm $spacing-md;
+  }
+
+  @include respond-down('sm') {
+    padding: $spacing-xs $spacing-sm;
+  }
+
+  &:hover {
+    background-color: $color-white;
+    box-shadow: $shadow-md;
+    transform: translateY(-2px);
+    border-color: $color-primary-light;
+  }
+}
+
+.modelName {
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: $color-text-main;
+  text-align: right;
+  flex: 1;
+  margin-right: $spacing-md;
+
+  @include respond-down('md') {
+    font-size: $font-size-sm;
+    margin-right: $spacing-sm;
+  }
+
+  @include respond-down('sm') {
+    font-size: $font-size-xs;
+    margin-right: $spacing-xs;
+  }
+}
+
+.carImageBox {
+  width: 60px;
+  height: 60px;
+  background-color: $color-primary;
+  border-radius: $border-radius-sm;
+  @include flex-center;
+  flex-shrink: 0;
+  box-shadow: $shadow-sm;
+
+  @include respond-down('md') {
+    width: 50px;
+    height: 50px;
+  }
+
+  @include respond-down('sm') {
+    width: 40px;
+    height: 40px;
+  }
+
+  svg {
+    @include respond-down('md') {
+      width: 32px;
+      height: 32px;
+    }
+
+    @include respond-down('sm') {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+/* ================= States ================= */
+.stateContainer {
+  flex: 1;
+  @include flex-center;
+  color: $color-text-muted;
+  font-size: $font-size-md;
+  padding: $spacing-xxl;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  @include respond-down('md') {
+    padding: $spacing-xl;
+    font-size: $font-size-sm;
+  }
+
+  @include respond-down('sm') {
+    padding: $spacing-lg;
+    font-size: $font-size-xs;
+  }
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid $color-gray-200;
+  border-top-color: $color-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  @include respond-down('md') {
+    width: 32px;
+    height: 32px;
+  }
+
+  @include respond-down('sm') {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.errorText {
+  color: $color-danger;
+}

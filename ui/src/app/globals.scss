@@ -1,0 +1,86 @@
+@import '@/assets/styles/utils/variables'; 
+@import '@/assets/styles/utils/mixins';
+
+@import '../assets/styles/base/fonts';
+*{
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  overscroll-behavior-y: none;
+}
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html {
+  height: 100%;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--foreground);
+  background: var(--background);
+  
+  // ۲. فونت اصلی سایت اینجا اعمال می‌شود!
+  // توجه: کلمه 'Vazirmatn' باید دقیقاً همان نامی باشد که جلوی متغیر $font-name در فایل _fonts.scss نوشته‌اید.
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
+  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+::-webkit-scrollbar {
+  width: 8px;  /* عرض برای اسکرول عمودی */
+  height: 8px; /* ارتفاع برای اسکرول افقی */
+}
+
+/* پس‌زمینه مسیر اسکرول (Track) */
+::-webkit-scrollbar-track {
+  background: $color-primary-light; /* آبی بسیار روشن برای بک‌گراند مسیر */
+  border-radius: $border-radius-md; /* استفاده از متغیر ردیوس شما (8px) */
+}
+
+/* خودِ دستگیره اسکرول (Thumb) در حالت عادی */
+::-webkit-scrollbar-thumb {
+  background: $color-primary; /* رنگ آبی اصلی سایت */
+  border-radius: $border-radius-md;
+  
+  /* برای نرم بودن تغییر رنگ در هاور (در مرورگرهایی که ساپورت می‌کنند) */
+  transition: background-color 0.3s ease; 
+}
+
+/* وقتی موس روی دستگیره اسکرول می‌رود (Hover) */
+::-webkit-scrollbar-thumb:hover {
+  background: $color-primary-dark; /* آبی سرمه‌ای تیره برای هاور */
+}
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}

@@ -1,0 +1,120 @@
+/* =========================================
+   1. Media Queries (مدیا کوئری‌های ریسپانسیو)
+   ========================================= */
+// موبایل فرست (Mobile First) - اعمال استایل از این سایز به بالا
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == 'sm' {
+    @media (min-width: 576px) { @content; }
+  } @else if $breakpoint == 'md' {
+    @media (min-width: 768px) { @content; }
+  } @else if $breakpoint == 'lg' {
+    @media (min-width: 992px) { @content; }
+  } @else if $breakpoint == 'xl' {
+    @media (min-width: 1200px) { @content; }
+  } @else if $breakpoint == 'xxl' {
+    @media (min-width: 1400px) { @content; }
+  }
+}
+
+// برای استایل‌هایی که فقط مخصوص موبایل هستند
+@mixin respond-down($breakpoint) {
+  @if $breakpoint == 'md' {
+    @media (max-width: 767.98px) { @content; }
+  } @else if $breakpoint == 'lg' {
+    @media (max-width: 991.98px) { @content; }
+  }
+}
+
+/* =========================================
+   2. Flexbox Helpers (کلاچ‌های فلکس‌باکس)
+   ========================================= */
+// وسط‌چین کامل (برای آیکون‌ها، مدال‌ها و دکمه‌ها)
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// فاصله بین دو عنصر (برای هدر و آیتم‌های لیست)
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// ستونی کردن عناصر
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================
+   3. Typography & Text (متن و تایپوگرافی)
+   ========================================= */
+// سه نقطه شدن متن تک خطی (بسیار مهم برای نام قطعات طولانی در کارت محصول)
+@mixin text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// سه نقطه شدن متن چند خطی (برای توضیحات محصول - مثلاً محدود به 2 خط)
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+/* =========================================
+   4. UI Components (اسکرول‌بار و ترانزیشن)
+   ========================================= */
+// اسکرول‌بار اختصاصی (بسیار کاربردی برای دراپ‌داون ساجست سرچ و مگا منو)
+@mixin custom-scrollbar($width: 6px, $thumb-color: #cbd5e1, $track-color: transparent) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: 10px;
+    &:hover {
+      background: darken($thumb-color, 15%);
+    }
+  }
+}
+
+// ترانزیشن نرم (برای هاور شدن کارت‌ها و دکمه‌ها)
+@mixin transition-ease($properties: all, $duration: 0.3s) {
+  transition: $properties $duration ease-in-out;
+}
+
+/* =========================================
+   5. Positioning (موقعیت‌دهی)
+   ========================================= */
+// وسط‌چین کردن مطلق (برای Spinner لودینگ یا پاپ‌آپ‌ها)
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// پوشاندن کل والد (برای Overlay یا پس‌زمینه تیره مدال‌ها)
+@mixin cover-absolute {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

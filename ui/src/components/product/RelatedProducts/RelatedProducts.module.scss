@@ -1,0 +1,219 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.container {
+  width: 100%;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin-bottom: $spacing-xl;
+  padding-right: $spacing-sm;
+  position: relative;
+
+  @include respond-down('md') {
+    font-size: $font-size-md;
+    margin-bottom: $spacing-md;
+  }
+
+  @include respond-down('sm') {
+    font-size: $font-size-base;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: $color-primary;
+    border-radius: 4px;
+  }
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-sm;
+
+  @include respond-to('sm') {
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-md;
+  }
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @include respond-to('lg') {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  @include respond-to('xl') {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.skeletonCard {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  padding: $spacing-md;
+  @include flex-column;
+  gap: $spacing-sm;
+}
+
+.skeletonImage {
+  width: 100%;
+  aspect-ratio: 1;
+  background: $color-gray-100;
+  border-radius: $border-radius-sm;
+  animation: pulse 1.5s infinite;
+}
+
+.skeletonText {
+  height: 16px;
+  background: $color-gray-100;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite;
+  width: 70%;
+  margin: 0 auto;
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-sm;
+
+  @include respond-to('sm') {
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-md;
+  }
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @include respond-to('lg') {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  @include respond-to('xl') {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.productCard {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  cursor: pointer;
+  @include transition-ease;
+  background: $color-white;
+
+  @include respond-down('sm') {
+    border-radius: $border-radius-md;
+  }
+
+  &:hover {
+    box-shadow: $shadow-lg;
+    border-color: $color-primary-light;
+    transform: translateY(-4px);
+  }
+}
+
+.productImage {
+  width: 100%;
+  aspect-ratio: 1;
+  background: $color-gray-50;
+  @include flex-center;
+  color: $color-text-muted;
+  overflow: hidden;
+
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    @include transition-ease;
+  }
+
+  &:hover .image {
+    transform: scale(1.05);
+  }
+}
+
+.productInfo {
+  @include flex-column;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md $spacing-md;
+
+  @include respond-down('sm') {
+    padding: $spacing-xs $spacing-sm;
+  }
+}
+
+.productName {
+  font-size: $font-size-xs;
+  color: $color-text-main;
+  font-weight: $font-weight-medium;
+  line-height: 1.6;
+  min-height: 32px;
+
+  @include respond-down('sm') {
+    font-size: 10px;
+    min-height: 24px;
+  }
+}
+
+.productPrice {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  direction: ltr;
+  text-align: right;
+
+  @include respond-down('sm') {
+    font-size: $font-size-xs;
+  }
+}
+
+.relationType {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: $color-primary;
+  background: $color-primary-light;
+  padding: 2px 8px;
+  border-radius: 10px;
+  width: fit-content;
+  margin-top: $spacing-xs;
+
+  @include respond-down('sm') {
+    font-size: 8px;
+    padding: 1px 6px;
+  }
+
+  svg {
+    width: 12px;
+    height: 12px;
+
+    @include respond-down('sm') {
+      width: 10px;
+      height: 10px;
+    }
+  }
+}
+
+.loading {
+  @include flex-center;
+  padding: $spacing-xl;
+  color: $color-text-muted;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

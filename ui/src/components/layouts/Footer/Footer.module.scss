@@ -1,0 +1,137 @@
+// آدرس‌دهی فایل متغیرها و میکسین‌ها با توجه به ساختار پوشه شما
+@import '@/assets/styles/utils/variables'; 
+@import '@/assets/styles/utils/mixins';
+
+.footer {
+  background-color: $color-primary-dark; // استفاده از رنگ سرمه‌ای هدر/فوتر
+  color: $color-white;
+  padding: $spacing-xxl 0 $spacing-md 0;
+  font-family: $font-family-main;
+  margin-top: $spacing-xxl; // فاصله فوتر از محتوای بالای صفحه
+}
+
+.container {
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+// --- بخش بالایی (گرید ستون‌ها) ---
+.topSection {
+  display: grid;
+  grid-template-columns: 1fr; // در موبایل زیر هم هستند
+  gap: $spacing-xl;
+
+  // در تبلت ۲ ستونه
+  @include respond-to('md') {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  // در دسکتاپ ۴ ستونه (ستون توضیحات کمی بزرگتر است)
+  @include respond-to('lg') {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: $spacing-xxl;
+  }
+}
+
+// -- ستون درباره ما --
+.aboutCol {
+  @include flex-column;
+  gap: $spacing-md;
+
+  .brandName {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-white;
+    margin: 0;
+  }
+
+  .description {
+    font-size: $font-size-sm;
+    color: $color-on-primary;
+    line-height: 1.8;
+    margin: 0;
+    @include line-clamp(3); // استفاده از میکسین برای محدود کردن خطوط در صورت طولانی شدن
+  }
+
+  .enamad {
+    margin-top: $spacing-sm;
+    background-color: $color-white;
+    border-radius: $border-radius-md;
+    padding: $spacing-xs;
+    width: fit-content;
+    @include flex-center;
+  }
+}
+
+// -- ستون لینک‌ها --
+.linksCol {
+  @include flex-column;
+  
+  .listTitle {
+    font-size: $font-size-md;
+    font-weight: $font-weight-medium;
+    color: $color-white;
+    margin-bottom: $spacing-md;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    @include flex-column;
+    gap: $spacing-md;
+
+    li {
+      a {
+        color: $color-on-primary;
+        font-size: $font-size-sm;
+        text-decoration: none;
+        @include transition-ease; // استفاده از ترانزیشن نرم شما
+
+        &:hover {
+          color: $color-white;
+          padding-right: $spacing-xs; // یک افکت هاور جذاب با حرکت به چپ (در حالت RTL)
+        }
+      }
+    }
+  }
+}
+
+// --- بخش پایینی (شماره و شبکه‌های اجتماعی) ---
+.bottomSection {
+  margin-top: $spacing-xxl;
+  padding-top: $spacing-md;
+  border-top: 1px solid rgba($color-on-primary, 0.2); // خط جداکننده ملایم
+  
+  @include flex-column; // در موبایل زیر هم
+  align-items: center;
+  gap: $spacing-md;
+
+  @include respond-to('md') {
+    @include flex-between; // در تبلت و دسکتاپ روبروی هم
+  }
+
+  .phone {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-white;
+  }
+
+  .socials {
+    @include flex-center;
+    gap: $spacing-md;
+
+    a {
+      color: $color-on-primary;
+      font-size: $font-size-lg;
+      @include flex-center;
+      @include transition-ease;
+
+      &:hover {
+        color: $color-white;
+        transform: translateY(-3px); // افکت پرش کوتاه در هاور
+      }
+    }
+  }
+}

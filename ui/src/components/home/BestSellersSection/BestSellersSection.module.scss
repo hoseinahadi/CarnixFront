@@ -1,0 +1,95 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.section {
+  width: 100%;
+  margin-top: $spacing-xxl;
+}
+
+.header {
+  @include flex-between;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+
+  @include respond-down('md') {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+
+  @include respond-to('md') {
+    font-size: $font-size-xl;
+  }
+}
+
+.link {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  text-decoration: none;
+  font-weight: $font-weight-medium;
+  @include flex-center;
+  gap: $spacing-xs;
+  @include transition-ease(color, 0.2s);
+
+  @include respond-to('md') {
+    font-size: $font-size-base;
+  }
+
+  &:hover {
+    color: darken(#2563eb, 15%);
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.grid {
+  display: grid;
+  // موبایل کوچک: 2 ستون
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-sm;
+
+  @include respond-to('sm') {
+    // از 576 به بالا
+    gap: $spacing-md;
+  }
+
+  @include respond-to('md') {
+    // از 768 به بالا: 3 ستون
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include respond-to('lg') {
+    // از 992 به بالا: 4 ستون
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @include respond-to('xl') {
+    // از 1200 به بالا: 5 ستون
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.skeletonCard {
+  height: 320px;
+  background-color: $color-gray-100;
+  border-radius: $border-radius-lg;
+  animation: pulse 1.5s infinite;
+
+  @include respond-down('sm') {
+    height: 240px;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

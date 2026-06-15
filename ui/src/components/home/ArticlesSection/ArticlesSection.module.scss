@@ -1,0 +1,44 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.section {
+  width: 100%;
+  margin-top: $spacing-xxl;
+}
+
+.header {
+  @include flex-between;
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+}
+
+.link {
+  /* مشابه link در BestSeller */
+  font-size: $font-size-sm;
+  color: $color-primary;
+  text-decoration: none;
+  @include flex-center;
+  gap: $spacing-xs;
+  width: 8%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to('lg') {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  // 3 ستون برای مقالات
+}

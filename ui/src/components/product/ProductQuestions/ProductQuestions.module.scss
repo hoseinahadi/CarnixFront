@@ -1,0 +1,195 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.questionsContainer {
+  width: 100%;
+}
+
+.loading, .empty {
+  @include flex-center;
+  padding: $spacing-xxl;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xl;
+  padding-bottom: $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  margin: 0;
+}
+
+.askBtn {
+  padding: $spacing-sm $spacing-xl;
+  background: $color-primary;
+  color: $color-white;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-sm;
+}
+
+/* ─── Form ─── */
+.questionForm {
+  background: $color-gray-50;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-xl;
+}
+
+.formTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-lg;
+}
+
+.field {
+  margin-bottom: $spacing-md;
+
+  textarea {
+    width: 100%;
+    padding: $spacing-md;
+    border: 1px solid $color-border-light;
+    border-radius: $border-radius-md;
+    font-size: $font-size-sm;
+    font-family: inherit;
+    resize: vertical;
+
+    &:focus {
+      outline: none;
+      border-color: $color-primary;
+    }
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+}
+
+.submitBtn {
+  padding: $spacing-sm $spacing-xl;
+  background: $color-primary;
+  color: $color-white;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.cancelBtn {
+  padding: $spacing-sm $spacing-xl;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+}
+
+/* ─── Questions List ─── */
+.questionsList {
+  @include flex-column;
+  gap: $spacing-md;
+}
+
+.questionCard {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  padding: $spacing-lg;
+}
+
+.questionHeader {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.questionIcon {
+  color: $color-primary;
+  flex-shrink: 0;
+}
+
+.questionContent {
+  flex: 1;
+}
+
+.questionText {
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  line-height: 1.8;
+  margin-bottom: $spacing-xs;
+}
+
+.questionMeta {
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+}
+
+/* ─── Answers ─── */
+.answersSection {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $color-border-light;
+}
+
+.toggleAnswers {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background: none;
+  border: none;
+  color: $color-primary;
+  cursor: pointer;
+  font-size: $font-size-sm;
+}
+
+.answersList {
+  @include flex-column;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.answerCard {
+  padding: $spacing-md;
+  background: $color-gray-50;
+  border-radius: $border-radius-md;
+
+  &.adminAnswer {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+  }
+}
+
+.answerHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+  font-size: $font-size-xs;
+  color: $color-text-muted;
+}
+
+.adminBadge {
+  padding: 1px 8px;
+  background: $color-primary;
+  color: $color-white;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+.answerText {
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  line-height: 1.8;
+}

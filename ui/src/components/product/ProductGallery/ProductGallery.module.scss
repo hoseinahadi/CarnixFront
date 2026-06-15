@@ -1,0 +1,70 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+
+  @include respond-to('sm') {
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-md;
+  }
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @include respond-to('lg') {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  @include respond-to('xl') {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.skeleton {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-lg;
+  padding: $spacing-md;
+  @include flex-column;
+  gap: $spacing-md;
+}
+
+.skeletonImage {
+  aspect-ratio: 1;
+  background: $color-gray-100;
+  border-radius: $border-radius-md;
+  animation: pulse 1.5s infinite;
+}
+
+.skeletonText {
+  height: 16px;
+  background: $color-gray-100;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite;
+  width: 80%;
+}
+
+.skeletonPrice {
+  height: 20px;
+  background: $color-gray-100;
+  border-radius: 4px;
+  animation: pulse 1.5s infinite;
+  width: 50%;
+}
+
+.empty {
+  @include flex-center;
+  padding: $spacing-xxl;
+  color: $color-text-muted;
+  font-size: $font-size-md;
+  grid-column: 1 / -1;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

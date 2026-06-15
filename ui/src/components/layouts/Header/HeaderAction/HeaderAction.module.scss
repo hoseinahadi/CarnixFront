@@ -1,0 +1,189 @@
+@import '../../../../assets/styles/utils/variables';
+@import '../../../../assets/styles/utils/mixins';
+
+.actionsContainer {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xl;
+}
+
+.dropdown {
+  z-index: $z-index-megamenu;
+}
+
+.iconButton {
+  transition: all 0.2s ease-in-out;
+  border: 1px solid $color-white !important;
+  border-radius: $border-radius-md !important;
+  padding: 8px !important;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  svg {
+    color: $color-white;
+  }
+}
+
+.popoverPaper {
+  background-color: $color-white;
+  border-radius: $border-radius-lg !important;
+  box-shadow: $shadow-xl !important;
+  border: 1px solid $color-border-dark;
+  overflow: hidden;
+}
+
+.popoverContent {
+  padding: $spacing-md;
+  width: 280px;
+  @include flex-column;
+  font-family: $font-family-main;
+  z-index: $z-index-overlay;
+}
+
+.popoverContentSmall {
+  @extend .popoverContent;
+  width: 220px;
+  z-index: 20000;
+}
+
+.popoverTitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin-bottom: $spacing-xs;
+}
+
+.popoverText {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  margin-bottom: $spacing-md;
+}
+
+.divider {
+  border-bottom: 1px solid $color-gray-200;
+  margin: $spacing-sm 0;
+  width: 100%;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: $border-radius-sm;
+  font-family: $font-family-main;
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  @include transition-ease(background-color, 0.2s);
+
+  &:hover {
+    background-color: $color-gray-50;
+  }
+
+  svg {
+    color: $color-gray-500;
+  }
+
+  &.danger {
+    color: $color-danger;
+    
+    svg {
+      color: $color-danger;
+    }
+    
+    &:hover {
+      background-color: rgba($color-danger, 0.05);
+    }
+  }
+}
+
+.primaryButton {
+  background-color: $color-primary;
+  color: $color-white;
+  border: none;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  font-family: $font-family-main;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  @include flex-center;
+  @include transition-ease;
+
+  &:hover {
+    background-color: $color-primary-dark;
+    box-shadow: $shadow-md;
+  }
+}
+
+/* ============ Media Queries ============ */
+@media (max-width: 1199.98px) {
+  .actionsContainer {
+    gap: $spacing-md;
+  }
+  .iconButton {
+    padding: 6px !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .actionsContainer {
+    gap: $spacing-sm;
+  }
+  .iconButton {
+    padding: 5px !important;
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  .popoverContent {
+    width: 240px;
+  }
+  .popoverContentSmall {
+    width: 200px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .actionsContainer {
+    gap: $spacing-xs;
+  }
+  .iconButton {
+    padding: 4px !important;
+    border: none !important;
+    svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+  .popoverContent {
+    width: 260px;
+    padding: $spacing-sm;
+  }
+  .popoverContentSmall {
+    width: 200px;
+    padding: $spacing-sm;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .iconButton {
+    padding: 3px !important;
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  .popoverContent {
+    width: 240px;
+  }
+  .popoverContentSmall {
+    width: 180px;
+  }
+}

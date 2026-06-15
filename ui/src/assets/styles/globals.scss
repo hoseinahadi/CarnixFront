@@ -1,0 +1,21 @@
+// src/assets/styles/globals.scss
+
+// ۱. اضافه کردن فونت‌ها
+@import 'base/fonts';
+// ۲. ریست کردن استایل‌های پیش‌فرض مرورگر
+// ۳. استایل‌های پایه‌ای بادی (Body)
+@import 'utils/variables'; // فقط برای استفاده در همین فایل
+
+body {
+  font-family: $font-family-main;
+  background-color: $color-background;
+  color: $color-text-main;
+  direction: rtl; // راست‌چین کردن کل سایت
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+// نکته: هیچ کامپوننتی (مثل دکمه، هدر، کارت محصول) نباید اینجا استایل‌دهی شود!

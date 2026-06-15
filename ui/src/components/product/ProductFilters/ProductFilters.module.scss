@@ -1,0 +1,227 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.filters {
+  width: 260px;
+  flex-shrink: 0;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  border: 1px solid $color-border-light;
+  overflow: hidden;
+
+  @include respond-down('lg') {
+    width: 100%;
+    border: none;
+    border-radius: 0;
+  }
+
+  &.mobile {
+    width: 100%;
+    border: none;
+    border-radius: 0;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+
+  @include respond-down('md') {
+    padding: $spacing-sm $spacing-md;
+  }
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-md;
+  color: $color-text-main;
+
+  @include respond-down('md') {
+    font-size: $font-size-sm;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.clearAllBtn {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  font-size: $font-size-xs;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: $color-text-muted;
+  cursor: pointer;
+}
+
+.stockSection {
+  padding: $spacing-md $spacing-lg;
+  border-top: 1px solid $color-border-light;
+  
+  @include respond-down('md') {
+    padding: $spacing-sm $spacing-md;
+  }
+}
+
+.stockToggle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.stockLabel {
+  font-size: $font-size-sm;
+  color: $color-text-main;
+  font-weight: $font-weight-medium;
+  
+  @include respond-down('md') {
+    font-size: $font-size-xs;
+  }
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .sliderRound {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+
+    &:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+  }
+
+  input:checked + .sliderRound {
+    background-color: #9aaebf;
+  }
+
+  input:checked + .sliderRound:before {
+    transform: translateX(20px);
+  }
+}
+
+.optionsList {
+  @include flex-column;
+  gap: $spacing-sm;
+  max-height: 200px;
+  overflow-y: auto;
+  @include custom-scrollbar(4px, $color-gray-200, transparent);
+
+  @include respond-down('md') {
+    max-height: 150px;
+  }
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  cursor: pointer;
+  padding: $spacing-xs 0;
+
+  @include respond-down('md') {
+    font-size: $font-size-xs;
+    gap: $spacing-xs;
+  }
+
+  input[type="checkbox"] {
+    display: none;
+  }
+
+  .checkmark {
+    width: 18px;
+    height: 18px;
+    border: 1px solid $color-border-dark;
+    border-radius: 4px;
+    @include flex-center;
+    @include transition-ease;
+    flex-shrink: 0;
+
+    @include respond-down('md') {
+      width: 16px;
+      height: 16px;
+    }
+
+    &::after {
+      content: '';
+      display: none;
+      width: 10px;
+      height: 10px;
+      background: $color-primary;
+      border-radius: 2px;
+
+      @include respond-down('md') {
+        width: 8px;
+        height: 8px;
+      }
+    }
+  }
+
+  input:checked + .checkmark {
+    border-color: $color-primary;
+    background: $color-primary;
+    &::after {
+      display: block;
+      background: $color-white;
+      mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E") center/cover;
+      width: 12px;
+      height: 12px;
+      background: $color-white;
+      border-radius: 0;
+
+      @include respond-down('md') {
+        width: 10px;
+        height: 10px;
+      }
+    }
+  }
+
+  &:hover {
+    color: $color-text-main;
+  }
+}

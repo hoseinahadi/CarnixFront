@@ -1,0 +1,68 @@
+@import '../../../assets/styles/utils/variables';
+@import '../../../assets/styles/utils/mixins';
+
+.container {
+  position: sticky;
+  top: 0;
+  z-index: $z-index-header;
+  background-color: #fff;
+  transition: box-shadow 0.3s ease;
+  width: 100%;
+}
+
+/* ظرف BottomHeader */
+.bottomHeaderContainer {
+  overflow: hidden;
+  transition:
+    max-height 0.4s ease-in-out,
+    opacity 0.4s ease-in-out,
+    visibility 0s linear 0.4s;
+}
+
+/* وقتی قابل‌دیدن است */
+.visible {
+  max-height: 150px;
+  opacity: 1;
+  visibility: visible;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, .2);
+  transition:
+    max-height 0.4s ease-in-out,
+    opacity 0.4s ease-in-out,
+    visibility 0s linear 0s;
+}
+
+/* وقتی مخفی است */
+.hidden {
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ============ 🖥️ دسکتاپ بزرگ (1400px و بالاتر) ============ */
+@media (min-width: 1400px) {
+  .container {
+    // استایل پایه
+  }
+}
+
+/* ============ 🖥️ دسکتاپ متوسط (1200px تا 1399px) ============ */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  // تنظیمات خاص اگر نیاز است
+}
+
+/* ============ 💻 لپ‌تاپ (992px تا 1199px) ============ */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  // تنظیمات خاص اگر نیاز است
+}
+
+/* ============ 📱 تبلت و موبایل بزرگ (768px تا 991px) ============ */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  // تنظیمات خاص اگر نیاز است
+}
+
+/* ============ 📱 موبایل (767px و پایین) ============ */
+@media (max-width: 767.98px) {
+  .bottomHeaderContainer {
+    display: none; // در موبایل توسط MobileMenu جایگزین می‌شود
+  }
+}
