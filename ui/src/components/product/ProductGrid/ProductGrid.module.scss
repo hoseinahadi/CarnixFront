@@ -3,62 +3,136 @@
 
 .grid {
   display: grid;
+  // ⭐ حالت پیش‌فرض و دسکتاپ دقیقاً روی ۴ ستون ثابت حفظ شد
   grid-template-columns: repeat(4, 1fr);
   gap: $spacing-md;
-  padding: $spacing-md;
 
-  @media (max-width: $breakpoint-lg) {
+  // لپ‌تاپ‌های کوچک و تبلت‌های بزرگ
+  @media (max-width: 1200px) {
     grid-template-columns: repeat(3, 1fr);
   }
-  @media (max-width: $breakpoint-md) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  @media (max-width: $breakpoint-sm) {
-    grid-template-columns: 1fr 1fr;
+
+  // تبلت‌ها (معمولی و آیپد)
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(3, 1fr);
     gap: $spacing-sm;
+  }
+
+  // تبلت‌های کوچک و موبایل‌های بزرگ (فبلت‌ها)
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-sm;
+  }
+
+  // موبایل‌های معمولی
+  @media (max-width: 576px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 4px;
+  }
+  
+  // موبایل‌های خیلی کوچک (مثل آیفون SE یا مدل‌های قدیمی)
+  @media (max-width: 380px) {
+    grid-template-columns: 1fr;
   }
 }
 
-.skeleton {
+// ⭐ اسکلتون کارت
+.skeletonCard {
+  background: $color-white;
   border: 1px solid $color-border-light;
   border-radius: $border-radius-lg;
-  padding: $spacing-md;
+  overflow: hidden;
   @include flex-column;
-  gap: $spacing-md;
 }
 
 .skeletonImage {
+  width: 100%;
   aspect-ratio: 1;
-  background: $color-gray-100;
-  border-radius: $border-radius-md;
-  animation: pulse 1.5s infinite;
+  background: linear-gradient(90deg, $color-gray-100 25%, $color-gray-200 50%, $color-gray-100 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }
 
-.skeletonText {
-  height: 16px;
-  background: $color-gray-100;
+.skeletonContent {
+  padding: $spacing-md;
+  @include flex-column;
+  gap: $spacing-sm;
+}
+
+.skeletonTitle {
+  height: 18px;
+  background: linear-gradient(90deg, $color-gray-100 25%, $color-gray-200 50%, $color-gray-100 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 4px;
-  animation: pulse 1.5s infinite;
   width: 80%;
 }
 
 .skeletonPrice {
-  height: 20px;
-  background: $color-gray-100;
+  height: 22px;
+  background: linear-gradient(90deg, $color-gray-100 25%, $color-gray-200 50%, $color-gray-100 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 4px;
-  animation: pulse 1.5s infinite;
-  width: 50%;
+  width: 55%;
+}
+
+.skeletonButton {
+  height: 38px;
+  background: linear-gradient(90deg, $color-gray-100 25%, $color-gray-200 50%, $color-gray-100 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: $border-radius-md;
+  margin-top: $spacing-xs;
+}
+
+// ⭐ انیمیشن‌ها
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
+// ⭐ حالت خالی (empty state)
 .empty {
-  @include flex-center;
-  padding: $spacing-xxl;
-  color: $color-text-muted;
-  font-size: $font-size-md;
   grid-column: 1 / -1;
+  @include flex-center;
+  @include flex-column;
+  padding: $spacing-xxl * 2 $spacing-md;
+  text-align: center;
+  min-height: 400px;
+}
+
+.emptyIcon {
+  font-size: 64px;
+  margin-bottom: $spacing-lg;
+  opacity: 0.5;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.emptyTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin-bottom: $spacing-sm;
+}
+
+.emptyDescription {
+  font-size: $font-size-md;
+  color: $color-text-muted;
+  max-width: 400px;
+  line-height: 1.6;
 }

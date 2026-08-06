@@ -1,0 +1,23 @@
+// components/profile/BackToSidebar/BackToSidebar.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.backButton {
+  display: none;
+  
+  @media (max-width: $breakpoint-md) {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    
+    
+    svg {
+      width: 34px;
+      height: 30px;
+    }
+  }
+}

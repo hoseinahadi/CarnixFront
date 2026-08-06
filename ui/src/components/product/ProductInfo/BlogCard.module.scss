@@ -1,0 +1,82 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.card {
+  background-color: $color-white;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-md;
+  @include transition-ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  touch-action: pan-y; // اجازه اسکرول عمودی صفحه به مرورگر
+  -webkit-user-drag: none;
+
+  &:hover {
+    box-shadow: $shadow-lg;
+    transform: translateY(-4px);
+
+    .image {
+      transform: scale(1.05);
+    }
+  }
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9; // نسبت تصویر استاندارد برای بلاگ
+  overflow: hidden;
+}
+
+.image {
+  object-fit: cover;
+  @include transition-ease(transform, 0.4s);
+  -webkit-user-drag: none; // جلوگیری از کشیده شدن عکس
+}
+
+.content {
+  padding: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  a {
+    text-decoration: none;
+  }
+}
+
+.title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin: 0 0 $spacing-sm 0;
+  @include line-clamp(2);
+  line-height: 1.6;
+}
+
+.excerpt {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  margin: 0 0 $spacing-md 0;
+  @include line-clamp(3); // استفاده از میکسین شما برای سه نقطه شدن خط سوم
+  line-height: 1.8;
+  flex-grow: 1;
+}
+
+.readMore {
+  @include flex-center;
+  justify-content: flex-end;
+  gap: $spacing-xs;
+  color: $color-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  margin-top: auto;
+  @include transition-ease;
+
+  &:hover {
+    color: $color-primary-dark;
+    gap: $spacing-sm; // افکت جذاب حرکت فلش به سمت چپ در زمان هاور
+  }
+}

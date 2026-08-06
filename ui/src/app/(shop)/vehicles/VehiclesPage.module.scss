@@ -20,64 +20,39 @@
 .pageHeader {
   display: flex;
   align-items: center;
-  gap: $spacing-lg;
+  justify-content: space-between;
   margin-bottom: $spacing-xl;
   padding-bottom: $spacing-lg;
-  border-bottom: 2px solid $color-border-light;
+  border-bottom: 1px solid $color-border-light;
 
-  @include respond-down('md') {
+  @include respond-down('sm') {
+    flex-direction: column-reverse;
+    align-items: flex-start;
     gap: $spacing-md;
     margin-bottom: $spacing-md;
     padding-bottom: $spacing-md;
-  }
-
-  @include respond-down('sm') {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $spacing-sm;
-  }
-}
-
-.backButton {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  background: none;
-  border: none;
-  color: $color-text-muted;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $border-radius-md;
-  @include transition-ease;
-  flex-shrink: 0;
-
-  @include respond-down('sm') {
-    font-size: $font-size-xs;
-    padding: $spacing-xs $spacing-sm;
-  }
-
-  &:hover {
-    background: $color-neutral-50;
-    color: $color-text-main;
   }
 }
 
 .headerContent {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: $spacing-md;
 
-  @include respond-down('sm') {
-    gap: $spacing-xs;
-  }
-
-  .headerIcon {
-    color: $color-primary;
+  .iconWrapper {
+    @include flex-center;
+    width: 48px;
+    height: 48px;
+    background-color: $color-primary-light;
+    border-radius: $border-radius-md;
+    
+    .headerIcon {
+      color: $color-primary;
+    }
 
     @include respond-down('sm') {
-      width: 24px;
-      height: 24px;
+      width: 40px;
+      height: 40px;
     }
   }
 
@@ -87,75 +62,119 @@
     color: $color-text-main;
     margin: 0;
 
-    @include respond-down('md') {
+    @include respond-down('sm') {
       font-size: $font-size-lg;
     }
+  }
+}
+.carImage {
+          object-fit: contain;
+    background-color: #ffffff;
+    width: 130%;
+    height: 130%;
+  
+}
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  color: $color-text-main;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius-full;
+  font-family: 'IRANYEKAN';
+  @include transition-ease;
+  box-shadow: $shadow-sm;
 
-    @include respond-down('sm') {
-      font-size: $font-size-md;
-    }
+  &:hover {
+    background: $color-neutral-50;
+    border-color: $color-gray-300;
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  @include respond-down('sm') {
+    width: 100%;
+    justify-content: center;
+    padding: $spacing-sm;
   }
 }
 
 /* ================= Main Content ================= */
 .content {
   display: flex;
-  gap: $spacing-xl;
+  gap: $spacing-xxl;
+  align-items: flex-start;
   min-height: 500px;
+
+  @include respond-down('lg') {
+    gap: $spacing-xl;
+  }
 
   @include respond-down('md') {
     flex-direction: column;
-    gap: $spacing-md;
+    gap: $spacing-lg;
     min-height: 400px;
-  }
-
-  @include respond-down('sm') {
-    min-height: 300px;
   }
 }
 
 /* ================= Sidebar (برندهای ماشین) ================= */
 .sidebar {
-  width: 260px;
+  width: 280px;
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
   background: $color-white;
   border: 1px solid $color-border-light;
-  border-radius: $border-radius-lg;
-  padding: $spacing-sm;
+  border-radius: $border-radius-xl;
+  padding: $spacing-md;
   box-shadow: $shadow-sm;
-  overflow-y: auto;
-  max-height: 600px;
-  @include custom-scrollbar(5px, $color-gray-300, transparent);
+  position: sticky;
+  top: 100px; 
 
   @include respond-down('md') {
     width: 100%;
-    max-height: 200px;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: $spacing-xs;
-    padding: $spacing-xs;
-    border-radius: $border-radius-md;
-  }
-
-  @include respond-down('sm') {
-    max-height: 150px;
+    position: relative;
+    top: 0;
+    padding: $spacing-sm;
+    border-radius: $border-radius-lg;
   }
 }
 
 .sidebarTitle {
-  display: none;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-text-muted;
+  margin-bottom: $spacing-md;
+  padding: 0 $spacing-xs;
+  text-transform: uppercase;
 
   @include respond-down('md') {
-    display: block;
-    width: 100%;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-bold;
-    color: $color-text-main;
-    padding: $spacing-xs $spacing-sm;
-    margin-bottom: $spacing-xs;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.sidebarList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 600px;
+  overflow-y: auto;
+  @include custom-scrollbar(4px, $color-gray-200, transparent);
+  padding-right: 4px;
+
+  @include respond-down('md') {
+    flex-direction: row;
+    max-height: max-content;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: $spacing-xs;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 }
 
@@ -163,68 +182,75 @@
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  padding: $spacing-md $spacing-lg;
+  padding: $spacing-sm $spacing-md;
   cursor: pointer;
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
-  color: $color-text-main;
+  color: $color-text-secondary;
   border-radius: $border-radius-md;
-  @include transition-ease;
+  border-right: 3px solid transparent; 
+  @include transition-ease(all, 0.2s);
 
   @include respond-down('md') {
-    padding: $spacing-sm $spacing-md;
-    font-size: $font-size-sm;
     flex: 0 0 auto;
-  }
-
-  @include respond-down('sm') {
-    padding: $spacing-xs $spacing-sm;
-    font-size: $font-size-xs;
-    gap: $spacing-xs;
+    border-right: none;
+    border-bottom: 2px solid transparent;
+    border-radius: $border-radius-full;
+    background-color: $color-gray-50;
+    padding: 8px 16px;
+    font-size: $font-size-sm;
   }
 
   &:hover {
-    background: $color-primary-light;
-    color: $color-primary;
+    background: $color-gray-50;
+    color: $color-text-main;
   }
 
   &.active {
     background: $color-primary-light;
     color: $color-primary;
     font-weight: $font-weight-bold;
+    border-right-color: $color-primary;
+
+    @include respond-down('md') {
+      border-bottom-color: transparent; 
+    }
+
+    .makeIcon {
+      color: $color-primary;
+    }
   }
 
-  svg {
-    stroke-width: 1.8;
-    width: 20px;
-    height: 20px;
+  .makeIcon {
+    color: $color-text-muted;
+    @include transition-ease;
+  }
 
-    @include respond-down('sm') {
-      width: 16px;
-      height: 16px;
-    }
+  .makeName {
+    white-space: nowrap;
   }
 }
 
 /* ================= Models Section ================= */
 .models {
   flex: 1;
+  width: 100%;
   @include flex-column;
 }
 
 .modelsHeader {
   @include flex-between;
-  margin-bottom: $spacing-lg;
-
-  @include respond-down('md') {
-    margin-bottom: $spacing-md;
-  }
+  margin-bottom: $spacing-xl;
+  background-color: $color-gray-50;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $border-radius-lg;
 
   @include respond-down('sm') {
-    margin-bottom: $spacing-sm;
     flex-direction: column;
     align-items: flex-start;
     gap: $spacing-xs;
+    padding: $spacing-sm $spacing-md;
+    margin-bottom: $spacing-md;
   }
 }
 
@@ -232,180 +258,177 @@
   font-size: $font-size-lg;
   font-weight: $font-weight-bold;
   color: $color-text-main;
-
-  @include respond-down('md') {
-    font-size: $font-size-md;
-  }
+  margin: 0;
 
   @include respond-down('sm') {
-    font-size: $font-size-base;
+    font-size: $font-size-md;
   }
 }
 
-.modelsCount {
-  font-size: $font-size-sm;
-  color: $color-text-muted;
-
-  @include respond-down('sm') {
-    font-size: $font-size-xs;
-  }
+.modelsBadge {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+  background-color: $color-white;
+  padding: 4px 12px;
+  border-radius: $border-radius-full;
+  box-shadow: $shadow-sm;
 }
 
 /* ================= Models Grid ================= */
 .modelsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: $spacing-md;
-  overflow-y: auto;
-  padding: $spacing-xs;
-  padding-left: $spacing-sm;
-  @include custom-scrollbar(5px, $color-gray-300, transparent);
-  max-height: 500px;
-
-  @include respond-down('lg') {
-    grid-template-columns: repeat(2, 1fr);
-    max-height: 400px;
-  }
-
-  @include respond-down('md') {
-    grid-template-columns: repeat(2, 1fr);
-    max-height: 350px;
-    gap: $spacing-sm;
-  }
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $spacing-lg;
 
   @include respond-down('sm') {
     grid-template-columns: 1fr;
-    max-height: 300px;
-    gap: $spacing-sm;
+    gap: $spacing-md;
   }
 }
 
 /* ================= Model Card ================= */
 .modelCard {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: $spacing-md $spacing-lg;
-  background-color: #f4f5f7;
-  border-radius: $border-radius-md;
+  padding: $spacing-md;
+  background-color: $color-white;
+  border-radius: $border-radius-xl;
   text-decoration: none;
   cursor: pointer;
-  direction: ltr;
-  @include transition-ease;
-  border: 1px solid transparent;
-
-  @include respond-down('md') {
-    padding: $spacing-sm $spacing-md;
-  }
+  border: 1px solid $color-border-light;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: $spacing-md;
 
   @include respond-down('sm') {
-    padding: $spacing-xs $spacing-sm;
+    padding: $spacing-sm;
+    border-radius: $border-radius-lg;
   }
 
   &:hover {
-    background-color: $color-white;
-    box-shadow: $shadow-md;
-    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    transform: translateY(-4px);
     border-color: $color-primary-light;
+
+    .arrowIcon {
+      color: $color-primary;
+      transform: translateX(-4px);
+    }
+    
+    .carImageBox {
+      background-color: $color-primary-light;
+      .carIcon {
+        color: $color-primary;
+      }
+    }
+  }
+}
+
+.carImageBox {
+  width: 64px;
+  height: 64px;
+  background-color: $color-gray-50;
+  border-radius: $border-radius-md;
+  @include flex-center;
+  flex-shrink: 0;
+  @include transition-ease;
+
+  @include respond-down('sm') {
+    width: 56px;
+    height: 56px;
+  }
+
+  .carIcon {
+    color: $color-text-muted;
+    @include transition-ease;
   }
 }
 
 .modelName {
   font-size: $font-size-base;
-  font-weight: $font-weight-medium;
+  font-weight: $font-weight-bold;
   color: $color-text-main;
-  text-align: right;
   flex: 1;
-  margin-right: $spacing-md;
-
-  @include respond-down('md') {
-    font-size: $font-size-sm;
-    margin-right: $spacing-sm;
-  }
 
   @include respond-down('sm') {
-    font-size: $font-size-xs;
-    margin-right: $spacing-xs;
+    font-size: $font-size-sm;
   }
 }
 
-.carImageBox {
-  width: 60px;
-  height: 60px;
-  background-color: $color-primary;
-  border-radius: $border-radius-sm;
-  @include flex-center;
-  flex-shrink: 0;
-  box-shadow: $shadow-sm;
+.arrowIcon {
+  color: $color-gray-400;
+  @include transition-ease;
+}
 
-  @include respond-down('md') {
-    width: 50px;
-    height: 50px;
-  }
+/* ================= Skeleton Loader ================= */
+.skeletonCard {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md;
+  background-color: $color-white;
+  border-radius: $border-radius-xl;
+  border: 1px solid $color-border-light;
+  gap: $spacing-md;
 
   @include respond-down('sm') {
-    width: 40px;
-    height: 40px;
+    padding: $spacing-sm;
+    border-radius: $border-radius-lg;
   }
+}
 
-  svg {
-    @include respond-down('md') {
-      width: 32px;
-      height: 32px;
-    }
+.skeletonIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: $border-radius-md;
+  background: linear-gradient(90deg, $color-gray-50 25%, $color-gray-100 50%, $color-gray-50 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite linear;
+  flex-shrink: 0;
 
-    @include respond-down('sm') {
-      width: 24px;
-      height: 24px;
-    }
+  @include respond-down('sm') {
+    width: 56px;
+    height: 56px;
   }
+}
+
+.skeletonText {
+  height: 16px;
+  width: 60%;
+  border-radius: $border-radius-sm;
+  background: linear-gradient(90deg, $color-gray-50 25%, $color-gray-100 50%, $color-gray-50 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite linear;
+}
+
+@keyframes skeletonLoading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* ================= States ================= */
 .stateContainer {
-  flex: 1;
+  width: 100%;
+  min-height: 300px;
   @include flex-center;
-  color: $color-text-muted;
-  font-size: $font-size-md;
-  padding: $spacing-xxl;
   flex-direction: column;
   gap: $spacing-md;
-
-  @include respond-down('md') {
-    padding: $spacing-xl;
-    font-size: $font-size-sm;
-  }
-
-  @include respond-down('sm') {
-    padding: $spacing-lg;
-    font-size: $font-size-xs;
-  }
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid $color-gray-200;
-  border-top-color: $color-primary;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-
-  @include respond-down('md') {
-    width: 32px;
-    height: 32px;
-  }
+  color: $color-text-muted;
+  background-color: $color-white;
+  border: 1px dashed $color-border-light;
+  border-radius: $border-radius-xl;
 
   @include respond-down('sm') {
-    width: 24px;
-    height: 24px;
+    min-height: 200px;
   }
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.emptyStateIcon {
+  color: $color-gray-300;
+  margin-bottom: $spacing-xs;
 }
 
-.errorText {
-  color: $color-danger;
+.emptyStateText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
 }

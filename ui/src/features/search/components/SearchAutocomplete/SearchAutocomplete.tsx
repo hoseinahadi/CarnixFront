@@ -6,11 +6,9 @@ import { usePathname } from 'next/navigation';
 import { useDebounce } from '@/features/search/hooks/useDebounce';
 import styles from './SearchAutocomplete.module.scss';
 import { Search, TrendingUp, ChevronLeft } from 'lucide-react';
+import { SearchSuggestion } from "@/models/search/SearchSuggestion";
 
-// ایمپورت کردن آبجکت API و تایپ‌ها
-
-import { SearchSuggestion } from '@/models/search/SearchSuggestion';
-import { searchApi } from '../../api/routes';
+import { searchApi } from '@/features/search/api/routes'; 
 
 export default function SearchAutocomplete() {
   const [query, setQuery] = useState('');
@@ -23,7 +21,7 @@ export default function SearchAutocomplete() {
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
 
-  // بستن دراپ‌دان هنگام تغییر مسیر (تغییر صفحه)
+  // بستن دراپ‌دان هنگام تغییر مسیر
   useEffect(() => {
     if (prevPathname.current !== pathname) {
       setIsOpen(false);
@@ -33,25 +31,38 @@ export default function SearchAutocomplete() {
     }
   }, [pathname]);
 
-  // جستجو با تاخیر (دی‌باونس) با استفاده از searchApi
+  // 🟢 جستجو با تاخیر و کنترل دقیق چرخه حیات (رفع Memory Leak و Race Condition)
   useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true; 
+
     if (debouncedQuery.length > 2) {
       setIsLoading(true);
       
-      // فراخوانی API به تمیزترین شکل ممکن
-      searchApi.getSuggestions(debouncedQuery)
-        .then(data => {
-          setSuggestions(data || []);
-          setIsLoading(false);
+      // 🟢 اصلاح شد: فراخوانی متد getSuggestions از داخل آبجکت searchApi
+      searchApi.getSuggestions(debouncedQuery, controller.signal)
+        .then((data: any) => {
+          if (isMounted) {
+            setSuggestions(data || []);
+            setIsLoading(false);
+          }
         })
         .catch(() => {
-          setSuggestions([]);
-          setIsLoading(false);
+          if (isMounted) {
+            setSuggestions([]);
+            setIsLoading(false);
+          }
         });
         
     } else {
       setSuggestions([]);
     }
+
+    return () => {
+      isMounted = false; 
+      controller.abort(); 
+      setIsLoading(false);
+    };
   }, [debouncedQuery]);
 
   // مدیریت اسکرول بادی
@@ -76,7 +87,6 @@ export default function SearchAutocomplete() {
   return (
     <div className={`${styles.searchContainer} ${isOpen ? styles.activeContainer : ''}`}>
       
-      {/* Overlay برای بستن دراپ دان هنگام کلیک بیرون */}
       {isOpen && (
         <div
           className={styles.overlay}
@@ -150,10 +160,10 @@ export default function SearchAutocomplete() {
 
           {query.trim().length > 0 && !isLoading && suggestions.length > 0 && (
             <div className={styles.resultsList}>
-              {suggestions.map(item => (
+              {suggestions.map((item, index) => (
                 <Link
                   href={`/${item.type}/${item.slug}`}
-                  key={item.id}
+                  key={`suggestion-${item.type}-${item.id}-${index}`}
                   className={styles.suggestionItem}
                   onClick={() => setIsOpen(false)}
                 >

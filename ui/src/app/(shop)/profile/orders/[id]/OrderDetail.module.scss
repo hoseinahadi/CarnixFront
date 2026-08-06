@@ -1,0 +1,535 @@
+// app/profile/orders/[id]/OrderDetail.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+/* 🟢 اعمال یکپارچه فونت و RTL برای همه دستگاه‌ها */
+.container {
+  width: 100%;
+  margin: 0 auto;
+  font-family: 'IRANYEKAN', Tahoma, sans-serif !important;
+  direction: rtl;
+  color: #374151;
+  background-color: #ffffff; // بک گراند سفید
+
+  * {
+    font-family: 'IRANYEKAN', Tahoma, sans-serif !important;
+  }
+}
+
+/* ─── Header ─── */
+.pageHeader {
+  margin-bottom: 32px;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 16px;
+}
+
+// Mobile Header
+.mobileHeader {
+  display: none;
+  @media (max-width: 768px) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.mobileTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backIconBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: #111827;
+}
+
+.mobileTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+
+.mobileCancelBtn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+// Desktop Header
+.desktopHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.desktopTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.breadcrumb {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.desktopActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.desktopCancelBtn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 14px;
+  cursor: pointer;
+  &:hover { color: #ef4444; }
+}
+
+.btnReorder {
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+  background: transparent;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    background: #eff6ff;
+  }
+}
+
+
+/* ─── Main Content ─── */
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ─── Stepper ─── */
+.stepperWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto 16px;
+  padding: 0 10px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+
+  span {
+    font-size: 11px;
+    font-weight: 600;
+    color: #d1d5db; // طوسی خیلی روشن برای حالت غیرفعال
+  }
+
+  &.active {
+    span { color: #10b981; } // متن سبز
+    .stepIconBox {
+      border-color: #10b981;
+      color: #10b981;
+      background: white; // بک‌گراند پیش‌فرض فعال
+      
+      // اولین استپ تکمیل شده توپر است (طبق عکس)
+      &:first-child {
+        background: #10b981;
+        color: white;
+      }
+    }
+  }
+}
+
+.stepIconBox {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px; // باکس گوشه‌گرد مشابه عکس
+  background: white;
+  border: 2px solid #f3f4f6;
+  color: #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+
+  svg { stroke-width: 1.5; }
+  
+  @media (max-width: 768px) {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+  }
+}
+
+.stepLine {
+  flex: 1;
+  height: 2px;
+  border-bottom: 2px dotted #e5e7eb; // خط نقطه‌چین طوسی
+  margin: 0 8px;
+  margin-bottom: 26px; // تراز با وسط آیکون‌ها
+  
+  &.activeLine {
+    border-bottom: 2px solid #10b981; // خط ممتد سبز
+  }
+}
+
+
+/* ─── Section Shared Styles ─── */
+.sectionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0;
+}
+
+
+/* ─── Summary Box ─── */
+.summaryBox {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  background: white;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; // گرید ۲ در ۲ در دسکتاپ
+  row-gap: 20px;
+  column-gap: 24px;
+
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr 1fr; // در موبایل هم گرید ۲ در ۲ است (طبق عکس)
+    row-gap: 16px;
+    column-gap: 8px;
+  }
+}
+
+.summaryItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+
+  .label { color: #6b7280; }
+  .value { color: #1f2937; font-weight: 600; }
+  
+  @media (max-width: 576px) {
+    font-size: 11px;
+    flex-wrap: wrap; // برای اینکه اگر متن طولانی بود نشکند
+  }
+}
+
+
+/* ─── Products List (Mobile) ─── */
+.mobileProductsList {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+}
+
+.productCard {
+  display: flex;
+  flex-direction: row-reverse; // عکس سمت راست
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+
+  &:last-child { border-bottom: none; padding-bottom: 0; }
+}
+
+.productImgBox {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  img { width: 100%; height: 100%; object-fit: contain; border-radius: 12px;}
+  .placeholder { color: #d1d5db; }
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.productName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0 0 4px 0;
+  
+  .qtyText {
+    color: #6b7280;
+    font-weight: 400;
+    margin-right: 4px;
+    font-size: 12px;
+  }
+}
+
+.carModel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6b7280;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.productPrice {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+
+/* ─── Products Table (Desktop) ─── */
+.desktopProductsTable {
+  display: block;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+
+  th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.tdProduct {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tdImgBox {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px;}
+}
+
+.tdInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tdName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.tdQty {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.tdPrice {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+
+/* ─── Shipping Box ─── */
+.shippingBox {
+  border-radius: 12px;
+  padding: 24px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  // دسکتاپ: حاشیه آبی ضخیم
+  border: 2px solid #3b82f6; 
+
+  // موبایل: حاشیه طوسی نازک (مطابق عکس)
+  @media (max-width: 768px) {
+    border: 1px solid #e5e7eb;
+    padding: 16px;
+  }
+}
+
+.shippingRowFlex {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 32px;
+
+  .shipItem {
+    font-size: 13px;
+    display: flex;
+    gap: 6px;
+    .label { color: #6b7280; }
+    .value { font-weight: 600; color: #374151; }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    .shipItem { font-size: 12px; }
+  }
+}
+
+.shippingRow {
+  font-size: 13px;
+  line-height: 1.8;
+
+  .label { color: #6b7280; margin-bottom: 6px; display: block; }
+  .addressText {
+    color: #374151;
+    margin: 0;
+    font-weight: 500;
+    text-align: justify;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+}
+
+
+.trackingRow {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px dashed #e5e7eb; // خط جداکننده نقطه‌چین
+
+  .label { font-size: 13px; color: #6b7280; }
+
+  @media (max-width: 768px) {
+    .label { font-size: 12px; }
+  }
+}
+
+.trackingCodeBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .trackingNumber {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    letter-spacing: 1px;
+  }
+
+  .copyBtn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+
+    &:hover { color: #10b981; }
+  }
+}
+
+
+/* ─── Loading / Error / Modal ─── */
+.loadingContainer, .errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  font-family: 'IRANYEKAN', sans-serif;
+  color: #6b7280;
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+.modal { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; font-family: 'IRANYEKAN'; direction: rtl; }
+.modalHeader { display: flex; justify-content: space-between; margin-bottom: 16px; }
+.modalTitle { margin: 0; font-size: 16px; font-weight: bold; }
+.closeBtn { background: none; border: none; cursor: pointer; color: #ef4444; }
+.modalTextarea { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 16px; font-family: inherit; font-size: 12px; resize: vertical;}
+.modalActions { display: flex; gap: 12px; }
+.modalCancelBtn { flex: 1; padding: 10px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; font-family: inherit;}
+.modalConfirmBtn { flex: 1; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: inherit;}

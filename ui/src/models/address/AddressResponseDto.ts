@@ -1,3 +1,4 @@
+// models/address/AddressResponseDto.ts
 export interface AddressResponseDto {
   userAddressId: number;
   userId: number;

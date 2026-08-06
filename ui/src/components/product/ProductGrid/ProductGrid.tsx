@@ -1,3 +1,4 @@
+// src/components/product/ProductGrid/ProductGrid.tsx
 'use client'
 
 import React from 'react'
@@ -16,10 +17,13 @@ const ProductGrid = ({ products, loading }: ProductGridProps) => {
     return (
       <div className={styles.grid}>
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className={styles.skeleton}>
+          <div key={i} className={styles.skeletonCard}>
             <div className={styles.skeletonImage} />
-            <div className={styles.skeletonText} />
-            <div className={styles.skeletonPrice} />
+            <div className={styles.skeletonContent}>
+              <div className={styles.skeletonTitle} />
+              <div className={styles.skeletonPrice} />
+              <div className={styles.skeletonButton} />
+            </div>
           </div>
         ))}
       </div>
@@ -30,7 +34,9 @@ const ProductGrid = ({ products, loading }: ProductGridProps) => {
   if (products.length === 0) {
     return (
       <div className={styles.empty}>
-        <p>محصولی با این فیلترها یافت نشد.</p>
+        <div className={styles.emptyIcon}>🔍</div>
+        <p className={styles.emptyTitle}>محصولی یافت نشد</p>
+        <p className={styles.emptyDescription}>محصولی با این فیلترها یافت نشد. لطفاً فیلترهای دیگری را امتحان کنید.</p>
       </div>
     )
   }

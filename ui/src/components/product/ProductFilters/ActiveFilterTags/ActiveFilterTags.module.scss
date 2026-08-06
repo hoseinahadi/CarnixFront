@@ -7,17 +7,19 @@
   flex-wrap: wrap;
   gap: $spacing-xs;
   padding: $spacing-sm $spacing-lg $spacing-md;
+  font-family: 'IRANYEKAN', Tahoma, sans-serif;
 }
 
 .tag {
   display: flex;
   align-items: center;
   gap: $spacing-xs;
-  padding: 2px 8px;
-  background: $color-primary-light;
+  padding: 4px 10px;
+  background: rgba($color-primary, 0.1);
   color: $color-primary;
   border-radius: $border-radius-full;
   font-size: $font-size-xs;
+  font-family: inherit;
 }
 
 .removeBtn {
@@ -27,4 +29,12 @@
   cursor: pointer;
   padding: 0;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+    color: #e74c3c;
+  }
 }

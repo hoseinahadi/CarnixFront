@@ -1,622 +1,357 @@
-// =============================================
-// app/profile/addresses/AddressesPage.module.scss
-// =============================================
 @import '@/assets/styles/utils/variables';
 @import '@/assets/styles/utils/mixins';
 
 .container {
-  background: $color-white;
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-sm;
-  padding: $spacing-xl;
   width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  font-family: inherit;
+  border: 1px solid #eaeaea;
+  
+  @media (max-width: 576px) {
+    padding: 16px;
+    border-radius: 8px;
+    border: none;
+    border-top: 1px solid #eaeaea;
+  }
 }
 
-/* ─── Header ─── */
+/* Header */
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $spacing-xl;
-  padding-bottom: $spacing-md;
-  border-bottom: 1px solid $color-border-light;
-
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $spacing-md;
-  }
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: $color-text-main;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
   margin: 0;
 }
 
-.addButton {
+/* Desktop Header */
+.desktopHeader {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: $spacing-xs;
-  padding: $spacing-sm $spacing-lg;
-  background: $color-primary;
-  color: $color-white;
+  flex-direction: row-reverse;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+.desktopAddBtn {
+  background: #1a56db;
+  color: #fff;
   border: none;
-  border-radius: $border-radius-md;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  @include transition-ease;
-
-  &:hover {
-    background: $color-primary-dark;
-    transform: translateY(-1px);
-    box-shadow: $shadow-md;
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
+  transition: opacity 0.2s;
+  
+  &:hover { opacity: 0.9; }
 }
 
-/* ─── Loading ─── */
-.loadingContainer {
-  @include flex-center;
-  @include flex-column;
-  gap: $spacing-md;
-  padding: $spacing-xxl;
-  color: $color-text-muted;
-}
+/* Mobile Header */
+.mobileHeader {
+  display: none;
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid $color-border-light;
-  border-top-color: $color-primary;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+  @media (max-width: 640px) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row-reverse;
   }
 }
 
-/* ─── Error Message ─── */
-.errorMessage {
+.mobileTitleGroup {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-md $spacing-lg;
-  background: #ffebee;
-  color: #c62828;
-  border-radius: $border-radius-md;
-  margin-bottom: $spacing-lg;
-  font-size: $font-size-sm;
-  border: 1px solid #ffcdd2;
+  gap: 8px;
+  flex-direction: row-reverse;
 }
 
-/* ─── Success Message ─── */
-.successMessage {
+.backBtn {
+  background: none;
+  border: none;
+  padding: 0;
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-md $spacing-lg;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-radius: $border-radius-md;
-  margin-bottom: $spacing-lg;
-  font-size: $font-size-sm;
-  border: 1px solid #c8e6c9;
+  justify-content: center;
+  color: #334155;
+  cursor: pointer;
 }
 
-/* ─── Empty State ─── */
-.emptyState {
-  @include flex-center;
-  @include flex-column;
-  gap: $spacing-md;
-  padding: $spacing-xxl;
-  text-align: center;
-
-  h3 {
-    font-size: $font-size-lg;
-    color: $color-text-main;
-    margin: 0;
-  }
-
-  p {
-    color: $color-text-muted;
-    font-size: $font-size-sm;
-    margin: 0;
-  }
+.mobileAddBtn {
+  background: none;
+  border: none;
+  color: #1a56db;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0;
+  cursor: pointer;
 }
 
-.emptyIcon {
-  color: $color-text-muted;
-  opacity: 0.5;
-}
-
-/* ─── Address List ─── */
+/* Address List */
 .addressList {
-  @include flex-column;
-  gap: $spacing-lg;
-}
-
-/* ─── Address Card ─── */
-.addressCard {
-  position: relative;
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-lg;
-  padding: $spacing-xl;
-  background: $color-white;
-  @include transition-ease;
-
-  &:hover {
-    box-shadow: $shadow-md;
-    border-color: $color-primary-light;
-  }
-
-  &.defaultCard {
-    border-color: $color-primary;
-    background: lighten($color-primary-light, 3%);
-  }
-}
-
-/* ─── Default Badge ─── */
-.defaultBadge {
-  position: absolute;
-  top: $spacing-lg;
-  right: $spacing-lg;
   display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  padding: $spacing-xs $spacing-md;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-radius: 20px;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-bold;
-  box-shadow: $shadow-sm;
+  flex-direction: column;
+  gap: 20px;
+}
 
-  svg {
-    width: 14px;
-    height: 14px;
+.addressCard {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  padding: 24px 0;
+  border-bottom: 1px solid #eaeaea;
+  align-items: stretch;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column-reverse; /* نقشه در موبایل بالای متن قرار می‌گیرد */
+    gap: 16px;
+    padding: 16px 0;
   }
 }
 
-/* ─── Address Content ─── */
-.addressContent {
-  @include flex-column;
-  gap: $spacing-sm;
-  margin-bottom: $spacing-lg;
-  padding-right: 100px; // جا برای badge
+/* Right Section (Text Details) */
+.cardContentRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 
-  @media (max-width: 480px) {
-    padding-right: 0;
-    padding-top: $spacing-xl;
-  }
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
 }
 
 .addressTitle {
-  font-size: $font-size-md;
-  font-weight: $font-weight-bold;
-  color: $color-text-main;
-  margin: 0 0 $spacing-xs 0;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #374151;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fullAddressText {
+  font-size: 0.9rem;
+  color: #4b5563;
+  line-height: 1.8;
+  margin: 0 0 20px 0;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  row-gap: 16px;
+  column-gap: 24px;
+  margin-top: auto;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.detailItem {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 0.85rem;
 
-  svg {
-    color: $color-primary;
-  }
+  svg { color: #9ca3af; flex-shrink: 0; }
 }
 
-.addressDetail {
-  font-size: $font-size-sm;
-  color: $color-text-muted;
-  margin: 0;
-  line-height: 1.8;
-
-  strong {
-    color: $color-text-main;
-    font-weight: $font-weight-medium;
-    margin-left: $spacing-sm;
-    min-width: 60px;
-    display: inline-block;
-  }
-}
-
-/* ─── Address Actions ─── */
-.addressActions {
+/* Left Section (Map & Edit) */
+.cardContentLeft {
+  width: 160px;
   display: flex;
-  gap: $spacing-sm;
-  justify-content: flex-end;
-  padding-top: $spacing-lg;
-  border-top: 1px solid $color-border-light;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
 
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+  }
+  
   @media (max-width: 480px) {
     flex-direction: column;
   }
 }
 
-.editButton {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  padding: $spacing-sm $spacing-lg;
-  background: $color-primary-light;
-  color: $color-primary;
-  border: 1px solid transparent;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  @include transition-ease;
-
-  &:hover {
-    background: $color-primary;
-    color: $color-white;
-    border-color: $color-primary;
-    transform: translateY(-1px);
-    box-shadow: $shadow-sm;
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-.deleteButton {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  padding: $spacing-sm $spacing-lg;
-  background: #fff;
-  color: #c62828;
-  border: 1px solid #ffcdd2;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  @include transition-ease;
-
-  &:hover {
-    background: #ffebee;
-    border-color: #c62828;
-    transform: translateY(-1px);
-    box-shadow: $shadow-sm;
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-.setDefaultButton {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  padding: $spacing-sm $spacing-lg;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #c8e6c9;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  @include transition-ease;
-
-  &:hover {
-    background: #c8e6c9;
-    border-color: #2e7d32;
-    transform: translateY(-1px);
-    box-shadow: $shadow-sm;
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-/* ─── Modal Overlay (برای فرم آدرس) ─── */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  @include flex-center;
-  z-index: 1000;
-  padding: $spacing-lg;
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* ─── Modal Content ─── */
-.modalContent {
-  background: $color-white;
-  border-radius: $border-radius-xl;
-  box-shadow: $shadow-xl;
+.mapThumbnail {
   width: 100%;
-  max-width: 560px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: $spacing-xl;
+  height: 110px;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
   position: relative;
-  animation: slideUp 0.3s ease;
-
-  @include custom-scrollbar(5px, $color-gray-300, transparent);
-
-  @media (max-width: 600px) {
-    max-width: 100%;
-    margin: 0;
-    border-radius: $border-radius-lg $border-radius-lg 0 0;
-    max-height: 95vh;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $spacing-xl;
-  padding-bottom: $spacing-md;
-  border-bottom: 1px solid $color-border-light;
-
-  h3 {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-bold;
-    color: $color-text-main;
-    margin: 0;
-  }
-}
-
-.closeButton {
-  @include flex-center;
-  width: 32px;
-  height: 32px;
-  background: $color-neutral-50;
-  border: none;
   
-  cursor: pointer;
-  color: $color-text-muted;
-  @include transition-ease;
-
-  &:hover {
-    background: $color-danger;
-    color: $color-white;
+  @media (max-width: 768px) {
+    flex: 1;
+    height: 100px;
   }
-}
-
-/* ─── Form Styles (برای مودال) ─── */
-.form {
-  @include flex-column;
-  gap: $spacing-lg;
-}
-
-.formRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-lg;
-
+  
   @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+    height: 140px;
+    width: 100%;
   }
 }
 
-.formField {
-  @include flex-column;
-  gap: $spacing-sm;
-
-  label {
-    font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-    color: $color-text-main;
-  }
-
-  input,
-  textarea,
-  select {
-    padding: $spacing-md;
-    border: 1px solid $color-border-light;
-    border-radius: $border-radius-md;
-    font-size: $font-size-sm;
-    font-family: inherit;
-    background: $color-white;
-    @include transition-ease;
-
-    &:focus {
-      outline: none;
-      border-color: $color-primary;
-      box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
-    }
-
-    &::placeholder {
-      color: $color-text-muted;
-    }
-
-    &.error {
-      border-color: $color-danger;
-      box-shadow: 0 0 0 3px rgba($color-danger, 0.1);
-    }
-  }
-
-  textarea {
-    resize: vertical;
-    min-height: 80px;
-  }
-
-  .fieldError {
-    font-size: $font-size-xs;
-    color: $color-danger;
+.mapCropWrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  
+  iframe {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 }
 
-.formCheckbox {
+.mapPlaceholderBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  gap: 4px;
+
+  .mapPinIcon {
+    color: #94a3b8;
+  }
+}
+
+.editOutlineBtn {
+  background: transparent;
+  border: 1px solid #1a56db;
+  color: #1a56db;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) { background: rgba(26, 86, 219, 0.05); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; border-color: #9ca3af; color: #9ca3af; }
+
+  @media (max-width: 768px) {
+    width: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+}
+
+/* Actions Header (Trash, Star) */
+.cardActionsHeader {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-sm 0;
-
-  input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: $color-primary;
-    cursor: pointer;
-  }
-
-  label {
-    font-size: $font-size-sm;
-    color: $color-text-main;
-    cursor: pointer;
-    user-select: none;
-  }
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.formActions {
+.defaultBadge {
   display: flex;
-  gap: $spacing-md;
-  justify-content: flex-end;
-  padding-top: $spacing-lg;
-  border-top: 1px solid $color-border-light;
-
-  @media (max-width: 480px) {
-    flex-direction: column-reverse;
-  }
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
-.submitButton {
-  padding: $spacing-md $spacing-xl;
-  background: $color-primary;
-  color: $color-white;
+.iconBtn, .iconBtnDanger {
+  background: none;
   border: none;
-  border-radius: $border-radius-md;
   cursor: pointer;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  @include transition-ease;
-
-  &:hover {
-    background: $color-primary-dark;
-    transform: translateY(-1px);
-    box-shadow: $shadow-md;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-}
-
-.cancelButton {
-  padding: $spacing-md $spacing-xl;
-  background: $color-white;
-  color: $color-text-muted;
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  @include transition-ease;
-
-  &:hover {
-    background: $color-neutral-50;
-    color: $color-text-main;
-  }
-}
-
-/* ─── Confirm Dialog ─── */
-.confirmOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  @include flex-center;
-  z-index: 1100;
-  padding: $spacing-lg;
-}
-
-.confirmDialog {
-  background: $color-white;
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-xl;
-  padding: $spacing-xl;
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
-
-  h4 {
-    font-size: $font-size-md;
-    font-weight: $font-weight-bold;
-    color: $color-text-main;
-    margin: 0 0 $spacing-sm 0;
-  }
-
-  p {
-    font-size: $font-size-sm;
-    color: $color-text-muted;
-    margin: 0 0 $spacing-lg 0;
-  }
-}
-
-.confirmActions {
+  padding: 6px;
+  border-radius: 6px;
   display: flex;
-  gap: $spacing-md;
+  align-items: center;
   justify-content: center;
+  transition: background-color 0.2s;
+}
+.iconBtn {
+  color: #9ca3af;
+  &:hover { color: #f59e0b; background: #fef3c7; }
+}
+.iconBtnDanger {
+  color: #9ca3af;
+  &:hover { color: #ef4444; background: #fee2e2; }
 }
 
-.confirmYesButton {
-  padding: $spacing-sm $spacing-xl;
-  background: $color-danger;
-  color: $color-white;
-  border: none;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  @include transition-ease;
+/* States */
+.skeletonCard {
+  padding: 24px 0; border-bottom: 1px solid #eaeaea;
+}
+.skeletonLine {
+  background: #f3f4f6; border-radius: 4px; margin-bottom: 12px; height: 16px;
+}
+.loadingBar { width: 100%; height: 3px; background: #f3f4f6; overflow: hidden; margin-bottom: 16px; border-radius: 3px; }
+.loadingProgress { width: 30%; height: 100%; background: #1a56db; animation: slide 1.5s infinite linear; }
+@keyframes slide { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
 
-  &:hover {
-    background: darken($color-danger, 10%);
-  }
+.errorState, .emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  
+  h3 { margin: 16px 0 8px; color: #1f2937; }
+  p { margin: 0 0 24px; color: #6b7280; font-size: 0.95rem; line-height: 1.6; }
 }
 
-.confirmNoButton {
-  padding: $spacing-sm $spacing-xl;
-  background: $color-neutral-50;
-  color: $color-text-main;
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  @include transition-ease;
+.errorState { color: #ef4444; }
+.emptyIconWrapper {
+  width: 96px; height: 96px; border-radius: 50%; background: #f3f4f6;
+  display: flex; align-items: center; justify-content: center; color: #9ca3af;
+}
 
-  &:hover {
-    background: $color-border-light;
-  }
+.addFirstAddress {
+  display: flex; align-items: center; gap: 8px;
+  background: #1a56db; color: white; border: none; padding: 12px 24px;
+  border-radius: 8px; font-weight: bold; cursor: pointer; font-family: inherit;
 }

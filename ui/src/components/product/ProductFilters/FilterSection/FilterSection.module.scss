@@ -4,6 +4,7 @@
 
 .section {
   border-bottom: 1px solid $color-border-light;
+  font-family: 'IRANYEKAN', Tahoma, sans-serif;
 
   &:last-child {
     border-bottom: none;
@@ -22,6 +23,8 @@
   font-weight: $font-weight-bold;
   cursor: pointer;
   color: $color-text-main;
+  font-family: inherit;
+  transition: background 0.2s;
 
   &:hover {
     background: $color-gray-50;
@@ -49,6 +52,11 @@
     font-size: $font-size-xs;
     width: 100%;
     font-family: inherit;
+    color: $color-text-main;
+
+    &::placeholder {
+      color: $color-text-muted;
+    }
   }
 
   svg {

@@ -1,4 +1,5 @@
-// مسیر: src/features/products/store/productSelectors.ts
+// مسیر: src/store/feature/product/productSelectors.ts
+// (یا هر مسیری که فایل سلکتورهای اصلی محصولت قرار دارد)
 
 import type { RootState } from '@/store';
 
@@ -23,6 +24,13 @@ export const selectDetailsLoading = (state: RootState) => state.product.detailsL
 export const selectProductsActionLoading = (state: RootState) => state.product.actionLoading;
 export const selectProductsError = (state: RootState) => state.product.error;
 export const selectSelectedProduct = (state: RootState) => state.product.selectedProduct;
-
-// سلکتور مخصوص مدال جزئیات یا صفحه PDP
 export const selectProductDetails = (state: RootState) => state.product.productDetails;
+
+// ✅ 🟢 داده‌های تکمیلی (اضافه شده برای باندل و قیمت)
+export const selectEffectivePrice = (state: RootState) => state.product.effectivePrice;
+export const selectProductBundles = (state: RootState) => state.product.bundles;
+// مسیر: src/store/feature/product/productSelectors.ts
+
+// 🟢 جدیدترین محصولات
+export const selectNewestProducts = (state: RootState) => state.product.newestProducts;
+export const selectNewestLoading = (state: RootState) => state.product.newestLoading;

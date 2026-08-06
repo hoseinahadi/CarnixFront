@@ -1,128 +1,243 @@
-// components/product/ProductSort/ProductSort.tsx
-'use client'
+'use client';
 
-import React, { useState, useRef, useEffect } from 'react'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { setFilters, fetchFilteredProducts } from '@/store/feature/product/productFilterSlice'
-import { selectActiveFilters } from '@/store/feature/product/productFilterSelectors'
-import styles from './ProductSort.module.scss'
-import { IconArrowsSort, IconCheck, IconX } from '@tabler/icons-react'
-import classNames from 'classnames'
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
-const SORT_OPTIONS = [
-  { value: 'newest', label: 'جدیدترین' },
-  { value: 'cheapest', label: 'ارزان‌ترین' },
-  { value: 'expensive', label: 'گران‌ترین' },
-  { value: 'discounted', label: 'بیشترین تخفیف' },
-]
+import {
+  IconArrowsSort,
+  IconCheck,
+  IconX,
+} from '@tabler/icons-react';
 
-const ProductSort = () => {
-  const dispatch = useAppDispatch()
-  const activeFilters = useAppSelector(selectActiveFilters)
-  const [isOpen, setIsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const [isMobile, setIsMobile] = useState(false)
+import classNames from 'classnames';
 
-  const currentSort = SORT_OPTIONS.find(opt => opt.value === activeFilters.sortBy) || SORT_OPTIONS[0]
+import type {
+  SortOption,
+} from '@/models/product/ProductFilters';
 
-  // تشخیص موبایل بودن
+import {
+  selectActiveFilters,
+} from '@/store/feature/product/productFilterSelectors';
+
+import { useAppSelector } from '@/store/hooks';
+
+import styles from './ProductSort.module.scss';
+
+interface ProductSortProps {
+  onSortChange: (sortBy: SortOption) => void;
+}
+
+const SORT_OPTIONS: ReadonlyArray<{
+  value: SortOption;
+  label: string;
+}> = [
+  {
+    value: 'newest',
+    label: 'جدیدترین',
+  },
+  {
+    value: 'cheapest',
+    label: 'ارزان‌ترین',
+  },
+  {
+    value: 'expensive',
+    label: 'گران‌ترین',
+  },
+  {
+    value: 'discounted',
+    label: 'بیشترین تخفیف',
+  },
+];
+
+const ProductSort = ({
+  onSortChange,
+}: ProductSortProps) => {
+  const activeFilters = useAppSelector(
+    selectActiveFilters,
+  );
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const currentSort =
+    SORT_OPTIONS.find(
+      (option) =>
+        option.value === activeFilters.sortBy,
+    ) ?? SORT_OPTIONS[0];
+
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener(
+        'resize',
+        checkMobile,
+      );
+    };
+  }, []);
+
+  const handleSort = (value: SortOption) => {
+    setIsOpen(false);
+
+    if (activeFilters.sortBy === value) {
+      return;
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
 
-  const handleSort = (value: string) => {
-    dispatch(setFilters({ sortBy: value as any }))
-    const newFilters = { ...activeFilters, sortBy: value as any, page: 1 }
-    dispatch(fetchFilteredProducts(newFilters))
-    setIsOpen(false)
-  }
+    /*
+     * این کامپوننت دیگر API را صدا نمی‌زند.
+     * Parent فقط URL را تغییر می‌دهد و Controller یک Fetch انجام می‌دهد.
+     */
+    onSortChange(value);
+  };
 
-  // کلیک خارج از دراپ‌داون (فقط دسکتاپ)
   useEffect(() => {
-    if (!isMobile) {
-      const handleClickOutside = (e: MouseEvent) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-          setIsOpen(false)
-        }
+    if (isMobile || !isOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(
+          event.target as Node,
+        )
+      ) {
+        setIsOpen(false);
       }
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isMobile])
+    };
 
-  // بستن با کلید Escape
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false)
-    }
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      return () => document.removeEventListener('keydown', handleEscape)
-    }
-  }, [isOpen])
+    document.addEventListener(
+      'mousedown',
+      handleClickOutside,
+    );
 
-  // جلوگیری از اسکرول بادی هنگام باز بودن مودال
+    return () => {
+      document.removeEventListener(
+        'mousedown',
+        handleClickOutside,
+      );
+    };
+  }, [isMobile, isOpen]);
+
   useEffect(() => {
-    if (isOpen && isMobile) {
-      document.body.style.overflow = 'hidden'
-      return () => {
-        document.body.style.overflow = ''
+    if (!isOpen) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
       }
+    };
+
+    document.addEventListener(
+      'keydown',
+      handleEscape,
+    );
+
+    return () => {
+      document.removeEventListener(
+        'keydown',
+        handleEscape,
+      );
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !isMobile) {
+      return;
     }
-  }, [isOpen, isMobile])
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+    };
+  }, [isOpen, isMobile]);
 
   return (
-    <div className={styles.sortContainer} ref={dropdownRef}>
-      {/* دکمه باز کردن */}
+    <div
+      className={styles.sortContainer}
+      ref={dropdownRef}
+    >
       <button
+        type="button"
         className={styles.sortButton}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((current) => !current)}
         aria-label="مرتب‌سازی"
+        aria-expanded={isOpen}
       >
         <IconArrowsSort size={18} />
-        <span className={styles.sortLabel}>{currentSort.label}</span>
+        <span className={styles.sortLabel}>
+          {currentSort.label}
+        </span>
       </button>
 
-      {/* دراپ‌داون دسکتاپ */}
       {isOpen && !isMobile && (
         <div className={styles.dropdown}>
-          {SORT_OPTIONS.map(option => (
+          {SORT_OPTIONS.map((option) => (
             <button
+              type="button"
               key={option.value}
-              className={classNames(styles.dropdownItem, {
-                [styles.active]: activeFilters.sortBy === option.value,
-              })}
-              onClick={() => handleSort(option.value)}
+              className={classNames(
+                styles.dropdownItem,
+                {
+                  [styles.active]:
+                    activeFilters.sortBy ===
+                    option.value,
+                },
+              )}
+              onClick={() =>
+                handleSort(option.value)
+              }
             >
               <span>{option.label}</span>
-              {activeFilters.sortBy === option.value && (
-                <IconCheck size={16} className={styles.checkIcon} />
+
+              {activeFilters.sortBy ===
+                option.value && (
+                <IconCheck
+                  size={16}
+                  className={styles.checkIcon}
+                />
               )}
             </button>
           ))}
         </div>
       )}
 
-      {/* مودال موبایل */}
       {isOpen && isMobile && (
         <>
-          {/* Overlay */}
           <div
             className={styles.overlay}
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Bottom Sheet */}
           <div className={styles.bottomSheet}>
-            {/* هدر مودال */}
-            <div className={styles.bottomSheetHeader}>
-              <h3 className={styles.bottomSheetTitle}>مرتب‌سازی</h3>
+            <div
+              className={styles.bottomSheetHeader}
+            >
+              <h3
+                className={styles.bottomSheetTitle}
+              >
+                مرتب‌سازی
+              </h3>
+
               <button
+                type="button"
                 className={styles.closeButton}
                 onClick={() => setIsOpen(false)}
                 aria-label="بستن"
@@ -131,24 +246,42 @@ const ProductSort = () => {
               </button>
             </div>
 
-            {/* گزینه‌ها */}
-            <div className={styles.bottomSheetContent}>
-              {SORT_OPTIONS.map(option => (
+            <div
+              className={styles.bottomSheetContent}
+            >
+              {SORT_OPTIONS.map((option) => (
                 <button
+                  type="button"
                   key={option.value}
-                  className={classNames(styles.radioItem, {
-                    [styles.radioActive]: activeFilters.sortBy === option.value,
-                  })}
-                  onClick={() => handleSort(option.value)}
+                  className={classNames(
+                    styles.radioItem,
+                    {
+                      [styles.radioActive]:
+                        activeFilters.sortBy ===
+                        option.value,
+                    },
+                  )}
+                  onClick={() =>
+                    handleSort(option.value)
+                  }
                 >
                   <div className={styles.radioCircle}>
-                    {activeFilters.sortBy === option.value && (
+                    {activeFilters.sortBy ===
+                      option.value && (
                       <div className={styles.radioDot} />
                     )}
                   </div>
-                  <span className={styles.radioLabel}>{option.label}</span>
-                  {activeFilters.sortBy === option.value && (
-                    <IconCheck size={16} className={styles.checkIcon} />
+
+                  <span className={styles.radioLabel}>
+                    {option.label}
+                  </span>
+
+                  {activeFilters.sortBy ===
+                    option.value && (
+                    <IconCheck
+                      size={16}
+                      className={styles.checkIcon}
+                    />
                   )}
                 </button>
               ))}
@@ -157,7 +290,7 @@ const ProductSort = () => {
         </>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ProductSort
+export default ProductSort;

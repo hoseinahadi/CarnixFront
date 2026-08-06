@@ -2,37 +2,22 @@
 @import '@/assets/styles/utils/mixins';
 
 .reviewsContainer {
-  width: 100%;
+  font-family: 'IRANYEKAN';
+  @include flex-column;
+  gap: $spacing-lg;
 }
 
-.loading, .empty {
-  @include flex-center;
-  padding: $spacing-xxl;
-  color: $color-text-muted;
-  font-size: $font-size-sm;
-}
-
-/* ─── Header ─── */
-.reviewsHeader {
+.summarySection {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: $spacing-xl;
-  padding-bottom: $spacing-lg;
+  align-items: center;
+  padding-bottom: $spacing-md;
   border-bottom: 1px solid $color-border-light;
 
-  @media (max-width: 600px) {
+  @include respond-down('sm') {
     flex-direction: column;
+    align-items: flex-start;
     gap: $spacing-md;
-  }
-}
-
-.ratingSummary {
-  .title {
-    font-size: $font-size-md;
-    font-weight: $font-weight-bold;
-    color: $color-text-main;
-    margin: 0 0 $spacing-md 0;
   }
 }
 
@@ -40,39 +25,35 @@
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-}
 
-.averageScore {
-  font-size: $font-size-xxl;
-  font-weight: $font-weight-bold;
-  color: $color-primary;
-}
+  .averageScore {
+    font-size: $font-size-xxl;
+    font-weight: $font-weight-bold;
+    color: $color-text-main;
+  }
+  
+  .outOf {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+  }
 
-.outOf {
-  font-size: $font-size-xs;
-  color: $color-text-muted;
-}
+  .starsRow {
+    display: flex;
+    gap: 2px;
+  }
 
-.starsRow {
-  display: flex;
-  gap: 2px;
-  margin: 0 $spacing-sm;
-
-  .star {
-    color: #f59e0b;
+  .totalReviews {
+    font-size: $font-size-xs;
+    color: $color-text-muted;
   }
 }
 
-.totalReviews {
-  font-size: $font-size-xs;
-  color: $color-text-muted;
-}
-
 .addReviewBtn {
+  font-family: 'IRANYEKAN';
   padding: $spacing-sm $spacing-xl;
-  background: $color-primary;
-  color: $color-white;
-  border: none;
+  background: transparent;
+  color: $color-primary;
+  border: 1px solid $color-primary;
   border-radius: $border-radius-md;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
@@ -80,7 +61,8 @@
   @include transition-ease;
 
   &:hover {
-    background: $color-primary-dark;
+    background: $color-primary;
+    color: $color-white;
   }
 }
 
@@ -90,59 +72,49 @@
   border: 1px solid $color-border-light;
   border-radius: $border-radius-lg;
   padding: $spacing-xl;
-  margin-bottom: $spacing-xl;
-}
-
-.formTitle {
-  font-size: $font-size-md;
-  font-weight: $font-weight-bold;
-  margin-bottom: $spacing-lg;
+  
+  .formTitle {
+    margin: 0 0 $spacing-lg 0;
+    font-size: $font-size-md;
+  }
 }
 
 .ratingSelect {
   margin-bottom: $spacing-lg;
-
+  
   label {
     display: block;
     font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
     margin-bottom: $spacing-sm;
   }
-}
-
-.starsSelect {
-  display: flex;
-  gap: $spacing-xs;
+  
+  .starsSelect {
+    display: flex;
+    gap: $spacing-xs;
+  }
 }
 
 .starBtn {
   background: none;
   border: none;
+  padding: 0;
   cursor: pointer;
-  color: #ddd;
-  @include transition-ease;
-
-  &.selected {
-    color: #f59e0b;
+  
+  &.disabledBtn {
+    cursor: default;
   }
 }
 
 .field {
-  @include flex-column;
-  gap: $spacing-sm;
   margin-bottom: $spacing-md;
-
-  label {
-    font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-  }
-
+  
   input, textarea {
+    width: 100%;
     padding: $spacing-md;
     border: 1px solid $color-border-light;
-    border-radius: $border-radius-md;
-    font-size: $font-size-sm;
+    border-radius: $border-radius-sm;
     font-family: inherit;
+    font-size: $font-size-sm;
 
     &:focus {
       outline: none;
@@ -153,46 +125,46 @@
 
 .formActions {
   display: flex;
-  gap: $spacing-md;
   justify-content: flex-end;
-}
+  gap: $spacing-sm;
 
-.submitBtn {
-  padding: $spacing-sm $spacing-xl;
-  background: $color-primary;
-  color: $color-white;
-  border: none;
-  border-radius: $border-radius-md;
-  cursor: pointer;
+  button {
+    padding: $spacing-sm $spacing-xl;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    @include flex-center;
+  }
 
-  &:disabled {
-    opacity: 0.6;
+  .cancelBtn {
+    background: transparent;
+    border: 1px solid $color-border-light;
+    color: $color-text-muted;
+  }
+
+  .submitBtn {
+    background: $color-primary;
+    border: 1px solid $color-primary;
+    color: $color-white;
+
+    &:disabled {
+      opacity: 0.7;
+    }
   }
 }
 
-.cancelBtn {
-  padding: $spacing-sm $spacing-xl;
-  background: $color-white;
-  color: $color-text-muted;
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-}
-
-/* ─── Review Card ─── */
+/* ─── Review Cards ─── */
 .reviewsList {
   @include flex-column;
   gap: $spacing-md;
 }
 
 .reviewCard {
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-md;
   padding: $spacing-lg;
-  @include transition-ease;
+  border-bottom: 1px solid $color-gray-100;
 
-  &:hover {
-    box-shadow: $shadow-sm;
+  &:last-child {
+    border-bottom: none;
   }
 }
 
@@ -207,42 +179,34 @@
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  font-size: $font-size-sm;
-  color: $color-text-muted;
-}
 
-.userName {
-  font-weight: $font-weight-medium;
-  color: $color-text-main;
-}
+  .userAvatar {
+    @include flex-center;
+    width: 24px;
+    height: 24px;
+    background: $color-gray-100;
+    border-radius: 50%;
+    color: $color-gray-400;
+  }
 
-.verifiedBadge {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 8px;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-radius: 20px;
-  font-size: $font-size-xs;
-}
-
-.reviewRating {
-  display: flex;
-  gap: 2px;
-  color: #f59e0b;
+  .userName {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-secondary;
+  }
 }
 
 .reviewTitle {
-  font-size: $font-size-sm;
+  font-size: $font-size-md;
   font-weight: $font-weight-bold;
   margin: $spacing-sm 0;
+  color: $color-text-main;
 }
 
 .reviewContent {
   font-size: $font-size-sm;
-  color: $color-text-secondary;
   line-height: 2;
+  color: $color-text-main;
   margin-bottom: $spacing-md;
 }
 
@@ -250,60 +214,134 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  
+  .reviewDate {
+    font-size: 11px;
+    color: $color-text-muted;
+  }
+
+  .helpfulBtn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid $color-border-light;
+    border-radius: $border-radius-full;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: $color-text-muted;
+    cursor: pointer;
+    @include transition-ease;
+
+    &:hover {
+      color: $color-primary;
+      border-color: $color-primary;
+    }
+  }
 }
 
-.reviewDate {
-  font-size: $font-size-xs;
+.empty {
+  padding: $spacing-xl 0;
+  text-align: center;
   color: $color-text-muted;
+  font-size: $font-size-sm;
 }
 
-.helpfulBtn {
+.loadingWrapper {
+  @include flex-center;
+  padding: $spacing-xxl;
+  color: $color-primary;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Image Upload ─── */
+.imageUploadSection {
+  margin-bottom: $spacing-xl;
+
+  .uploadLabel {
+    display: block;
+    font-size: $font-size-sm;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.uploadArea {
   display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
   align-items: center;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.uploadTriggerBtn {
+  @include flex-center;
+  flex-direction: column;
   gap: $spacing-xs;
-  padding: $spacing-xs $spacing-md;
-  background: $color-gray-50;
-  border: 1px solid $color-border-light;
+  width: 80px;
+  height: 80px;
+  border: 1px dashed $color-border-dark;
   border-radius: $border-radius-md;
-  cursor: pointer;
-  font-size: $font-size-xs;
+  background-color: transparent;
   color: $color-text-muted;
+  cursor: pointer;
   @include transition-ease;
 
   &:hover {
-    color: $color-primary;
     border-color: $color-primary;
+    color: $color-primary;
+  }
+
+  span {
+    font-size: 10px;
   }
 }
 
-/* ─── Pagination ─── */
-.pagination {
+.imagePreviews {
   display: flex;
-  justify-content: center;
-  gap: $spacing-xs;
-  margin-top: $spacing-xl;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
 }
 
-.pageBtn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.previewItem {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: $border-radius-md;
+  overflow: hidden;
   border: 1px solid $color-border-light;
-  border-radius: $border-radius-sm;
-  background: $color-white;
-  cursor: pointer;
-  font-size: $font-size-xs;
 
-  &:hover {
-    background: $color-primary-light;
-    color: $color-primary;
+  .previewImg {
+    object-fit: cover;
   }
 
-  &.activePage {
-    background: $color-primary;
-    color: $color-white;
-    border-color: $color-primary;
+  .removeImgBtn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    color: $color-danger;
+    @include flex-center;
+    cursor: pointer;
+    box-shadow: $shadow-sm;
+
+    &:hover {
+      background-color: $color-danger;
+      color: $color-white;
+    }
   }
 }

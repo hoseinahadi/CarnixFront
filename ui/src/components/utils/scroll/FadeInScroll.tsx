@@ -1,48 +1,80 @@
-'use client' // اگر از Next.js App Router استفاده می‌کنید این خط الزامی است
-import React, { useEffect, useRef, useState } from 'react';
+'use client';
 
-// استایل‌های درون‌خطی (می‌توانید به فایل CSS منتقل کنید)
-const styles = {
-  hidden: {
-    opacity: 0,
-    transform: 'translateY(50px)', // ۵۰ پیکسل پایین‌تر است
-    transition: 'opacity 0.8s ease-out, transform 0.5s ease-out',
-  },
-  visible: {
-    opacity: 1,
-    transform: 'translateY(0)', // به جای اصلی خود برمی‌گردد
-  }
-};
+import {
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
-export const FadeInScroll = ({ children }: { children: React.ReactNode }) => {
+interface FadeInScrollProps {
+  children: ReactNode;
+  className?: string;
+}
+
+const hiddenStyle = {
+  opacity: 0,
+  transform: 'translateY(32px)',
+  transition:
+    'opacity 0.6s ease-out, transform 0.6s ease-out',
+} as const;
+
+const visibleStyle = {
+  opacity: 1,
+  transform: 'translateY(0)',
+} as const;
+
+export const FadeInScroll = ({
+  children,
+  className,
+}: FadeInScrollProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const domRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        // وقتی المان وارد کادر نمایش شد (10 درصد آن دیده شد)
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          // اگر می‌خواهید انیمیشن فقط یک بار اجرا شود خط زیر را از کامنت در بیاورید
-          // if (domRef.current) observer.unobserve(domRef.current);
-        }
-      });
-    }, { threshold: 0.1 });
+    const element = containerRef.current;
 
-    if (domRef.current) {
-      observer.observe(domRef.current);
+    if (!element || isVisible) {
+      return;
     }
 
+    if (!('IntersectionObserver' in window)) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+
+        setIsVisible(true);
+        observer.disconnect();
+      },
+      {
+        root: null,
+        rootMargin: '100px 0px',
+        threshold: 0.1,
+      },
+    );
+
+    observer.observe(element);
+
     return () => {
-      if (domRef.current) observer.unobserve(domRef.current);
+      observer.disconnect();
     };
-  }, []);
+  }, [isVisible]);
 
   return (
     <div
-      ref={domRef}
-      style={isVisible ? { ...styles.hidden, ...styles.visible } : styles.hidden}
+      ref={containerRef}
+      className={className}
+      style={
+        isVisible
+          ? { ...hiddenStyle, ...visibleStyle }
+          : hiddenStyle
+      }
     >
       {children}
     </div>

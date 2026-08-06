@@ -1,4 +1,4 @@
-import axiosInstance from '@/services/api/common/axiosInstance';
+import axiosClient from '@/services/api/common/axiosClient';
 import { OperationResult } from '@/models/common/OperationResult';
 
 export interface UpdateProfileRequest {
@@ -22,26 +22,26 @@ export interface ChangePasswordRequest {
 export const profileApi = {
   // دریافت پروفایل کاربر
   getMyProfile: async () =>
-    await axiosInstance.get('/Profile/me'),
+    await axiosClient.get('/Profile/me'),
 
   // آپدیت پروفایل
   updateProfile: async (data: UpdateProfileRequest) =>
-    await axiosInstance.put('/Profile/update', data),
+    await axiosClient.put('/Profile/update', data),
 
   // تغییر رمز عبور
   changePassword: async (data: ChangePasswordRequest) =>
-    await axiosInstance.post('/Profile/change-password', data),
+    await axiosClient.post('/Profile/change-password', data),
 
   // آپلود آواتار
   uploadAvatar: async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return await axiosInstance.post('/Profile/upload-avatar', formData, {
+    return await axiosClient.post('/Profile/upload-avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
 
   // حذف آواتار
   deleteAvatar: async () =>
-    await axiosInstance.delete('/Profile/delete-avatar'),
+    await axiosClient.delete('/Profile/delete-avatar'),
 };

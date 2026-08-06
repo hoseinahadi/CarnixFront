@@ -1,43 +1,75 @@
-// features/product/api/productFilterApi.ts
+// services/api/product/productFilterApi.ts
 
-import axiosInstance from '@/services/api/common/axiosInstance';
+import axiosClient from '@/services/api/common/axiosClient';
 
-export interface ProductFilterParams {
-  categoryId?: number;
-  brandId?: number;
-  vehicleIds?: { makeId: number; modelId: number }[]; // ✅ آرایه خودروها
-  makeId?: number;      // برای سازگاری با عقب
-  modelId?: number;     // برای سازگاری با عقب
-  trimId?: number;
-  minPrice?: number;
-  maxPrice?: number;
-  inStock?: boolean;
-  hasDiscount?: boolean;
-  sortBy?: 'newest' | 'cheapest' | 'expensive' | 'discounted' | 'featured' | 'bestsellers';
-  page?: number;
-  pageSize?: number;
+import {
+  normalizeProductFilters,
+  type ProductFilterParams,
+} from '@/models/product/ProductFilters';
+
+export interface ProductFilterApiEnvelope {
+  isSuccess?: boolean;
+  message?: string;
+  data?: unknown;
+  mainResults?: unknown;
 }
 
-export const productFilterApi = {
-  getFilteredProducts: async (params: ProductFilterParams) => {
-    const queryParams: any = { ...params };
-    
-    // تبدیل vehicleIds به رشته
-    if (params.vehicleIds && params.vehicleIds.length > 0) {
-      queryParams.vehicleIds = params.vehicleIds
-        .map(v => `${v.makeId}-${v.modelId}`)
-        .join(',');
-      // حذف آرایه اصلی
-      delete queryParams.vehicleIds;
+const serializeFilterParams = (
+  sourceParams: ProductFilterParams,
+): Record<string, string | number | boolean> => {
+  const params = normalizeProductFilters(sourceParams);
+  const query: Record<string, string | number | boolean> = {};
+
+  const assign = (
+    key: string,
+    value: string | number | boolean | undefined,
+  ) => {
+    if (value !== undefined && value !== '') {
+      query[key] = value;
     }
-    
-    // حذف فیلدهای undefined
-    Object.keys(queryParams).forEach(key => {
-      if (queryParams[key] === undefined || queryParams[key] === null) {
-        delete queryParams[key];
-      }
-    });
-    
-    return await axiosInstance.get('/Product/filtered', { params: queryParams });
-  },
+  };
+
+  assign('categoryId', params.categoryId);
+  assign('brandId', params.brandId);
+  assign('minPrice', params.minPrice);
+  assign('maxPrice', params.maxPrice);
+  assign('sortBy', params.sortBy);
+  assign('page', params.page);
+  assign('pageSize', params.pageSize);
+  assign('inStock', params.inStock);
+  assign('hasDiscount', params.hasDiscount);
+  assign('isFeatured', params.isFeatured);
+  assign('isActive', params.isActive);
+  assign('makeId', params.makeId);
+  assign('modelId', params.modelId);
+  assign('trimId', params.trimId);
+  assign('searchTerm', params.searchTerm);
+  assign('supplierId', params.supplierId);
+
+  if (params.vehicleIds && params.vehicleIds.length > 0) {
+    query.vehicleIds = params.vehicleIds
+      .map((vehicle) => {
+        const base = `${vehicle.makeId}-${vehicle.modelId}`;
+        return vehicle.trimId
+          ? `${base}-${vehicle.trimId}`
+          : base;
+      })
+      .join(',');
+  }
+
+  return query;
+};
+
+export const productFilterApi = {
+  getFilteredProducts: (
+    params: ProductFilterParams,
+    signal?: AbortSignal,
+  ) =>
+    axiosClient.get<ProductFilterApiEnvelope>(
+      '/Product/filtered',
+      {
+        params: serializeFilterParams(params),
+        signal,
+      },
+    ),
 };

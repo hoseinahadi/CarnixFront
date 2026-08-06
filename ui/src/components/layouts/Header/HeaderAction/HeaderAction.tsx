@@ -1,3 +1,4 @@
+// src/components/common/HeaderAction/HeaderAction.tsx
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
@@ -7,6 +8,9 @@ import {
   IconUser,
   IconLogout,
   IconSettings,
+  IconPackage,
+  IconHeart,
+  IconMapPin,
 } from '@tabler/icons-react'
 import { useRouter } from 'next/navigation'
 import styles from './HeaderAction.module.scss'
@@ -26,14 +30,13 @@ import {
   arrow
 } from '@floating-ui/react'
 
-import { AppDispatch, RootState } from '@/store'
 import { fetchMyCart } from '@/store/feature/cart/cartThunks'
 import { logoutThunk } from '@/store/feature/auth/authThunks'
 import CartDropdown from '@/features/cart/components/CartDropdown/CartDropdown'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 
 /* -------------------------------------------------------------------------- */
-/*                             FloatingDropdown                               */
+/* FloatingDropdown                                                           */
 /* -------------------------------------------------------------------------- */
 
 interface FloatingDropdownProps {
@@ -57,21 +60,22 @@ const FloatingDropdown = ({
     onOpenChange: (open) => {
       if (!open) onClose()
     },
-    placement: 'bottom-end',
+    placement: 'bottom-end', // مناسب برای زبان فارسی (RTL) تا مدال از لبه چپ بیرون نزند
     whileElementsMounted: autoUpdate,
     middleware: [
+      // ✅ crossAxis حذف شد تا در موبایل مدال از آیکون جدا نشود
       offset({
-        mainAxis: 22,
-        crossAxis: 50,
-      }),
-      arrow({
-        element: arrowRef,
-        padding: 10,
+        mainAxis: 16, // فاصله عمودی از دکمه
       }),
       flip({ fallbackAxisSideDirection: 'end' }),
-      shift({ padding: 8 }),
+      shift({ padding: 16 }), // ✅ حاشیه امن 16 پیکسلی از لبه‌های صفحه در موبایل
+      arrow({
+        element: arrowRef,
+        padding: 12, // جلوگیری از چسبیدن فلش به گوشه‌های گرد مدال
+      }),
     ],
   })
+  
   const dismiss = useDismiss(context)
   const role = useRole(context)
   const { getFloatingProps } = useInteractions([dismiss, role])
@@ -90,24 +94,30 @@ const FloatingDropdown = ({
     <FloatingPortal root={document.body}>
       <div
         ref={refs.setFloating}
-        style={floatingStyles}
+        style={{ ...floatingStyles, zIndex: 1100 }} // تضمین قرارگیری روی سایر عناصر
         className={styles.dropdown}
+        {...getFloatingProps()}
       >
-        <FloatingArrow 
-          ref={arrowRef} 
-          context={context} 
-          fill="#ffffff"
-          width={14}
-          height={7}
-        />
-        <div className={styles.popoverPaper}>{children}</div>
+        <div style={transitionStyles}>
+          <FloatingArrow 
+            ref={arrowRef} 
+            context={context} 
+            fill="#ffffff"
+            width={14}
+            height={7}
+            style={{
+              transform: 'translateY(-1px)' // رفع خطای بصری بین فلش و حاشیه مدال
+            }}
+          />
+          <div className={styles.popoverPaper}>{children}</div>
+        </div>
       </div>
     </FloatingPortal>
   )
 }
 
 /* -------------------------------------------------------------------------- */
-/*                               HeaderAction                                 */
+/* HeaderAction                                                               */
 /* -------------------------------------------------------------------------- */
 
 const HeaderAction = () => {
@@ -125,15 +135,14 @@ const HeaderAction = () => {
     useState<HTMLButtonElement | null>(null)
   const [userAnchorEl, setUserAnchorEl] =
     useState<HTMLButtonElement | null>(null)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
-  // fetch cart only when authenticated
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchMyCart())
     }
   }, [dispatch, isAuthenticated])
 
-  // refresh cart when tab becomes visible
   useEffect(() => {
     if (!isAuthenticated) return
     
@@ -150,9 +159,16 @@ const HeaderAction = () => {
     }
   }, [dispatch, isAuthenticated])
 
+  useEffect(() => {
+    if (isAuthenticated && !userDetail?.phoneNumber && !userDetail?.email) {
+      console.log('User info might need refresh')
+    }
+  }, [isAuthenticated, userDetail])
+
   const closeAll = () => {
     setCartAnchorEl(null)
     setUserAnchorEl(null)
+    setIsUserMenuOpen(false)
   }
 
   const handleUserClick = (
@@ -162,6 +178,7 @@ const HeaderAction = () => {
       router.push('/login')
       return
     }
+    setIsUserMenuOpen(!isUserMenuOpen)
     setUserAnchorEl(event.currentTarget)
   }
 
@@ -169,6 +186,28 @@ const HeaderAction = () => {
     closeAll()
     await dispatch(logoutThunk())
     router.push('/')
+  }
+
+  const getInitials = () => {
+    if (userDetail?.firstName || userDetail?.lastName) {
+      const firstInitial = userDetail.firstName ? userDetail.firstName.charAt(0) : ''
+      const lastInitial = userDetail.lastName ? userDetail.lastName.charAt(0) : ''
+      return `${firstInitial}${lastInitial}`.toUpperCase() || <IconUser size={24} stroke={1.5} />
+    }
+    return <IconUser size={24} stroke={1.5} />
+  }
+
+  const getUserDisplayInfo = () => {
+    if (userDetail?.phoneNumber) return userDetail.phoneNumber
+    if (userDetail?.email) return userDetail.email
+    return 'اطلاعات تماس ثبت نشده'
+  }
+
+  const getUserDisplayName = () => {
+    if (userDetail?.firstName || userDetail?.lastName) {
+      return `${userDetail.firstName || ''} ${userDetail.lastName || ''}`.trim()
+    }
+    return 'کاربر عزیز'
   }
 
   return (
@@ -203,41 +242,84 @@ const HeaderAction = () => {
         <IconUser size={24} stroke={1.5} />
       </IconButton>
 
-      {isAuthenticated && userDetail && userAnchorEl && (
+      {isAuthenticated && userDetail && isUserMenuOpen && userAnchorEl && (
         <FloatingDropdown anchorEl={userAnchorEl} onClose={closeAll}>
           <div className={styles.popoverContentSmall}>
-            <div className={styles.popoverTitle}>
-              {userDetail.firstName || userDetail.lastName
-                ? `${userDetail.firstName || ''} ${userDetail.lastName || ''}`
-                : 'کاربر عزیز'}
-            </div>
-
-            <div className={styles.popoverText}>
-              {userDetail.phoneNumber ||
-                userDetail.email ||
-                'اطلاعات تماس نامشخص'}
+            
+            <div className={styles.userInfoHeader}>
+              <div className={styles.avatar}>
+                {getInitials()}
+              </div>
+              <div className={styles.userDetails}>
+                <div className={styles.userName}>
+                  {getUserDisplayName()}
+                </div>
+                <div className={styles.userPhone}>
+                  {getUserDisplayInfo()}
+                </div>
+              </div>
             </div>
 
             <div className={styles.divider}></div>
 
-            <button
-              className={styles.menuItem}
-              onClick={() => {
-                closeAll()
-                router.push('/profile')
-              }}
-            >
-              <IconSettings size={18} />
-              پروفایل من
-            </button>
+            <div className={styles.menuGroup}>
+              <button
+                className={styles.menuItem}
+                onClick={() => {
+                  closeAll()
+                  router.push('/profile/orders')
+                }}
+              >
+                <IconPackage size={20} stroke={1.5} />
+                سفارش‌های من
+              </button>
 
-            <button
-              className={`${styles.menuItem} ${styles.danger}`}
-              onClick={handleLogout}
-            >
-              <IconLogout size={18} />
-              خروج از حساب
-            </button>
+              <button
+                className={styles.menuItem}
+                onClick={() => {
+                  closeAll()
+                  router.push('/profile/wishlist')
+                }}
+              >
+                <IconHeart size={20} stroke={1.5} />
+                علاقه‌مندی‌ها
+              </button>
+
+              <button
+                className={styles.menuItem}
+                onClick={() => {
+                  closeAll()
+                  router.push('/profile/addresses')
+                }}
+              >
+                <IconMapPin size={20} stroke={1.5} />
+                آدرس‌ها
+              </button>
+            </div>
+
+            <div className={styles.divider}></div>
+
+            <div className={styles.menuGroup}>
+              <button
+                className={styles.menuItem}
+                onClick={() => {
+                  closeAll()
+                  router.push('/profile')
+                }}
+              >
+                <IconSettings size={20} stroke={1.5} />
+                اطلاعات حساب کاربری
+              </button>
+
+              <button
+                className={`${styles.menuItem} ${styles.danger}`}
+                onClick={handleLogout}
+              >
+                <IconLogout size={20} stroke={1.5} />
+                خروج از حساب
+              </button>
+            </div>
+
           </div>
         </FloatingDropdown>
       )}

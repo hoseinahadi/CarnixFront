@@ -4,92 +4,126 @@
 .section {
   width: 100%;
   margin-top: $spacing-xxl;
+  direction: rtl; 
 }
 
 .header {
-  @include flex-between;
-  margin-bottom: $spacing-lg;
-  flex-wrap: wrap;
-  gap: $spacing-sm;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
 
-  @include respond-down('md') {
-    flex-direction: column;
-    align-items: flex-start;
+  @include respond-down('sm') {
+    padding: 0 $spacing-sm;
   }
 }
 
 .title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: $color-text-main;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e293b;
 
   @include respond-to('md') {
-    font-size: $font-size-xl;
+    font-size: 1.25rem;
   }
 }
 
-.link {
-  font-size: $font-size-sm;
-  color: $color-primary;
+.viewAll {
+  font-size: 0.8rem;
+  color: #2563eb;
   text-decoration: none;
-  font-weight: $font-weight-medium;
-  @include flex-center;
-  gap: $spacing-xs;
-  @include transition-ease(color, 0.2s);
-
-  @include respond-to('md') {
-    font-size: $font-size-base;
-  }
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 
   &:hover {
     color: darken(#2563eb, 15%);
   }
-
+  
   svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 }
 
-.grid {
-  display: grid;
-  // موبایل کوچک: 2 ستون
-  grid-template-columns: repeat(2, 1fr);
-  gap: $spacing-sm;
-
-  @include respond-to('sm') {
-    // از 576 به بالا
-    gap: $spacing-md;
+.scrollContainer {
+  display: flex;
+  gap: 12px; 
+  align-items: stretch; // 🟢 تمام کارت‌ها قد می‌کشند
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y; 
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar { display: none; }
+  
+  // 🟢 بسیار مهم: پدینگ پایین 24 پیکسل برای جلوگیری از بریده شدن دکمه
+  padding: 8px $spacing-sm 24px $spacing-sm; 
+  margin: 0;
+  cursor: grab;
+  
+  * {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+  a { pointer-events: auto; }
+  
+  &.active {
+    cursor: grabbing;
+    scroll-behavior: auto; 
   }
 
   @include respond-to('md') {
-    // از 768 به بالا: 3 ستون
-    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 8px 0 24px 0; // 🟢 دسکتاپ هم پدینگ 24 دارد
+  }
+}
+
+.cardWrapper {
+  flex: 0 0 auto;
+  display: flex; 
+  flex-direction: column;
+  align-items: stretch;
+  height: auto; 
+  width: 240px; 
+
+  > div {
+    flex: 1; // 🟢 پر کردن ارتفاع Wrapper
   }
 
-  @include respond-to('lg') {
-    // از 992 به بالا: 4 ستون
-    grid-template-columns: repeat(4, 1fr);
+  @include respond-down('md') {
+    width: 190px; 
   }
 
-  @include respond-to('xl') {
-    // از 1200 به بالا: 5 ستون
-    grid-template-columns: repeat(5, 1fr);
+  @include respond-down('sm') {
+    width: 160px; 
   }
 }
 
 .skeletonCard {
-  height: 320px;
-  background-color: $color-gray-100;
-  border-radius: $border-radius-lg;
+  flex: 0 0 auto;
+  width: 240px;
+  height: 350px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   animation: pulse 1.5s infinite;
 
+  @include respond-down('md') {
+    width: 190px;
+    height: 300px;
+  }
+
   @include respond-down('sm') {
-    height: 240px;
+    width: 160px;  
+    height: 280px; 
   }
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.6; }
 }

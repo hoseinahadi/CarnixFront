@@ -1,201 +1,323 @@
-// src/components/product/ProductFilters/ProductFilters.tsx
-'use client'
+'use client';
 
-import React, { useEffect, useState, useMemo } from 'react'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { setFilters, clearFilters, fetchFilteredProducts } from '@/store/feature/product/productFilterSlice'
-import { selectActiveFilters } from '@/store/feature/product/productFilterSelectors'
-import { CategoryApi } from '@/features/category/api/routes'
-import { Category } from '@/models/category/Category'
-import styles from './ProductFilters.module.scss'
-import { IconX } from '@tabler/icons-react'
-import ActiveFilterTags from './ActiveFilterTags/ActiveFilterTags'
-import FilterSection from './FilterSection/FilterSection'
-import PriceRangeSlider from './PriceRangeSlider/PriceRangeSlider'
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+import { IconX } from '@tabler/icons-react';
+
+import { fetchCategories } from '@/store/feature/Category/categoryThunks';
+import { getAllTrimDetails } from '@/store/feature/vehicle/VehicleThunks';
+
+import {
+  selectActiveFilters,
+} from '@/store/feature/product/productFilterSelectors';
+
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/store/hooks';
+
+import type {
+  ProductFilterParams,
+  VehicleFilterOption,
+} from '@/models/product/ProductFilters';
+
+import ActiveFilterTags from './ActiveFilterTags/ActiveFilterTags';
+import FilterSection from './FilterSection/FilterSection';
+import PriceRangeSlider from './PriceRangeSlider/PriceRangeSlider';
+
+import styles from './ProductFilters.module.scss';
 
 interface ProductFiltersProps {
-  onClose?: () => void
-  isMobile?: boolean
-  priceRange?: { minPrice: number; maxPrice: number }
-  onClearAll?: () => void
+  onFiltersChange: (
+    patch: Partial<ProductFilterParams>,
+  ) => void;
+  onClearAll: () => void;
+  onClose?: () => void;
+  isMobile?: boolean;
+  priceRange?: {
+    minPrice: number;
+    maxPrice: number;
+  };
 }
 
-const ProductFilters = ({ onClose, isMobile, priceRange, onClearAll }: ProductFiltersProps) => {
-  const dispatch = useAppDispatch()
-  const activeFilters = useAppSelector(selectActiveFilters)
+const ProductFilters = ({
+  onFiltersChange,
+  onClearAll,
+  onClose,
+  isMobile = false,
+  priceRange,
+}: ProductFiltersProps) => {
+  const dispatch = useAppDispatch();
+  const activeFilters = useAppSelector(
+    selectActiveFilters,
+  );
 
-  const [categories, setCategories] = useState<Category[]>([])
-  const [vehicles, setVehicles] = useState<any[]>([])
-  const [categorySearch, setCategorySearch] = useState('')
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    category: true,
-    price: true,
-    vehicle: true,
-  })
+  const categories = useAppSelector(
+    (state) => state.category.categories,
+  );
 
-  // دریافت دسته‌بندی‌ها
+  const categoryLoading = useAppSelector(
+    (state) => state.category.loading,
+  );
+
+  const categoryError = useAppSelector(
+    (state) => state.category.error,
+  );
+
+  const vehicles = useAppSelector(
+    (state) => state.vehicle.trimDetails,
+  );
+
+  const vehicleStatus = useAppSelector(
+    (state) => state.vehicle.trimDetailsStatus,
+  );
+
+  const vehicleError = useAppSelector(
+    (state) => state.vehicle.error,
+  );
+
+  const [categorySearch, setCategorySearch] =
+    useState('');
+
+  const [expandedSections, setExpandedSections] =
+    useState<Record<string, boolean>>({
+      category: true,
+      price: true,
+      vehicle: true,
+    });
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const catRes = await CategoryApi.getAll()
-        if (catRes.data?.isSuccess) setCategories(catRes.data.data)
-      } catch (err) {
-        console.error('Failed to load categories', err)
-      }
+    if (
+      categories.length === 0 &&
+      !categoryLoading &&
+      !categoryError
+    ) {
+      void dispatch(fetchCategories());
     }
-    fetchData()
-  }, [])
+  }, [
+    dispatch,
+    categories.length,
+    categoryLoading,
+    categoryError,
+  ]);
 
-  // دریافت خودروها با اطلاعات کامل
   useEffect(() => {
-    const fetchVehicleData = async () => {
-      try {
-        const { VehicleApi } = await import('@/features/vehicle/api/VehicleApi')
-        const vehiclesRes = await VehicleApi.getAllTrimsWithDetails()
-        
-        if (vehiclesRes.data?.isSuccess && Array.isArray(vehiclesRes.data.data)) {
-          setVehicles(vehiclesRes.data.data)
-        } else if (Array.isArray(vehiclesRes.data)) {
-          setVehicles(vehiclesRes.data)
-        }
-      } catch (err) {
-        console.error('Failed to load vehicles', err)
-      }
+    if (vehicleStatus === 'idle') {
+      void dispatch(getAllTrimDetails());
     }
-    fetchVehicleData()
-  }, [])
-
-  const toggleSection = (key: string) => {
-    setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }))
-  }
+  }, [dispatch, vehicleStatus]);
 
   const filteredCategories = useMemo(() => {
-    if (!categorySearch.trim()) return categories.filter(c => !c.parentCategoryId)
-    return categories.filter(c => !c.parentCategoryId && c.name.includes(categorySearch.trim()))
-  }, [categories, categorySearch])
+    const searchTerm = categorySearch.trim();
 
-  // هندلر تغییر دسته‌بندی
-  const handleCategoryChange = (categoryId: number) => {
-    const newFilters = { 
-      ...activeFilters, 
-      categoryId: activeFilters.categoryId === categoryId ? undefined : categoryId 
-    }
-    dispatch(setFilters(newFilters))
-    dispatch(fetchFilteredProducts(newFilters))
-  }
+    return categories.filter((category) => {
+      const isRootCategory =
+        !category.parentCategoryId ||
+        category.parentCategoryId === 0;
 
- // ✅ هندلر تغییر خودرو (چندتایی)
-const handleVehicleChange = (vehicle: any) => {
-  // آرایه vehicleIds را از فیلترهای فعال می‌گیریم
-  const currentVehicleIds = activeFilters.vehicleIds || []
-  
-  // بررسی می‌کنیم آیا این خودرو قبلاً انتخاب شده است
-  const isSelected = currentVehicleIds.some(
-    id => id.makeId === vehicle.vehicleMakeId && id.modelId === vehicle.vehicleModelId
-  )
-  
-  let newVehicleIds
-  if (isSelected) {
-    // اگر قبلاً انتخاب شده، حذفش می‌کنیم
-    newVehicleIds = currentVehicleIds.filter(
-      id => !(id.makeId === vehicle.vehicleMakeId && id.modelId === vehicle.vehicleModelId)
-    )
-  } else {
-    // اگر انتخاب نشده، اضافهش می‌کنیم
-    newVehicleIds = [
-      ...currentVehicleIds,
-      { makeId: vehicle.vehicleMakeId, modelId: vehicle.vehicleModelId }
-    ]
-  }
-  
-  const newFilters = { 
-    ...activeFilters, 
-    vehicleIds: newVehicleIds.length > 0 ? newVehicleIds : undefined,
-    // حذف makeId و modelId تکی تا تداخل نداشته باشد
-    makeId: undefined,
-    modelId: undefined
-  }
-  
-  dispatch(setFilters(newFilters))
-  dispatch(fetchFilteredProducts(newFilters))
-}
-
-  // هندلر تغییر قیمت
-  const handlePriceChange = (min: number, max: number) => {
-    const newFilters = { ...activeFilters, minPrice: min, maxPrice: max }
-    dispatch(setFilters(newFilters))
-    dispatch(fetchFilteredProducts(newFilters))
-  }
-
-  // هندلر تغییر موجودی (فقط موارد موجود)
-  const handleStockToggle = () => {
-    const newFilters = { ...activeFilters, inStock: !activeFilters.inStock }
-    dispatch(setFilters(newFilters))
-    dispatch(fetchFilteredProducts(newFilters))
-  }
-
-  // هندلر پاک کردن همه فیلترها
-  const handleClearAll = () => {
-    if (onClearAll) {
-      onClearAll()
-    } else {
-      dispatch(clearFilters())
-      const emptyFilters = {
-        categoryId: undefined,
-        vehicleIds: undefined,
-        inStock: undefined,
-        minPrice: undefined,
-        maxPrice: undefined,
-        sortBy: activeFilters.sortBy,
-        page: 1
+      if (!isRootCategory) {
+        return false;
       }
-      dispatch(fetchFilteredProducts(emptyFilters))
-    }
-  }
 
-  // هندلر حذف یک فیلتر خاص
+      if (!searchTerm) {
+        return true;
+      }
+
+      return category.name
+        ?.toLocaleLowerCase('fa-IR')
+        .includes(
+          searchTerm.toLocaleLowerCase('fa-IR'),
+        );
+    });
+  }, [categories, categorySearch]);
+
+  const toggleSection = (key: string) => {
+    setExpandedSections((current) => ({
+      ...current,
+      [key]: !current[key],
+    }));
+  };
+
+  const handleCategoryChange = (
+    categoryId: number,
+  ) => {
+    const isSelected =
+      Number(activeFilters.categoryId) ===
+      Number(categoryId);
+
+    onFiltersChange({
+      categoryId: isSelected
+        ? undefined
+        : categoryId,
+      brandId: undefined,
+    });
+  };
+
+  const handleVehicleChange = (
+    vehicle: VehicleFilterOption,
+  ) => {
+    const isSelected =
+      activeFilters.makeId === vehicle.makeId &&
+      activeFilters.modelId === vehicle.modelId;
+
+    onFiltersChange({
+      makeId: isSelected
+        ? undefined
+        : vehicle.makeId,
+      modelId: isSelected
+        ? undefined
+        : vehicle.modelId,
+      trimId: undefined,
+      vehicleIds: isSelected
+        ? undefined
+        : [
+            {
+              makeId: vehicle.makeId,
+              modelId: vehicle.modelId,
+            },
+          ],
+    });
+  };
+
+  const baseMinPrice = priceRange?.minPrice ?? 0;
+  const baseMaxPrice =
+    priceRange?.maxPrice ?? 100_000_000;
+
+  const handlePriceChange = (
+    minPrice: number,
+    maxPrice: number,
+  ) => {
+    const isDefaultRange =
+      minPrice <= baseMinPrice &&
+      maxPrice >= baseMaxPrice;
+
+    onFiltersChange({
+      minPrice: isDefaultRange
+        ? undefined
+        : minPrice,
+      maxPrice: isDefaultRange
+        ? undefined
+        : maxPrice,
+    });
+  };
+
+  const handleStockToggle = () => {
+    onFiltersChange({
+      inStock: activeFilters.inStock
+        ? undefined
+        : true,
+    });
+  };
+
   const handleRemoveFilter = (key: string) => {
-    const newFilters = { ...activeFilters }
-    delete (newFilters as any)[key]
-    dispatch(setFilters(newFilters))
-    dispatch(fetchFilteredProducts(newFilters))
-  }
+    switch (key) {
+      case 'price':
+        onFiltersChange({
+          minPrice: undefined,
+          maxPrice: undefined,
+        });
+        break;
 
-  const hasActiveFilters = !!(activeFilters.categoryId || 
-    (activeFilters.vehicleIds && activeFilters.vehicleIds.length > 0) ||
-    activeFilters.inStock || activeFilters.minPrice || activeFilters.maxPrice)
+      case 'vehicle':
+        onFiltersChange({
+          makeId: undefined,
+          modelId: undefined,
+          trimId: undefined,
+          vehicleIds: undefined,
+        });
+        break;
+
+      case 'categoryId':
+        onFiltersChange({
+          categoryId: undefined,
+          brandId: undefined,
+        });
+        break;
+
+      case 'brandId':
+        onFiltersChange({
+          brandId: undefined,
+        });
+        break;
+
+      case 'inStock':
+        onFiltersChange({
+          inStock: undefined,
+        });
+        break;
+
+      case 'hasDiscount':
+        onFiltersChange({
+          hasDiscount: undefined,
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const hasActiveFilters = Boolean(
+    activeFilters.categoryId ||
+      activeFilters.brandId ||
+      activeFilters.makeId ||
+      activeFilters.modelId ||
+      activeFilters.inStock ||
+      activeFilters.hasDiscount ||
+      activeFilters.minPrice !== undefined ||
+      activeFilters.maxPrice !== undefined,
+  );
 
   return (
-    <div className={`${styles.filters} ${isMobile ? styles.mobile : ''}`}>
-      {/* هدر */}
+    <div
+      className={`${styles.filters} ${
+        isMobile ? styles.mobile : ''
+      }`}
+    >
       <div className={styles.header}>
-        <span className={styles.headerTitle}>فیلترها</span>
+        <span className={styles.headerTitle}>
+          فیلترها
+        </span>
+
         <div className={styles.headerActions}>
           {hasActiveFilters && (
-            <button onClick={handleClearAll} className={styles.clearAllBtn}>
+            <button
+              type="button"
+              onClick={onClearAll}
+              className={styles.clearAllBtn}
+            >
               حذف فیلترها
             </button>
           )}
+
           {isMobile && (
-            <button onClick={onClose} className={styles.closeBtn}>
+            <button
+              type="button"
+              onClick={onClose}
+              className={styles.closeBtn}
+              aria-label="بستن فیلترها"
+            >
               <IconX size={20} />
             </button>
           )}
         </div>
       </div>
 
-      {/* تگ‌های فیلتر فعال */}
       {hasActiveFilters && (
         <ActiveFilterTags
           filters={activeFilters}
           categories={categories}
+          vehicles={vehicles}
           onRemove={handleRemoveFilter}
-          onClearAll={handleClearAll} brands={[]}        />
+        />
       )}
 
-      {/* دسته‌بندی */}
       <FilterSection
-        title="دسته‌بندی ها"
+        title="دسته‌بندی‌ها"
         expanded={expandedSections.category}
         onToggle={() => toggleSection('category')}
         searchValue={categorySearch}
@@ -203,85 +325,162 @@ const handleVehicleChange = (vehicle: any) => {
         showSearch
       >
         <div className={styles.optionsList}>
-          {filteredCategories.map(cat => (
-            <label key={cat.categoryId} className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={activeFilters.categoryId === cat.categoryId}
-                onChange={() => handleCategoryChange(cat.categoryId)}
-              />
-              <span className={styles.checkmark}></span>
-              <span>{cat.name}</span>
-            </label>
-          ))}
+          {categoryError &&
+          filteredCategories.length === 0 ? (
+            <div
+              style={{
+                padding: '10px',
+                color: '#b42318',
+                textAlign: 'center',
+                fontSize: '13px',
+              }}
+            >
+              دریافت دسته‌بندی‌ها ناموفق بود.
+            </div>
+          ) : categoryLoading &&
+            filteredCategories.length === 0 ? (
+            <div
+              style={{
+                padding: '10px',
+                color: '#777',
+                textAlign: 'center',
+                fontSize: '13px',
+              }}
+            >
+              در حال دریافت دسته‌بندی‌ها...
+            </div>
+          ) : (
+            filteredCategories.map((category) => (
+              <label
+                key={category.categoryId}
+                className={styles.checkboxLabel}
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    Number(activeFilters.categoryId) ===
+                    Number(category.categoryId)
+                  }
+                  onChange={() =>
+                    handleCategoryChange(
+                      category.categoryId,
+                    )
+                  }
+                />
+
+                <span className={styles.checkmark} />
+                <span>{category.name}</span>
+              </label>
+            ))
+          )}
         </div>
       </FilterSection>
 
-      {/* بازه قیمت */}
       <FilterSection
         title="بازه قیمت (تومان)"
         expanded={expandedSections.price}
         onToggle={() => toggleSection('price')}
       >
         <PriceRangeSlider
-          min={priceRange?.minPrice || 0}
-          max={priceRange?.maxPrice || 10000000}
-          currentMin={activeFilters.minPrice || priceRange?.minPrice || 0}
-          currentMax={activeFilters.maxPrice || priceRange?.maxPrice || 10000000}
+          min={baseMinPrice}
+          max={baseMaxPrice}
+          currentMin={
+            activeFilters.minPrice ?? baseMinPrice
+          }
+          currentMax={
+            activeFilters.maxPrice ?? baseMaxPrice
+          }
           onChange={handlePriceChange}
         />
       </FilterSection>
 
-      {/* ماشین */}
       <FilterSection
         title={`ماشین (${vehicles.length})`}
         expanded={expandedSections.vehicle}
         onToggle={() => toggleSection('vehicle')}
       >
         <div className={styles.optionsList}>
-          {vehicles.length === 0 ? (
-            <div style={{ padding: '10px', color: '#999', fontSize: '13px', textAlign: 'center' }}>
-              در حال بارگذاری...
+          {vehicleStatus === 'failed' &&
+          vehicles.length === 0 ? (
+            <div
+              style={{
+                padding: '10px',
+                color: '#b42318',
+                textAlign: 'center',
+                fontSize: '13px',
+              }}
+            >
+              {vehicleError || 'دریافت خودروها ناموفق بود.'}
+            </div>
+          ) : vehicleStatus === 'loading' &&
+            vehicles.length === 0 ? (
+            <div
+              style={{
+                padding: '10px',
+                color: '#777',
+                textAlign: 'center',
+                fontSize: '13px',
+              }}
+            >
+              در حال دریافت خودروها...
+            </div>
+          ) : vehicles.length === 0 ? (
+            <div
+              style={{
+                padding: '10px',
+                color: '#999',
+                textAlign: 'center',
+                fontSize: '13px',
+              }}
+            >
+              خودرویی برای نمایش وجود ندارد.
             </div>
           ) : (
-            vehicles.map(vehicle => {
-              // بررسی می‌کنیم آیا این خودرو در آرایه vehicleIds انتخاب شده است
-              const isSelected = (activeFilters.vehicleIds || []).some(
-                id => id.makeId === vehicle.vehicleMakeId && id.modelId === vehicle.vehicleModelId
-              )
-              
+            vehicles.map((vehicle) => {
+              const isSelected =
+                activeFilters.makeId === vehicle.makeId &&
+                activeFilters.modelId === vehicle.modelId;
+
               return (
-                <label key={vehicle.vehicleTrimId} className={styles.checkboxLabel}>
+                <label
+                  key={vehicle.id}
+                  className={styles.checkboxLabel}
+                >
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => handleVehicleChange(vehicle)}
+                    onChange={() =>
+                      handleVehicleChange(vehicle)
+                    }
                   />
-                  <span className={styles.checkmark}></span>
+
+                  <span className={styles.checkmark} />
                   <span>{vehicle.name}</span>
                 </label>
-              )
+              );
             })
           )}
         </div>
       </FilterSection>
 
-      {/* فقط موارد موجود */}
       <div className={styles.stockSection}>
         <div className={styles.stockToggle}>
           <label className={styles.switch}>
             <input
               type="checkbox"
-              checked={!!activeFilters.inStock}
+              checked={Boolean(activeFilters.inStock)}
               onChange={handleStockToggle}
             />
-            <span className={styles.sliderRound}></span>
+            <span className={styles.sliderRound} />
           </label>
-          <span className={styles.stockLabel}>فقط موارد موجود</span>
+
+          <span className={styles.stockLabel}>
+            فقط موارد موجود
+          </span>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ProductFilters
+export default ProductFilters;

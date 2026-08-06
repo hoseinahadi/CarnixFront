@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Car, ArrowLeft } from 'lucide-react'
+import { Car, ArrowLeft, ChevronLeft } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { getAllMakes, getModelsByMakeId } from '@/store/feature/vehicle/VehicleThunks'
 import { selectMakes, selectModels, selectVehicleLoading } from '@/store/feature/vehicle/VehicleSelectors'
@@ -10,21 +10,55 @@ import { clearModels } from '@/store/feature/vehicle/VehicleSlice'
 import styles from './VehiclesPage.module.scss'
 import classNames from 'classnames'
 
+// 🟢 تابع استخراج‌گر ایمن برای مدل‌ها
+const extractSafeArray = (data: any): any[] => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data; 
+  if (Array.isArray(data.items)) return data.items; 
+  if (Array.isArray(data.data)) return data.data; 
+  if (Array.isArray(data.mainResults)) return data.mainResults; 
+  if (data.data && Array.isArray(data.data.items)) return data.data.items; 
+  if (data.mainResults && Array.isArray(data.mainResults.items)) return data.mainResults.items;
+  return [];
+};
+
+// 🟢 تابع هوشمند برای اتصال آدرس سرور بک‌اند به عکس ماشین (حذف کلمه /api برای خواندن از wwwroot)
+const getImageUrl = (url: string | null | undefined) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url; 
+  
+  let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.carnix.ir'; 
+  
+  if (baseUrl.endsWith('/api')) {
+    baseUrl = baseUrl.substring(0, baseUrl.length - 4);
+  } else if (baseUrl.endsWith('/api/')) {
+    baseUrl = baseUrl.substring(0, baseUrl.length - 5);
+  }
+
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 const VehiclesPage = () => {
   const dispatch = useAppDispatch()
   const router = useRouter()
   
-  const makes = useAppSelector(selectMakes)
-  const models = useAppSelector(selectModels)
+  const rawMakes = useAppSelector(selectMakes)
+  const rawModels = useAppSelector(selectModels)
   const loading = useAppSelector(selectVehicleLoading)
+  const makesStatus = useAppSelector(
+    (state) => state.vehicle?.makesStatus ?? 'idle',
+  )
   
-  const [activeMake, setActiveMake] = useState(makes[0] ?? null)
+  const makes = useMemo(() => extractSafeArray(rawMakes), [rawMakes]);
+  const models = useMemo(() => extractSafeArray(rawModels), [rawModels]);
+
+  const [activeMake, setActiveMake] = useState<any>(null)
 
   useEffect(() => {
-    if (makes.length === 0) {
-      dispatch(getAllMakes())
+    if (makesStatus === 'idle') {
+      void dispatch(getAllMakes())
     }
-  }, [dispatch, makes.length])
+  }, [dispatch, makesStatus])
 
   useEffect(() => {
     if (makes.length > 0 && !activeMake) {
@@ -33,15 +67,13 @@ const VehiclesPage = () => {
   }, [makes, activeMake])
 
   useEffect(() => {
-    if (activeMake) {
+    if (activeMake && activeMake.vehicleMakeId) {
       dispatch(clearModels())
       dispatch(getModelsByMakeId(activeMake.vehicleMakeId))
     }
   }, [activeMake, dispatch])
 
-  // ✅ وقتی روی مدل کلیک می‌شود، به صفحه قطعات آن ماشین بروید
   const handleModelClick = (makeName: string, modelName: string) => {
-    // به صفحه قطعات ماشین بروید - آدرس را طبق ساختار پروژه خود تنظیم کنید
     router.push(`/products?make=${makeName}&model=${modelName}`)
   }
 
@@ -54,28 +86,33 @@ const VehiclesPage = () => {
           <span>بازگشت</span>
         </button>
         <div className={styles.headerContent}>
-          <Car className={styles.headerIcon} size={28} />
+          <div className={styles.iconWrapper}>
+            <Car className={styles.headerIcon} size={24} />
+          </div>
           <h1 className={styles.pageTitle}>ماشین‌ها</h1>
         </div>
       </div>
 
       {/* محتوای اصلی */}
       <div className={styles.content}>
+        
         {/* ستون برندهای ماشین */}
         <div className={styles.sidebar}>
-          <div className={styles.sidebarTitle}>برندها</div>
-          {makes.map(make => (
-            <div
-              key={make.vehicleMakeId}
-              className={classNames(styles.sidebarItem, {
-                [styles.active]: make.vehicleMakeId === activeMake?.vehicleMakeId
-              })}
-              onClick={() => setActiveMake(make)}
-            >
-              <Car size={18} />
-              <span>{make.name}</span>
-            </div>
-          ))}
+          <div className={styles.sidebarTitle}>انتخاب برند</div>
+          <div className={styles.sidebarList}>
+            {makes.map(make => (
+              <div
+                key={make.vehicleMakeId}
+                className={classNames(styles.sidebarItem, {
+                  [styles.active]: make.vehicleMakeId === activeMake?.vehicleMakeId
+                })}
+                onClick={() => setActiveMake(make)}
+              >
+                <Car size={18} className={styles.makeIcon} />
+                <span className={styles.makeName}>{make.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* ستون مدل‌ها */}
@@ -84,30 +121,51 @@ const VehiclesPage = () => {
             <>
               <div className={styles.modelsHeader}>
                 <h2 className={styles.modelsTitle}>مدل‌های {activeMake.name}</h2>
-                <span className={styles.modelsCount}>{models.length} مدل</span>
+                <span className={styles.modelsBadge}>{models.length} مدل خودرو</span>
               </div>
 
               {loading ? (
-                <div className={styles.stateContainer}>
-                  <div className={styles.spinner}></div>
-                  <span>در حال دریافت مدل‌ها...</span>
+                <div className={styles.modelsGrid}>
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={`skeleton-${index}`} className={styles.skeletonCard}>
+                      <div className={styles.skeletonIcon}></div>
+                      <div className={styles.skeletonText}></div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className={styles.modelsGrid}>
                   {models.map(model => (
                     <div
-                      key={model.vehicleGenerationId || model.name}
+                      key={model.vehicleModelId || model.name}
                       className={styles.modelCard}
                       onClick={() => handleModelClick(activeMake.name, model.name)}
                     >
                       <div className={styles.carImageBox}>
-                        <Car size={40} strokeWidth={1.5} />
+                        {model.imageUrl ? (
+                          // 🟢 نمایش عکس ماشین متصل شده از دیتابیس
+                          <img 
+                            src={getImageUrl(model.imageUrl)} 
+                            alt={model.name} 
+                            className={styles.carImage} 
+                            loading="lazy" 
+                          />
+                        ) : (
+                          <Car size={32} strokeWidth={1.5} className={styles.carIcon} />
+                        )}
                       </div>
                       <span className={styles.modelName}>{model.name}</span>
+                      <ChevronLeft size={20} className={styles.arrowIcon} />
                     </div>
                   ))}
+                  
                   {models.length === 0 && !loading && (
-                    <div className={styles.stateContainer}>مدلی یافت نشد.</div>
+                    <div className={styles.stateContainer}>
+                      <div className={styles.emptyStateIcon}>
+                         <Car size={48} strokeWidth={1} />
+                      </div>
+                      <span className={styles.emptyStateText}>مدلی برای این برند یافت نشد.</span>
+                    </div>
                   )}
                 </div>
               )}

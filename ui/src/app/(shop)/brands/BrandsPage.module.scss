@@ -3,48 +3,61 @@
 
 .page {
   width: 100%;
-  max-width: 1200px;
+  max-width: $container-max-width;
   margin: 0 auto;
   padding: $spacing-xl $spacing-lg;
-}
+  font-family: 'IRANYEKAN', sans-serif;
+  overflow-x: hidden; // 🟢 جلوگیری قطعی از اسکرول افقی صفحه
 
-/* ================= Header ================= */
-.pageHeader {
-  display: flex;
-  align-items: center;
-  gap: $spacing-lg;
-  margin-bottom: $spacing-xl;
-  padding-bottom: $spacing-lg;
-  border-bottom: 2px solid $color-border-light;
-}
+  @include respond-down('md') {
+    padding: $spacing-md;
+  }
 
-.backButton {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  background: none;
-  border: none;
-  color: $color-text-muted;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $border-radius-md;
-  @include transition-ease;
-  flex-shrink: 0;
-
-  &:hover {
-    background: $color-neutral-50;
-    color: $color-text-main;
+  @include respond-down('sm') {
+    padding: $spacing-sm;
   }
 }
 
-.headerContent {
+/* ================= Header & Search ================= */
+.pageHeader {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  justify-content: space-between;
+  margin-bottom: $spacing-xl;
+  padding-bottom: $spacing-lg;
+  border-bottom: 1px solid $color-border-light;
+  flex-wrap: wrap;
+  gap: $spacing-lg;
 
-  .headerIcon {
-    color: $color-primary;
+  @include respond-down('md') {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+    padding-bottom: $spacing-md;
+  }
+}
+
+.headerTitleSection {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+
+  .iconWrapper {
+    @include flex-center;
+    width: 48px;
+    height: 48px;
+    background-color: $color-primary-light;
+    border-radius: $border-radius-md;
+    
+    .headerIcon {
+      color: $color-primary;
+    }
+
+    @include respond-down('sm') {
+      width: 40px;
+      height: 40px;
+    }
   }
 
   .pageTitle {
@@ -52,6 +65,73 @@
     font-weight: $font-weight-bold;
     color: $color-text-main;
     margin: 0;
+    font-family: 'IRANYEKAN', sans-serif;
+
+    @include respond-down('sm') {
+      font-size: $font-size-lg;
+    }
+  }
+}
+
+.searchContainer {
+  display: flex;
+  align-items: center;
+  background-color: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-full;
+  padding: 0 $spacing-md;
+  width: 300px;
+  max-width: 100%; // 🟢 عدم تجاوز از عرض کانتینر در موبایل
+  height: 48px;
+  box-shadow: $shadow-sm;
+  @include transition-ease;
+  position: relative;
+
+  @include respond-down('md') {
+    width: 100%;
+  }
+
+  &:focus-within {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px $color-primary-light;
+  }
+
+  .searchIcon {
+    color: $color-text-muted;
+    flex-shrink: 0;
+  }
+
+  .searchInput {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0 $spacing-sm;
+    font-family: 'IRANYEKAN', sans-serif;
+    font-size: $font-size-sm;
+    color: $color-text-main;
+
+    &::placeholder {
+      color: $color-gray-400;
+    }
+  }
+
+  .clearSearchBtn {
+    background: none;
+    border: none;
+    color: $color-text-muted;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    @include transition-ease;
+
+    &:hover {
+      background-color: $color-gray-100;
+      color: $color-danger;
+    }
   }
 }
 
@@ -59,18 +139,21 @@
 .gridContainer {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: $spacing-lg $spacing-md;
+  gap: $spacing-lg;
   
-  @media (max-width: 1024px) {
+  @include respond-down('lg') {
     grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-md;
   }
   
-  @media (max-width: 768px) {
+  @include respond-down('md') {
     grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-sm;
   }
   
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+  @include respond-down('sm') {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-sm;
   }
 }
 
@@ -81,28 +164,43 @@
   gap: $spacing-md;
   padding: $spacing-lg;
   background: $color-white;
-  border-radius: $border-radius-lg;
+  border-radius: $border-radius-xl;
   text-decoration: none;
   cursor: pointer;
-  @include transition-ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid $color-border-light;
-  box-shadow: $shadow-sm;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  min-width: 0; // 🟢 حیاتی برای کنترل عرض در گرید
+  overflow: hidden; // 🟢 مخفی کردن سرریز محتوا
+
+  @include respond-down('md') {
+    padding: $spacing-md;
+    border-radius: $border-radius-lg;
+  }
+
+  @include respond-down('sm') {
+    flex-direction: column;
+    text-align: center;
+    gap: $spacing-sm;
+    padding: $spacing-md $spacing-sm;
+  }
 
   &:hover {
-    background-color: $color-neutral-50;
+    background-color: $color-white;
     border-color: $color-primary-light;
-    box-shadow: $shadow-md;
-    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    transform: translateY(-4px);
     
     .iconBox {
-      background-color: $color-primary;
+      background-color: $color-primary-light;
       
       .defaultIcon {
-        color: $color-white;
+        color: $color-primary;
+        transform: scale(1.1);
       }
       
       .logoImage {
-        transform: scale(1.1);
+        transform: scale(1.05);
       }
     }
 
@@ -114,23 +212,35 @@
 
 /* ================= Icon / Logo Box ================= */
 .iconBox {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   flex-shrink: 0;
   @include flex-center;
-  background-color: $color-primary-light;
+  background-color: $color-gray-50;
   border-radius: $border-radius-md;
   @include transition-ease;
 
+  @include respond-down('md') {
+    width: 56px;
+    height: 56px;
+  }
+
+  @include respond-down('sm') {
+    width: 52px;
+    height: 52px;
+  }
+
   .defaultIcon {
-    color: $color-primary;
+    color: $color-text-muted;
     @include transition-ease;
   }
 
   .logoImage {
-    width: 65%;
-    height: 65%;
     object-fit: contain;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    border-radius: 10px;
     @include transition-ease;
   }
 }
@@ -138,29 +248,134 @@
 /* ================= Texts ================= */
 .brandInfo {
   @include flex-column;
-  gap: $spacing-xs;
+  gap: 4px;
   overflow: hidden;
+  flex: 1;
+  min-width: 0; // 🟢 حیاتی برای کار کردن text-truncate درون فلکس‌باکس
+  width: 100%;
+
+  @include respond-down('sm') {
+    align-items: center; 
+  }
 }
 
 .brandName {
-  font-size: $font-size-md;
-  font-weight: $font-weight-medium;
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
   color: $color-text-main;
+  font-family: 'IRANYEKAN', sans-serif;
   @include text-truncate;
   @include transition-ease;
+  width: 100%;
+
+  @include respond-down('md') {
+    font-size: $font-size-sm;
+  }
 }
 
 .brandCountry {
   font-size: $font-size-xs;
   color: $color-text-muted;
+  font-family: 'IRANYEKAN', sans-serif;
+  font-weight: $font-weight-medium;
   @include text-truncate;
+  width: 100%;
+}
+
+/* ================= Skeleton Loader ================= */
+.skeletonCard {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  background: $color-white;
+  border-radius: $border-radius-xl;
+  border: 1px solid $color-border-light;
+  min-width: 0;
+  overflow: hidden;
+
+  @include respond-down('md') {
+    padding: $spacing-md;
+    border-radius: $border-radius-lg;
+  }
+
+  @include respond-down('sm') {
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+}
+
+.skeletonIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: $border-radius-md;
+  background: linear-gradient(90deg, $color-gray-50 25%, $color-gray-100 50%, $color-gray-50 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite linear;
+  flex-shrink: 0;
+
+  @include respond-down('md') {
+    width: 56px;
+    height: 56px;
+  }
+
+  @include respond-down('sm') {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+.skeletonInfo {
+  @include flex-column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+
+  @include respond-down('sm') {
+    align-items: center;
+  }
+}
+
+.skeletonLineTitle {
+  height: 16px;
+  width: 70%;
+  border-radius: $border-radius-sm;
+  background: linear-gradient(90deg, $color-gray-50 25%, $color-gray-100 50%, $color-gray-50 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite linear;
+}
+
+.skeletonLineSub {
+  height: 12px;
+  width: 40%;
+  border-radius: $border-radius-sm;
+  background: linear-gradient(90deg, $color-gray-50 25%, $color-gray-100 50%, $color-gray-50 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite linear;
+}
+
+@keyframes skeletonLoading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* ================= Empty State ================= */
 .emptyState {
   @include flex-center;
-  padding: $spacing-xxl;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: $spacing-xxxl;
   color: $color-text-muted;
   font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  font-family: 'IRANYEKAN', sans-serif;
   grid-column: 1 / -1;
+  background-color: $color-gray-50;
+  border: 1px dashed $color-border-light;
+  border-radius: $border-radius-xl;
+
+  .emptyIcon {
+    color: $color-gray-300;
+  }
 }

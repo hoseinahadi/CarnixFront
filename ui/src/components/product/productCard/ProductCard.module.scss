@@ -2,45 +2,53 @@
 @import '@/assets/styles/utils/mixins';
 
 .card {
-  @include flex-column;
-  border: 1px solid $color-border-dark;
-  border-radius: $border-radius-lg;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto; 
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   background-color: $color-white;
-  height: 80%;
-  width: 95%;
-  box-shadow: $shadow-sm;
-  @include transition-ease(box-shadow, 0.3s);
+  height: 100%; 
+  min-width: 0; 
+  width: 100%; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  position: relative;
+  overflow: hidden;
+  user-select: none; 
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif !important; // 🟢 اعمال فونت روی کل کارت
+  @include transition-ease(all, 0.3s);
 
   &:hover {
-    box-shadow: $shadow-lg;
-    border-color: $color-primary;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    border-color: #cbd5e1;
   }
 }
 
 .link {
-  display: block;
-  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto; 
   text-decoration: none;
-  height: 60%;
 }
 
 .imageWrapper {
   position: relative;
-  aspect-ratio: 1 / 1;
-  background-color: $color-gray-50;
-  border-radius: $border-radius-md;
-  margin-bottom: $spacing-md;
-  @include flex-center;
-  overflow: hidden;
-  height: 70%;
   width: 100%;
-  border-radius: 11;
-  // استایل تصویر محصول
+  aspect-ratio: 1 / 1; 
+  background-color: transparent; 
+  padding: $spacing-md; 
+  @include flex-center;
+  
   .productImage {
     width: 100%;
     height: 100%;
-    object-fit: cover; // برای اینکه عکس دفرمه نشود
+    object-fit: contain;
     @include transition-ease(transform, 0.4s);
+    
+    &.grayscale {
+      filter: grayscale(100%);
+      opacity: 0.7;
+    }
   }
 
   .placeholder {
@@ -48,150 +56,212 @@
     font-size: $font-size-sm;
   }
 
-  // وقتی روی باکس عکس هاور می‌شود
   &:hover {
-    .productImage {
-      transform: scale(1.05); // زوم شدن ملایم عکس
-    }
-    
-    .hoverActions {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0); // افکت نمایش از بالا
+    .productImage:not(.grayscale) {
+      transform: scale(1.04);
     }
   }
-}
 
-// دکمه‌های روی عکس
-.hoverActions {
-  position: absolute;
-  top: $spacing-sm;
-  right: $spacing-sm;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px); // حالت اولیه قبل از هاور
-  @include transition-ease(all, 0.3s);
-  z-index: 2;
-
-  .actionBtn {
-    background-color: $color-white;
-    color: $color-text-main;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid $color-border-light;
-    cursor: pointer;
-    box-shadow: $shadow-sm;
-    @include flex-center;
-    @include transition-ease(all, 0.2s);
-
-    &:hover {
-      color: $color-primary;
-      border-color: $color-primary;
-      background-color: $color-gray-50;
-    }
-
-    svg {
-      width: 18px;
-      height: 18px;
-    }
+  .outOfStockBadge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background-color: #f1f5f9;
+    color: #64748b;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    z-index: 2;
   }
 }
 
 .title {
-  padding: $spacing-md;
-  font-weight: $font-weight-medium;
-  color: $color-text-main;
-  font-size: $font-size-sm;
-  line-height: 1.6;
-  margin-bottom: $spacing-md;
-  @include line-clamp(2); 
-  @include transition-ease(color, 0.2s);
+  padding: 0 12px; 
+  margin: 12px 0 8px 0; 
+  font-weight: 500;
+  color: #334155;
+  font-size: 13px; 
+  line-height: 20px;
+  height: 40px; 
+  min-height: 40px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif !important;
 
   @include respond-to('md') {
-    font-size: $font-size-base;
-  }
-
-  &:hover {
-    color: $color-primary;
+    font-size: 14px;
+    line-height: 24px;
+    height: 48px; 
+    min-height: 48px;
+    padding: 0 16px;
+    margin: 16px 0 12px 0; 
   }
 }
 
 .footer {
-  padding: $spacing-md;
-  margin-top: auto;
-  padding-top: $spacing-sm;
-  @include flex-between;
+  flex-shrink: 0; 
+  padding: 12px; 
+  margin-top: auto; 
+  display: flex;
+  justify-content: space-between; 
+  align-items: flex-end;
+  
+  @include respond-to('md') {
+    padding: 12px 16px 16px;
+  }
 }
 
 .priceWrapper {
-  @include flex-column;
-
-  .priceLabel {
-    font-size: $font-size-sm;
-    color: $color-text-muted;
-    margin-bottom: $spacing-xs;
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+  text-align: right;
 
   .priceValue {
-    font-weight: $font-weight-bold;
-    color: $color-primary-dark;
-    font-size: $font-size-md;
+    font-weight: 800;
+    color: #1e3a8a; 
+    font-size: 0.95rem; 
+
+    @include respond-to('md') {
+      font-size: 1.1rem;
+    }
 
     .currency {
-      font-size: $font-size-sm;
-      font-weight: $font-weight-regular;
-      color: $color-text-secondary;
+      font-size: 0.7rem; 
+      font-weight: 500;
+      color: #94a3b8; 
+      margin-right: 4px;
+    }
+  }
+
+  .outOfStockText {
+    font-weight: 800;
+    color: #1e3a8a;
+    font-size: 0.95rem;
+    
+    @include respond-to('md') {
+      font-size: 1.05rem;
     }
   }
 }
 
+.cartActionWrapper {
+  display: flex;
+  align-items: center;
+}
+
 .cartBtn {
-  background-color: $color-primary;
+  background-color: #2563eb; 
   color: $color-white;
-  padding: $spacing-sm;
-  border-radius: $border-radius-md;
+  width: 32px; 
+  height: 32px;
+  border-radius: 8px; 
   border: none;
   cursor: pointer;
-  box-shadow: $shadow-sm;
   @include flex-center;
-  @include transition-ease(background-color, 0.3s);
+  @include transition-ease(background-color, 0.2s);
 
-  &:hover {
-    background-color: darken(#2563eb, 10%);
+  @include respond-to('md') {
+    width: 38px; 
+    height: 38px;
+    border-radius: 10px;
   }
 
-  svg {
-    width: 20px;
-    height: 20px;
+  &:hover:not(.disabledBtn) {
+    background-color: darken(#2563eb, 8%);
+  }
+
+  &.disabledBtn {
+    background-color: #e2e8f0; 
+    color: #94a3b8;
+    cursor: default;
   }
 }
 
+.cartControls {
+  display: flex;
+  align-items: center;
+  background-color: $color-white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  height: 32px; 
+  overflow: hidden;
+  
+  @include respond-to('md') {
+    height: 38px;
+    border-radius: 10px;
+  }
 
+  .controlBtn {
+    width: 28px;
+    height: 100%;
+    @include flex-center;
+    background: transparent;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    @include transition-ease(background-color, 0.2s);
 
+    @include respond-to('md') {
+      width: 34px;
+    }
 
-// نشان تخفیف روی عکس محصول
+    &:hover:not(:disabled) {
+      background-color: #f1f5f9;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+
+    &.danger {
+      color: #ef4444;
+    }
+  }
+
+  .quantityNumber {
+    @include flex-center;
+    width: 24px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #334155;
+    
+    @include respond-to('md') {
+      width: 28px;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.spinnerIcon, .spinnerIconSmall {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
 .discountBadge {
   position: absolute;
-  top: $spacing-sm;
-  left: $spacing-sm; // سمت چپ قرار می‌گیرد (چون دکمه‌ها سمت راست هستند)
-  background-color: #ef4444; // قرمز رنگ
+  top: 8px;
+  right: 8px;
+  background-color: #ef4444;
   color: $color-white;
-  padding: 4px 8px;
-  border-radius: $border-radius-md;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
   z-index: 2;
-  box-shadow: $shadow-sm;
 }
 
-// قیمت قبلی (خط خورده)
 .oldPrice {
-  font-size: $font-size-sm;
-  color: $color-text-muted;
+  font-size: 0.75rem;
+  color: #94a3b8;
   text-decoration: line-through;
   margin-bottom: 2px;
 }

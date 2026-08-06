@@ -5,7 +5,7 @@
   background: $color-white;
   border-radius: $border-radius-lg;
   box-shadow: $shadow-sm;
-  padding: $spacing-xl;
+  
   width: 100%;
 }
 
@@ -13,9 +13,9 @@
   font-size: $font-size-lg;
   font-weight: $font-weight-bold;
   color: $color-text-main;
-  margin-bottom: $spacing-xl;
-  padding-bottom: $spacing-md;
-  border-bottom: 1px solid $color-border-light;
+  display: flex;
+  font-size: 1.25rem; 
+  margin-bottom: 20px;
 }
 
 /* ─── Loading ─── */
@@ -73,7 +73,7 @@
   cursor: pointer;
   font-size: $font-size-sm;
   margin-top: $spacing-md;
-  
+  font-family: $font-family-main;
   &:hover {
     background: $color-primary-dark;
   }
@@ -83,12 +83,15 @@
 .orderList {
   @include flex-column;
   gap: $spacing-md;
+  display: flex; 
+  flex-direction: column;
 }
 
 .orderCard {
   border: 1px solid $color-border-light;
   border-radius: $border-radius-md;
   overflow: hidden;
+  font-family: $font-family-main;
   @include transition-ease;
 
   &:hover {
@@ -103,6 +106,7 @@
   padding: $spacing-md $spacing-lg;
   background: $color-neutral-50;
   border-bottom: 1px solid $color-border-light;
+  font-family: $font-family-main;
 }
 
 .orderInfo {
@@ -142,6 +146,11 @@
 .orderMeta {
   display: flex;
   gap: $spacing-xl;
+  
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    gap: $spacing-md;
+  }
 }
 
 .metaItem {
@@ -183,8 +192,6 @@
   }
 }
 
-// اضافه کن به انتهای فایل OrdersPage.module.scss
-
 .pagination {
   display: flex;
   justify-content: center;
@@ -206,6 +213,7 @@
   color: $color-text-main;
   font-size: $font-size-sm;
   cursor: pointer;
+  font-family: $font-family-main;
   @include transition-ease;
 
   &:hover {
@@ -220,3 +228,37 @@
     border-color: $color-primary;
   }
 }
+
+.tabs { 
+  font-family: $font-family-main;
+  display: flex; 
+  gap: 20px; 
+  border-bottom: 1px solid #e5e7eb; 
+  margin-bottom: 20px; 
+  
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+  }
+  
+  button { 
+    font-family: $font-family-main;
+    background: none; border: none; padding: 10px 0; cursor: pointer; color: #6b7280;
+    flex-shrink: 0;
+    
+    &.activeTab { 
+      color: #2563eb; border-bottom: 2px solid #2563eb; font-weight: bold; 
+      font-family: $font-family-main;
+    }
+  }
+}
+
+.loader { text-align: center; padding: 40px; color: #6b7280; }

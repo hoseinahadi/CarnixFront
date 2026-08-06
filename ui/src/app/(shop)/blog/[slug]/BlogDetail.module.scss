@@ -1,0 +1,143 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.container {
+  max-width: 800px; // عرض استاندارد و بهینه برای خوانایی چشم در مقالات
+  margin: $spacing-xxl auto;
+  padding: 0 $spacing-md;
+  font-family: $font-family-main;
+}
+
+.breadcrumb {
+  margin-bottom: $spacing-lg;
+  
+  .backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-xs;
+    color: $color-text-muted;
+    text-decoration: none;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    @include transition-ease;
+
+    &:hover {
+      color: $color-primary;
+    }
+  }
+}
+
+.header {
+  margin-bottom: $spacing-xl;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin-bottom: $spacing-md;
+  line-height: 1.6;
+  
+  @include respond-down('md') {
+    font-size: $font-size-xl;
+  }
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-lg;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $color-border-light;
+
+  .metaItem {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+  }
+}
+
+// استایل‌دهی به تگ‌های HTML که از ادیتور (مثل CKEditor) می‌آیند
+.bodyContent {
+  font-size: $font-size-base;
+  line-height: 2.2; // فاصله خطوط زیاد برای خستگی کمتر چشم
+  color: $color-text-main;
+
+  h2, h3, h4 {
+    color: $color-primary-dark;
+    margin-top: $spacing-xl;
+    margin-bottom: $spacing-md;
+    font-weight: $font-weight-bold;
+    line-height: 1.5;
+  }
+
+  h2 { font-size: $font-size-xl; }
+  h3 { font-size: $font-size-lg; }
+
+  p {
+    margin-bottom: $spacing-lg;
+    text-align: justify;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: $border-radius-lg;
+    margin: $spacing-md 0;
+    box-shadow: $shadow-md;
+  }
+
+  a {
+    color: $color-primary;
+    text-decoration: none;
+    font-weight: $font-weight-medium;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  ul, ol {
+    margin-bottom: $spacing-lg;
+    padding-right: $spacing-xl;
+    
+    li {
+      margin-bottom: $spacing-xs;
+    }
+  }
+  
+  // استایل جذاب برای نقل‌قول‌ها داخل متن
+  blockquote {
+    border-right: 4px solid $color-primary;
+    margin: $spacing-lg 0;
+    padding: $spacing-md $spacing-lg;
+    background-color: $color-neutral-50;
+    border-radius: $border-radius-md;
+    font-style: italic;
+    color: $color-text-secondary;
+  }
+}
+
+// ===============================
+// Skeleton Loaders & Error State
+// ===============================
+.skeletonTitle, .skeletonMeta, .skeletonImage, .skeletonText {
+  background: linear-gradient(90deg, $color-neutral-50 25%, $color-on-primary 50%, $color-neutral-50 75%);
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite;
+  border-radius: $border-radius-sm;
+  margin-bottom: $spacing-md;
+}
+
+.skeletonTitle { height: 48px; width: 70%; }
+.skeletonMeta { height: 24px; width: 30%; margin-bottom: $spacing-xl; }
+.skeletonImage { height: 350px; width: 100%; border-radius: $border-radius-lg; margin-bottom: $spacing-xl; }
+.skeletonText { height: 20px; width: 100%; }
+
+@keyframes skeletonLoading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

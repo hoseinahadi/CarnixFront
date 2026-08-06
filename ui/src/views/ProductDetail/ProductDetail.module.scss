@@ -2,65 +2,146 @@
 @import '@/assets/styles/utils/mixins';
 
 .pageContainer {
+  max-width: $container-max-width;
   margin: 0 auto;
   font-family: $font-family-main;
   color: $color-text-main;
-  background-color: $color-background;
-  padding: $spacing-md;
+  
+  padding: $spacing-md 0;
 
   @include respond-to('lg') {
-    padding: $spacing-lg $spacing-xxxl;
+    
+  }
+  @include respond-to('vsm') {
+    padding: $spacing-sm;
+  }
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px; // فاصله بین آیتم‌ها
+  font-size: 14px;
+  color: #64748b; // رنگ پیش‌فرض متن خاکستری
+      margin-top: 10px;
+  .breadcrumbLink {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      color: #1d4ed8; // رنگ آبی یا رنگ اصلی پروژه شما (Primary Color)
+    }
+  }
+
+  .separator {
+    color: #94a3b8;
+    margin: 0 4px;
+  }
+
+  .current {
+    color: #0f172a; // رنگ تیره‌تر برای محصول فعلی
+    font-weight: 500;
+    pointer-events: none; // غیرقابل کلیک بودن نام محصول فعلی
+  }
+}
+.breadcrumb {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  font-size: 11px;
+  color: $color-text-muted;
+  margin-bottom: $spacing-lg;
+  direction: rtl;
+
+  .separator {
+    margin: 0 $spacing-xs;
+  }
+  .current {
+    color: $color-text-main;
   }
 }
 
 .topSection {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
   margin-bottom: $spacing-xl;
-  background-color: $color-surface;
-  border-radius: $border-radius-lg;
-  padding: $spacing-md;
-  box-shadow: $shadow-xl;
-
-  @include respond-to('md') {
-    padding: $spacing-lg;
-    gap: $spacing-lg;
-  }
 
   @include respond-to('lg') {
-    grid-template-columns: 32% 42% 24%;
-    gap: $spacing-lg;
-    padding: $spacing-xl;
-    align-items: start;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
   }
 }
 
 .galleryColumn {
+  width: 100%;
   position: relative;
-
-  @include respond-to('lg') {
+  
+  @include respond-to('lg') { 
+    width: 38%; 
     position: sticky;
     top: 100px;
-    z-index: $z-index-sticky;
   }
 }
 
 .infoColumn {
+  width: 100%;
   @include flex-column;
   gap: $spacing-md;
+
+  @include respond-to('lg') { 
+    width: 35%; 
+  }
 }
 
 .buyBoxColumn {
-  background-color: $color-gray-50;
-  border: 1px solid $color-gray-200;
-  border-radius: $border-radius-md;
-  padding: $spacing-md;
-
-  @include respond-to('lg') {
+  width: 100%;
+  
+  @include respond-to('lg') { 
+    width: 25%; 
     position: sticky;
     top: 100px;
-    z-index: $z-index-sticky;
+  }
+}
+
+.featuresBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-xl 0;
+  border-top: 1px solid $color-border-light;
+  border-bottom: 1px solid $color-border-light;
+  margin-bottom: $spacing-xl;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  background-color: transparent;
+
+  .featureBox {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    flex: 1;
+    min-width: 200px;
+    color: $color-text-main;
+
+    svg {
+      color: #4a4a4a;
+    }
+
+    .featureText {
+      h4 {
+        margin: 0 0 4px 0;
+        font-size: $font-size-md;
+        font-weight: $font-weight-medium;
+      }
+      p {
+        margin: 0;
+        font-size: 11px;
+        color: $color-text-muted;
+      }
+    }
   }
 }
 
@@ -68,11 +149,10 @@
   background-color: $color-surface;
   border-radius: $border-radius-lg;
   padding: $spacing-md;
-  box-shadow: $shadow-sm;
   margin-bottom: $spacing-xl;
 
   @include respond-to('lg') {
-    padding: $spacing-lg;
+    padding: 0;
   }
 }
 
@@ -81,35 +161,51 @@
 }
 
 .loadingSkeleton {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: $spacing-md;
   padding: $spacing-md;
 
   @include respond-to('lg') {
-    grid-template-columns: 32% 42% 24%;
+    flex-direction: row;
   }
 
   .skeletonGallery {
+    width: 100%;
     aspect-ratio: 1;
     background: $color-gray-100;
     border-radius: $border-radius-lg;
     animation: pulse 1.5s infinite;
+
+    @include respond-to('lg') { width: 38%; }
   }
 
   .skeletonInfo {
+    width: 100%;
     height: 300px;
     background: $color-gray-100;
     border-radius: $border-radius-lg;
     animation: pulse 1.5s infinite;
+
+    @include respond-to('lg') { width: 35%; }
   }
 
   .skeletonBuyBox {
+    width: 100%;
     height: 200px;
     background: $color-gray-100;
     border-radius: $border-radius-lg;
     animation: pulse 1.5s infinite;
+
+    @include respond-to('lg') { width: 25%; }
   }
+}
+
+.loadingTab {
+  padding: $spacing-xl;
+  text-align: center;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
 }
 
 .notFound {
@@ -132,4 +228,61 @@
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+// اضافه کن به فایل موجود:
+
+.errorState {
+  text-align: center;
+  padding: 60px 20px;
+  
+  h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 12px;
+  }
+  
+  p {
+    color: #666;
+    margin-bottom: 24px;
+  }
+}
+
+.backLink {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+.emptyTab {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.debug {
+  color: #999;
+  font-size: 12px;
+  margin-top: 8px;
+  direction: ltr;
+}
+
+.debugInfo {
+  color: #999;
+  font-size: 12px;
+  margin-top: 8px;
+  direction: ltr;
+}
+
+.loadingTab {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
 }

@@ -1,144 +1,282 @@
 'use client';
 
-import React from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks'; 
-import { selectProductDetails, selectDetailsLoading } from '@/store/feature/product/productSelectors'; 
-import { addToCart, updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks'; 
-import { selectCart, selectCartActionLoading } from '@/store/feature/cart/cartSelectors'; 
-import { Plus, Minus, Trash2, Store, ShieldCheck, CheckCircle2, Loader2, Info } from 'lucide-react';
+import { useMemo } from 'react';
+import {
+  Loader2,
+  Minus,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  Truck,
+} from 'lucide-react';
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  addToCart,
+  removeCartItem,
+  updateItemQuantity,
+} from '@/store/feature/cart/cartThunks';
+import {
+  selectCart,
+  selectCartActionLoading,
+} from '@/store/feature/cart/cartSelectors';
+import {
+  selectEffectivePrice,
+  selectEffectivePriceLoading,
+} from '@/store/feature/product/productDetailSelectors';
+import {
+  selectDetailsLoading,
+  selectProductDetails,
+} from '@/store/feature/product/productSelectors';
+
 import styles from './BuyBox.module.scss';
 
 export default function BuyBox() {
   const dispatch = useAppDispatch();
-  
-  // خواندن اطلاعات محصول و سبد خرید از استور
-  const product = useAppSelector(selectProductDetails);
-  const isLoading = useAppSelector(selectDetailsLoading);
+  const product = useAppSelector(
+    selectProductDetails,
+  );
+  const isProductLoading = useAppSelector(
+    selectDetailsLoading,
+  );
+  const effectivePrice = useAppSelector(
+    selectEffectivePrice,
+  );
+  const effectivePriceLoading = useAppSelector(
+    selectEffectivePriceLoading,
+  );
   const cart = useAppSelector(selectCart);
-  const actionLoading = useAppSelector(selectCartActionLoading);
+  const actionLoading = useAppSelector(
+    selectCartActionLoading,
+  );
 
-  // حالت لودینگ اولیه (اسکلتون)
-  if (isLoading || !product) {
-    return <div className={styles.skeletonBuyBox}></div>;
+  const priceToDisplay = useMemo(() => {
+    if (!product) {
+      return 0;
+    }
+
+    if (
+      effectivePrice !== null &&
+      effectivePrice !== undefined
+    ) {
+      return effectivePrice;
+    }
+
+    if (
+      typeof product.basePrice === 'number'
+    ) {
+      return product.basePrice;
+    }
+
+    return product.skus?.[0]?.price || 0;
+  }, [effectivePrice, product]);
+
+  if (isProductLoading || !product) {
+    return (
+      <div className={styles.buyBoxContainer}>
+        <div
+          className={styles.skeletonBuyBox}
+        />
+      </div>
+    );
   }
 
-  // بررسی وضعیت محصول در سبد خرید
-  const cartItem = cart?.items?.find((item: any) => item.productId === product.productId);
-  const isInCart = !!cartItem;
+  const cartItem = cart?.items?.find(
+    (item: {
+      productId: number;
+    }) =>
+      item.productId === product.productId,
+  );
+  const isInCart = Boolean(cartItem);
+  const isAvailable =
+    product.totalStock > 0 &&
+    product.isActive;
 
-  const hasDiscount = product.productDiscount && product.productDiscount.isActive;
-  const finalPrice = product.basePrice; // در صورت وجود منطق تخفیف اینجا اعمال شود
-
-  // --- هندلرهای سبد خرید ---
   const handleAddToCart = () => {
-    dispatch(addToCart({ productId: product.productId, quantity: 1 }));
+    if (!isAvailable) {
+      return;
+    }
+
+    void dispatch(
+      addToCart({
+        productId: product.productId,
+        quantity: 1,
+      }),
+    );
   };
 
   const handleIncrease = () => {
-    if (cartItem) {
-      dispatch(updateItemQuantity({ cartItemId: cartItem.cartItemId, quantity: cartItem.quantity + 1 }));
+    if (
+      cartItem &&
+      cartItem.quantity < product.totalStock
+    ) {
+      void dispatch(
+        updateItemQuantity({
+          cartItemId: cartItem.cartItemId,
+          quantity: cartItem.quantity + 1,
+        }),
+      );
     }
   };
 
   const handleDecreaseOrRemove = () => {
-    if (cartItem) {
-      if (cartItem.quantity > 1) {
-        dispatch(updateItemQuantity({ cartItemId: cartItem.cartItemId, quantity: cartItem.quantity - 1 }));
-      } else {
-        dispatch(removeCartItem(cartItem.cartItemId));
-      }
+    if (!cartItem) {
+      return;
     }
+
+    if (cartItem.quantity > 1) {
+      void dispatch(
+        updateItemQuantity({
+          cartItemId: cartItem.cartItemId,
+          quantity: cartItem.quantity - 1,
+        }),
+      );
+      return;
+    }
+
+    void dispatch(
+      removeCartItem(cartItem.cartItemId),
+    );
   };
 
   return (
     <div className={styles.buyBoxContainer}>
-      
-      {/* ======================================= */}
-      {/* بخش اطلاعات فروشنده (فقط در دسکتاپ نمایش داده می‌شود) */}
-      {/* ======================================= */}
-      <div className={styles.desktopInfo}>
-        <h3 className={styles.sellerTitle}>فروشنده</h3>
-        
-        <div className={styles.infoRow}>
-          <Store size={20} className={styles.icon} />
-          <span>ایساکو</span>
+      <div className={styles.featuresList}>
+        <div className={styles.featureItem}>
+          <ShieldCheck
+            size={20}
+            strokeWidth={1.5}
+            className={styles.icon}
+          />
+          <span>گارانتی اصالت کالا</span>
         </div>
-        
-        <hr className={styles.divider} />
-        
-        <div className={styles.infoRow}>
-          <ShieldCheck size={20} className={styles.icon} />
-          <span>گارانتی اصالت و سلامت فیزیکی کالا</span>
-        </div>
-        
-        <hr className={styles.divider} />
-        
-        <div className={styles.infoRow}>
-          <CheckCircle2 size={20} className={styles.iconSuccess} />
-          <span className={styles.stockText}>موجود در انبار</span>
-        </div>
-        
-        <hr className={styles.divider} />
 
-        <div className={styles.infoRow}>
-          <Info size={20} className={styles.iconInfo} />
-          <span className={styles.mutedText}>ارسال سریع به سراسر کشور</span>
+        <div className={styles.featureItem}>
+          <Truck
+            size={20}
+            strokeWidth={1.5}
+            className={styles.icon}
+          />
+          <span>ارسال به سراسر ایران</span>
         </div>
       </div>
 
-      {/* ======================================= */}
-      {/* بخش اکشن‌ها: قیمت و دکمه خرید (موبایل و دسکتاپ) */}
-      {/* ======================================= */}
+      <hr className={styles.divider} />
+
+      <div className={styles.snappPaySection}>
+        <span
+          className={styles.snappPayText}
+        >
+          پرداخت اقساط با اسنپ
+        </span>
+        <div className={styles.snappPayLogo}>
+          <span className={styles.snapp}>
+            Snapp!
+          </span>
+          <span className={styles.pay}>
+            Pay
+          </span>
+        </div>
+      </div>
+
+      <hr className={styles.divider} />
+
       <div className={styles.actionSection}>
-        
-        {/* قیمت (مشابه عکس موبایل شما) */}
         <div className={styles.priceContainer}>
-          {hasDiscount && (
-            <div className={styles.oldPriceWrapper}>
-              <span className={styles.oldPrice}>{product.basePrice.toLocaleString('fa-IR')}</span>
-              <span className={styles.discountBadge}>٪{product.productDiscount.percent}</span>
-            </div>
-          )}
           <div className={styles.finalPrice}>
-            {finalPrice.toLocaleString('fa-IR')} <span className={styles.currency}>تومان</span>
+            {effectivePriceLoading &&
+            priceToDisplay === 0 ? (
+              <Loader2
+                className={styles.spinner}
+                size={20}
+              />
+            ) : (
+              <>
+                {priceToDisplay.toLocaleString(
+                  'fa-IR',
+                )}
+                <span
+                  className={styles.currency}
+                >
+                  تومان
+                </span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* دکمه‌های مدیریت سبد خرید */}
         <div className={styles.buttonContainer}>
-          {!isInCart ? (
-            <button 
-              className={styles.addToCartBtn} 
+          {!cartItem ? (
+            <button
+              type="button"
+              className={styles.addToCartBtn}
               onClick={handleAddToCart}
-              disabled={actionLoading || product.totalStock <= 0}
+              disabled={
+                actionLoading || !isAvailable
+              }
             >
-              {actionLoading ? <Loader2 className={styles.spinner} size={24} /> : 'افزودن به سبد خرید'}
+              {actionLoading ? (
+                <Loader2
+                  className={styles.spinner}
+                  size={24}
+                />
+              ) : isAvailable ? (
+                'افزودن به سبد خرید'
+              ) : (
+                'ناموجود'
+              )}
             </button>
           ) : (
             <div className={styles.cartControls}>
-              <button 
-                onClick={handleIncrease} 
-                disabled={actionLoading} 
+              <button
+                type="button"
+                onClick={handleIncrease}
+                disabled={
+                  actionLoading ||
+                  cartItem.quantity >=
+                    product.totalStock
+                }
                 className={styles.controlBtn}
               >
                 <Plus size={20} />
               </button>
-              
-              <span className={styles.quantityNumber}>
-                {actionLoading ? <Loader2 className={styles.spinner} size={18} /> : cartItem.quantity.toLocaleString('fa-IR')}
+
+              <span
+                className={styles.quantityNumber}
+              >
+                {actionLoading ? (
+                  <Loader2
+                    className={styles.spinner}
+                    size={18}
+                  />
+                ) : (
+                  cartItem.quantity.toLocaleString(
+                    'fa-IR',
+                  )
+                )}
               </span>
 
-              <button 
-                onClick={handleDecreaseOrRemove} 
-                disabled={actionLoading} 
-                className={`${styles.controlBtn} ${cartItem.quantity === 1 ? styles.danger : ''}`}
+              <button
+                type="button"
+                onClick={handleDecreaseOrRemove}
+                disabled={actionLoading}
+                className={`${
+                  styles.controlBtn
+                } ${
+                  cartItem.quantity === 1
+                    ? styles.danger
+                    : ''
+                }`}
               >
-                {cartItem.quantity > 1 ? <Minus size={20} /> : <Trash2 size={20} />}
+                {cartItem.quantity > 1 ? (
+                  <Minus size={20} />
+                ) : (
+                  <Trash2 size={20} />
+                )}
               </button>
             </div>
           )}
         </div>
-        
       </div>
     </div>
   );

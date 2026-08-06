@@ -1,14 +1,14 @@
-// app/products/ProductsPage.module.scss
 @import '@/assets/styles/utils/variables';
 @import '@/assets/styles/utils/mixins';
 
 .page {
   max-width: $container-max-width;
   margin: 0 auto;
-  padding: $spacing-lg;
+  padding: $spacing-lg $spacing-md;
 
   @include respond-down('md') {
-    padding: $spacing-md;
+    padding: $spacing-sm $spacing-xs;
+    padding-top: $spacing-md;
   }
 }
 
@@ -19,6 +19,8 @@
   font-size: $font-size-xs;
   color: $color-text-muted;
   margin-bottom: $spacing-lg;
+  overflow-x: auto;
+  white-space: nowrap;
 
   a {
     color: $color-primary;
@@ -31,16 +33,44 @@
   }
 }
 
+.content {
+  display: flex;
+  gap: $spacing-xl;
+  align-items: flex-start;
+
+  @include respond-down('md') {
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+}
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+
+  @include respond-down('md') {
+    display: none;
+  }
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+// ✅ هدر - اصلاح شده
 .header {
   @include flex-between;
   margin-bottom: $spacing-lg;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: $spacing-md;
   padding-bottom: $spacing-md;
   border-bottom: 1px solid $color-border-light;
 
   @include respond-down('md') {
     gap: $spacing-sm;
+    margin-bottom: $spacing-md;
   }
 }
 
@@ -51,7 +81,19 @@
   flex-shrink: 0;
 
   @include respond-down('sm') {
-    gap: $spacing-sm;
+    gap: $spacing-xs;
+  }
+}
+
+// ✅ headerLeft - اضافه شد
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-shrink: 0;
+
+  @include respond-down('md') {
+    display: none; // توی موبایل مخفی میشه
   }
 }
 
@@ -61,11 +103,11 @@
   color: $color-text-main;
   margin: 0;
   @include text-truncate;
-  max-width: 200px;
+  max-width: 250px;
 
   @include respond-down('sm') {
-    font-size: $font-size-lg;
-    max-width: 150px;
+    font-size: $font-size-md;
+    max-width: 140px;
   }
 }
 
@@ -79,7 +121,7 @@
   }
 }
 
-// مرتب‌سازی دسکتاپ
+// ✅ مرتب‌سازی دسکتاپ
 .desktopSort {
   display: block;
   flex-shrink: 0;
@@ -89,7 +131,7 @@
   }
 }
 
-// مرتب‌سازی + فیلتر موبایل
+// ✅ مرتب‌سازی + فیلتر موبایل
 .mobileSort {
   display: none;
   align-items: center;
@@ -103,8 +145,8 @@
 
 .filterToggle {
   @include flex-center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   background: $color-white;
   border: 1px solid $color-border-light;
@@ -122,39 +164,17 @@
   }
 }
 
-.content {
-  display: flex;
-  gap: $spacing-xl;
-  align-items: flex-start;
-
-  @include respond-down('md') {
-    flex-direction: column;
-    gap: $spacing-lg;
-  }
-}
-
-.sidebar {
-  width: 260px;
-  flex-shrink: 0;
-
-  @include respond-down('md') {
-    display: none;
-  }
-}
-
-.main {
-  flex: 1;
-  min-width: 0;
-}
-
-// پاگینیشن
+// ✅ پاگینیشن
 .pagination {
   @include flex-center;
   gap: $spacing-xs;
   margin-top: $spacing-xl;
+  font-family: 'IRANYEKAN';
+  flex-wrap: wrap;
 
   @include respond-down('sm') {
     gap: 4px;
+    margin-top: $spacing-lg;
   }
 }
 
@@ -169,6 +189,7 @@
   font-size: $font-size-sm;
   color: $color-text-main;
   cursor: pointer;
+  font-family: 'IRANYEKAN';
   @include transition-ease;
 
   &:hover:not(:disabled) {
@@ -188,26 +209,26 @@
   }
 
   @include respond-down('sm') {
-    min-width: 36px;
-    height: 36px;
+    min-width: 32px;
+    height: 32px;
     font-size: $font-size-xs;
-    padding: 0 $spacing-xs;
+    padding: 0 4px;
   }
 }
 
 .dots {
   @include flex-center;
-  width: 40px;
+  width: 30px;
   color: $color-text-muted;
   font-size: $font-size-sm;
 
   @include respond-down('sm') {
-    width: 36px;
+    width: 24px;
     font-size: $font-size-xs;
   }
 }
 
-// دراور فیلتر موبایل
+// ✅ دراور فیلتر موبایل
 .filterOverlay {
   display: none;
 
@@ -226,11 +247,12 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 300px;
-  max-width: 85vw;
+  width: 320px;
+  max-width: 90vw;
   background: $color-white;
   overflow-y: auto;
   animation: slideIn 0.3s ease;
+  box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes slideIn {

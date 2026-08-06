@@ -22,7 +22,6 @@ const ArticlesSection = () => {
   // دریافت لیست مقالات و وضعیت لودینگ از Redux Store
   const articles = useAppSelector(selectLatestContents);
   const loading = useAppSelector(selectContentManagerLoading);
-  console.log("articles", articles)
   const [pageSize, setPageSize] = useState<number>(3);
 
   useEffect(() => {
@@ -71,10 +70,13 @@ const ArticlesSection = () => {
       </div>
 
       <div className={styles.grid}>
-        {/* استفاده از دیتای واقعی دریافت شده از بک‌اند */}
-        {articles.slice(0, pageSize).map((article) => (
-          <ArticleCard key={article.id} article={article} />
-        ))}
+        {articles.slice(0, pageSize).map((article, index) => (
+  // اگر article.id وجود نداشت، از اندیس استفاده کن (هرچند id اولویت دارد)
+  <ArticleCard 
+    key={article.id || `article-${index}`} 
+    article={article} 
+  />
+))}
       </div>
     </section>
   );

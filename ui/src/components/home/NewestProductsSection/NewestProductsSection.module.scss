@@ -1,0 +1,127 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.section {
+  width: 100%;
+  margin-top: $spacing-xxl;
+  overflow: hidden; 
+  direction: rtl;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif !important;
+}
+
+.header {
+  @include flex-between;
+  margin-bottom: $spacing-md;
+  
+  @include respond-down('sm') {
+    padding: 0 $spacing-sm;
+  }
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e293b;
+
+  @include respond-to('md') {
+    font-size: 1.25rem;
+  }
+}
+
+.link {
+  font-size: 0.8rem;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  @include flex-center;
+  gap: 4px;
+
+  &:hover {
+    color: darken(#2563eb, 15%);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// 🟢 تبدیل به اسکرول افقی (مانند بخش پرفروش‌ها)
+.scrollContainer {
+  display: flex;
+  gap: 12px; 
+  align-items: stretch; 
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y; 
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar { display: none; }
+  
+  padding: 8px $spacing-sm 24px $spacing-sm; 
+  margin: 0;
+  cursor: grab;
+  
+  * {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+  a { pointer-events: auto; }
+  
+  &.active {
+    cursor: grabbing;
+    scroll-behavior: auto; 
+  }
+
+  @include respond-to('md') {
+    gap: 16px;
+    padding: 8px 0 24px 0; 
+  }
+}
+
+.cardWrapper {
+  flex: 0 0 auto;
+  display: flex; 
+  flex-direction: column;
+  align-items: stretch;
+  height: auto; 
+  width: 240px; 
+
+  > div {
+    flex: 1; 
+  }
+
+  @include respond-down('md') {
+    width: 190px; 
+  }
+
+  @include respond-down('sm') {
+    width: 160px; 
+  }
+}
+
+.skeletonCard {
+  flex: 0 0 auto;
+  width: 240px;
+  height: 350px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  animation: pulse 1.5s infinite;
+
+  @include respond-down('md') {
+    width: 190px;
+    height: 300px;
+  }
+
+  @include respond-down('sm') {
+    width: 160px;  
+    height: 280px; 
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}

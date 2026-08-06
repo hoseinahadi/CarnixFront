@@ -1,67 +1,100 @@
 @import '@/assets/styles/utils/variables';
 @import '@/assets/styles/utils/mixins';
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $spacing-sm;
-  padding: $spacing-sm;
-
-  @include respond-to('sm') {
-    grid-template-columns: repeat(3, 1fr);
-    gap: $spacing-md;
-  }
-
-  @include respond-to('md') {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @include respond-to('lg') {
-    grid-template-columns: repeat(5, 1fr);
-  }
-
-  @include respond-to('xl') {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
-.skeleton {
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-lg;
-  padding: $spacing-md;
+.galleryContainer {
   @include flex-column;
   gap: $spacing-md;
 }
 
-.skeletonImage {
-  aspect-ratio: 1;
-  background: $color-gray-100;
+.mainImageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  background-color: #1a1a1a; // پس‌زمینه تیره طبق عکس
+}
+
+.actionIcons {
+  position: absolute;
+  top: $spacing-md;
+  right: $spacing-md;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: $border-radius-md;
-  animation: pulse 1.5s infinite;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  padding: 4px;
 }
 
-.skeletonText {
-  height: 16px;
-  background: $color-gray-100;
-  border-radius: 4px;
-  animation: pulse 1.5s infinite;
-  width: 80%;
+.iconBtn {
+  background: none;
+  border: none;
+  padding: $spacing-xs;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
 }
 
-.skeletonPrice {
-  height: 20px;
-  background: $color-gray-100;
-  border-radius: 4px;
-  animation: pulse 1.5s infinite;
-  width: 50%;
+.iconDivider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.4);
+  margin: 2px 4px;
 }
 
-.empty {
+.mainImage {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.imageConfig {
+  object-fit: contain; 
+}
+
+.noImageFallback {
+  width: 100%;
+  height: 100%;
   @include flex-center;
-  padding: $spacing-xxl;
-  color: $color-text-muted;
-  font-size: $font-size-md;
-  grid-column: 1 / -1;
+  background-color: $color-gray-100;
+}
+
+.thumbnailList {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap; // اگه عکس‌ها زیاد بود به خط بعد بره
+}
+
+.thumbnailItem {
+  position: relative;
+  width: 80px;
+  aspect-ratio: 4/3;
+  border-radius: $border-radius-sm;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background-color: $color-gray-100;
+  cursor: pointer;
+  padding: 0;
+
+  &.activeThumbnail {
+    border-color: $color-primary;
+  }
+}
+
+.skeletonGallery {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background-color: $color-gray-100;
+  border-radius: $border-radius-lg;
+  animation: pulse 1.5s infinite ease-in-out;
 }
 
 @keyframes pulse {

@@ -96,62 +96,57 @@
     .sectionContent {
       display: flex;
       flex-direction: column;
-      gap: $spacing-sm;
+      gap: 4px;
     }
   }
 
-  .categoryItem {
-    border: 1px solid $color-gray-200;
-    border-radius: $border-radius-md;
-    padding: $spacing-sm;
-    background-color: $color-gray-50;
+  /* --- استایل مشترک دکمه دسته‌بندی‌های اصلی و زیردسته‌ها --- */
+  .mainCategoryItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: $spacing-md;
+    border: 1px solid transparent;
+    border-bottom-color: $color-gray-100;
+    background-color: $color-white;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-main;
+    transition: all 0.2s ease;
 
-    .categoryLink {
-      display: block;
-      font-weight: $font-weight-medium;
-      color: $color-text-main;
-      text-decoration: none;
-      padding: $spacing-sm;
-      font-size: $font-size-sm;
-      transition: color 0.2s;
-
-      &:hover {
-        color: $color-primary;
-      }
+    .arrowIcon {
+      color: $color-text-muted;
+      transition: transform 0.2s;
     }
 
-    .subCategories {
-      display: flex;
-      flex-wrap: wrap;
-      gap: $spacing-xs;
-      padding: $spacing-sm;
-      border-top: 1px solid $color-gray-200;
-
-      .subCategoryLink {
-        font-size: $font-size-xs;
-        color: $color-text-muted;
-        text-decoration: none;
-        padding: 2px 8px;
-        border-radius: $border-radius-sm;
-        background-color: $color-white;
-        border: 1px solid $color-gray-200;
-        transition: all 0.2s;
-
-        &:hover {
-          color: $color-primary;
-          border-color: $color-primary;
-        }
+    &:hover {
+      background-color: $color-gray-50;
+      color: $color-primary;
+      border-color: $color-primary-light;
+      
+      .arrowIcon {
+        color: $color-primary;
+        transform: translateX(-4px);
       }
     }
   }
 
   .simpleLink {
     display: block;
-    padding: $spacing-sm $spacing-xs;
+    width: 100%;
+    text-align: right;
+    padding: $spacing-sm $spacing-md;
     color: $color-text-muted;
-    text-decoration: none;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
     font-size: $font-size-sm;
-    transition: color 0.2s;
+    transition: all 0.2s;
     border-radius: $border-radius-sm;
 
     &:hover {
@@ -164,11 +159,14 @@
     display: flex;
     align-items: center;
     gap: $spacing-xs;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
     color: $color-primary;
     font-size: $font-size-xs;
-    font-weight: $font-weight-medium;
-    text-decoration: none;
-    padding: $spacing-sm;
+    font-weight: $font-weight-bold;
+    padding: $spacing-sm $spacing-md;
     transition: color 0.2s;
 
     &:hover {
@@ -181,4 +179,99 @@
   height: 1px;
   background-color: $color-gray-200;
   margin: $spacing-md 0 $spacing-lg 0;
+}
+
+/* ====================================
+   استایل‌های بخش منوی تو در تو (Drill-down)
+   ==================================== */
+.drillDownView {
+  display: flex;
+  flex-direction: column;
+  animation: slideLeft 0.3s ease-out;
+
+  @keyframes slideLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .backBtn {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    padding: $spacing-sm 0;
+    margin-bottom: $spacing-md;
+    background: transparent;
+    border: none;
+    color: $color-text-muted;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover {
+      color: $color-primary;
+    }
+  }
+
+  .drillDownHeader {
+    background-color: white;
+    padding: $spacing-md;
+    border-radius: $border-radius-md;
+    margin-bottom: $spacing-sm;
+    
+    text-align: center;
+
+    .activeCatTitle {
+      margin: 0;
+      font-size: $font-size-md;
+      color: $color-text-main;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  .subCatList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    /* دکمه مشاهده همه در انتهای لیست زیردسته‌ها */
+    .viewAllBottomBtn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: $spacing-md;
+      margin-top: $spacing-sm;
+      background: white;
+      border: none;
+      border-radius: $border-radius-sm;
+      color: $color-primary;
+      font-family: inherit;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: $color-primary;
+        color: $color-white;
+        
+        svg {
+          transform: translateX(-4px);
+        }
+      }
+
+      svg {
+        transition: transform 0.2s;
+      }
+    }
+
+    .noSubMsg {
+      font-size: $font-size-sm;
+      color: $color-text-muted;
+      padding: $spacing-md 0;
+      text-align: center;
+    }
+  }
 }

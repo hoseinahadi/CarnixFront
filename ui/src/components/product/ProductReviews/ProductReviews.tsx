@@ -1,224 +1,532 @@
-'use client'
+'use client';
 
-import React, { useEffect, useState } from 'react'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchProductReviews, createReview, markReviewHelpful } from '@/store/feature/product/productReviewThunks'
-import { 
-  selectProductReviews, 
-  selectReviewsLoading, 
-  selectReviewSubmitting,
+import Image from 'next/image';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
+import {
+  ImagePlus,
+  Loader2,
+  Star,
+  ThumbsUp,
+  User,
+  X,
+} from 'lucide-react';
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  createReview,
+  fetchProductReviews,
+  markReviewHelpful,
+} from '@/store/feature/product/productReviewThunks';
+import {
   selectAverageRating,
-  selectReviewsPagination 
-} from '@/store/feature/product/productDetailSelectors'
-import { selectProductDetails } from '@/store/feature/product/productSelectors'
-import styles from './ProductReviews.module.scss'
-import { IconStar, IconStarFilled, IconThumbUp, IconUser, IconCheck } from '@tabler/icons-react'
-import classNames from 'classnames'
+  selectProductReviews,
+  selectReviewsLoading,
+  selectReviewsPagination,
+  selectReviewSubmitting,
+} from '@/store/feature/product/productDetailSelectors';
 
-const ProductReviews = () => {
-  const dispatch = useAppDispatch()
-  const product = useAppSelector(selectProductDetails)
-  const reviews = useAppSelector(selectProductReviews)
-  const loading = useAppSelector(selectReviewsLoading)
-  const submitting = useAppSelector(selectReviewSubmitting)
-  const averageRating = useAppSelector(selectAverageRating)
-  const pagination = useAppSelector(selectReviewsPagination)
+import styles from './ProductReviews.module.scss';
 
-  const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    rating: 5,
-  })
+interface ProductReviewsProps {
+  productId: number;
+}
+
+interface ReviewFormState {
+  title: string;
+  content: string;
+  rating: number;
+}
+
+interface ImagePreview {
+  file: File;
+  url: string;
+}
+
+export default function ProductReviews({
+  productId,
+}: ProductReviewsProps) {
+  const dispatch = useAppDispatch();
+  const reviews = useAppSelector(
+    selectProductReviews,
+  );
+  const loading = useAppSelector(
+    selectReviewsLoading,
+  );
+  const submitting = useAppSelector(
+    selectReviewSubmitting,
+  );
+  const averageRating = useAppSelector(
+    selectAverageRating,
+  );
+  const pagination = useAppSelector(
+    selectReviewsPagination,
+  );
+
+  const [showForm, setShowForm] =
+    useState(false);
+  const [formData, setFormData] =
+    useState<ReviewFormState>({
+      title: '',
+      content: '',
+      rating: 5,
+    });
+  const [selectedImages, setSelectedImages] =
+    useState<File[]>([]);
+  const fileInputRef =
+    useRef<HTMLInputElement>(null);
+
+  const imagePreviews = useMemo<
+    ImagePreview[]
+  >(
+    () =>
+      selectedImages.map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+      })),
+    [selectedImages],
+  );
 
   useEffect(() => {
-    if (product?.productId) {
-      dispatch(fetchProductReviews({ productId: product.productId }))
+    return () => {
+      imagePreviews.forEach(({ url }) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [imagePreviews]);
+
+  useEffect(() => {
+    void dispatch(
+      fetchProductReviews({ productId }),
+    );
+  }, [dispatch, productId]);
+
+  const handleImageChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const newFiles = Array.from(
+      event.target.files || [],
+    );
+
+    if (newFiles.length === 0) {
+      return;
     }
-  }, [product?.productId, dispatch])
 
-  const handleSubmitReview = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!product) return
+    if (
+      selectedImages.length +
+        newFiles.length >
+      5
+    ) {
+      window.alert(
+        'شما حداکثر می‌توانید ۵ عکس انتخاب کنید.',
+      );
+      event.target.value = '';
+      return;
+    }
 
-    dispatch(createReview({
-      productId: product.productId,
-      title: formData.title,
-      content: formData.content,
-      rating: formData.rating,
-    }))
+    setSelectedImages((current) => [
+      ...current,
+      ...newFiles,
+    ]);
+    event.target.value = '';
+  };
 
-    setFormData({ title: '', content: '', rating: 5 })
-    setShowForm(false)
-  }
+  const removeImage = (
+    indexToRemove: number,
+  ) => {
+    setSelectedImages((current) =>
+      current.filter(
+        (_, index) =>
+          index !== indexToRemove,
+      ),
+    );
+  };
 
-  const handleMarkHelpful = (reviewId: number) => {
-    if (!product) return
-    dispatch(markReviewHelpful({ reviewId, productId: product.productId }))
-  }
+  const handleSubmitReview = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={styles.star}>
-        {i < rating ? <IconStarFilled size={14} /> : <IconStar size={14} />}
-      </span>
-    ))
-  }
+    const content = formData.content.trim();
 
-  if (loading) {
+    if (!content || submitting) {
+      return;
+    }
+
+    const action = await dispatch(
+      createReview({
+        productId,
+        title: formData.title.trim(),
+        content,
+        rating: formData.rating,
+      }),
+    );
+
+    if (!createReview.fulfilled.match(action)) {
+      return;
+    }
+
+    setFormData({
+      title: '',
+      content: '',
+      rating: 5,
+    });
+    setSelectedImages([]);
+    setShowForm(false);
+  };
+
+  const handleMarkHelpful = (
+    reviewId: number,
+  ) => {
+    void dispatch(
+      markReviewHelpful({ reviewId }),
+    );
+  };
+
+  const renderStars = (
+    rating: number,
+    interactive = false,
+  ): ReactNode => {
+    return Array.from(
+      { length: 5 },
+      (_, index) => {
+        const starValue = index + 1;
+        const star = (
+          <Star
+            size={interactive ? 24 : 16}
+            fill={
+              starValue <= rating
+                ? '#f59e0b'
+                : 'transparent'
+            }
+            color={
+              starValue <= rating
+                ? '#f59e0b'
+                : '#cbd5e1'
+            }
+          />
+        );
+
+        if (!interactive) {
+          return (
+            <span
+              key={starValue}
+              className={styles.starBtn}
+              aria-hidden="true"
+            >
+              {star}
+            </span>
+          );
+        }
+
+        return (
+          <button
+            key={starValue}
+            type="button"
+            onClick={() => {
+              setFormData((current) => ({
+                ...current,
+                rating: starValue,
+              }));
+            }}
+            className={styles.starBtn}
+            aria-label={`امتیاز ${starValue} از ۵`}
+          >
+            {star}
+          </button>
+        );
+      },
+    );
+  };
+
+  if (loading && reviews.length === 0) {
     return (
-      <div className={styles.loading}>
-        <p>در حال دریافت نظرات...</p>
+      <div className={styles.loadingWrapper}>
+        <Loader2
+          className={styles.spinner}
+          size={32}
+        />
       </div>
-    )
+    );
   }
 
   return (
     <div className={styles.reviewsContainer}>
-      {/* هدر بخش نظرات */}
-      <div className={styles.reviewsHeader}>
-        <div className={styles.ratingSummary}>
-          <h3 className={styles.title}>امتیاز و نظرات کاربران</h3>
-          <div className={styles.ratingBox}>
-            <span className={styles.averageScore}>{averageRating}</span>
-            <span className={styles.outOf}>از ۵</span>
-            <div className={styles.starsRow}>{renderStars(Math.round(averageRating))}</div>
-            <span className={styles.totalReviews}>({pagination.totalCount} نظر)</span>
+      <div className={styles.summarySection}>
+        <div className={styles.ratingBox}>
+          <span className={styles.averageScore}>
+            {averageRating > 0
+              ? averageRating.toFixed(1)
+              : '۰.۰'}
+          </span>
+          <span className={styles.outOf}>
+            از ۵
+          </span>
+          <div className={styles.starsRow}>
+            {renderStars(
+              Math.round(averageRating),
+            )}
           </div>
+          <span className={styles.totalReviews}>
+            ({pagination.totalCount} نظر)
+          </span>
         </div>
 
-        <button 
+        <button
+          type="button"
           className={styles.addReviewBtn}
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm((current) => !current);
+          }}
         >
-          افزودن نظر جدید
+          ثبت نظر جدید
         </button>
       </div>
 
-      {/* فرم ثبت نظر */}
       {showForm && (
-        <form onSubmit={handleSubmitReview} className={styles.reviewForm}>
-          <h4 className={styles.formTitle}>ثبت نظر جدید</h4>
-          
+        <form
+          onSubmit={handleSubmitReview}
+          className={styles.reviewForm}
+        >
+          <h4 className={styles.formTitle}>
+            دیدگاه خود را بنویسید
+          </h4>
+
           <div className={styles.ratingSelect}>
-            <label>امتیاز شما:</label>
+            <label>
+              امتیاز شما به این محصول:
+            </label>
             <div className={styles.starsSelect}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  className={classNames(styles.starBtn, {
-                    [styles.selected]: star <= formData.rating,
-                  })}
-                  onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
-                >
-                  {star <= formData.rating ? <IconStarFilled size={24} /> : <IconStar size={24} />}
-                </button>
-              ))}
+              {renderStars(
+                formData.rating,
+                true,
+              )}
             </div>
           </div>
 
           <div className={styles.field}>
-            <label>عنوان نظر (اختیاری)</label>
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="خلاصه نظر خود را بنویسید..."
+              onChange={(event) => {
+                setFormData((current) => ({
+                  ...current,
+                  title: event.target.value,
+                }));
+              }}
+              placeholder="عنوان نظر (اختیاری)"
             />
           </div>
 
           <div className={styles.field}>
-            <label>متن نظر</label>
             <textarea
               value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="نظر خود را درباره این محصول بنویسید..."
-              rows={5}
+              onChange={(event) => {
+                setFormData((current) => ({
+                  ...current,
+                  content: event.target.value,
+                }));
+              }}
+              placeholder="نقاط قوت، ضعف و تجربه استفاده خود را بنویسید..."
+              rows={4}
               required
             />
           </div>
 
+          <div
+            className={
+              styles.imageUploadSection
+            }
+          >
+            <label
+              className={styles.uploadLabel}
+            >
+              انتخاب عکس محصول (اختیاری)
+            </label>
+
+            <div className={styles.uploadArea}>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className={styles.hiddenInput}
+              />
+
+              <button
+                type="button"
+                className={
+                  styles.uploadTriggerBtn
+                }
+                onClick={() =>
+                  fileInputRef.current?.click()
+                }
+              >
+                <ImagePlus size={24} />
+                <span>افزودن عکس</span>
+              </button>
+
+              <div
+                className={styles.imagePreviews}
+              >
+                {imagePreviews.map(
+                  ({ file, url }, index) => (
+                    <div
+                      key={`${file.name}-${file.lastModified}`}
+                      className={
+                        styles.previewItem
+                      }
+                    >
+                      <Image
+                        src={url}
+                        alt={`پیش‌نمایش ${
+                          index + 1
+                        }`}
+                        fill
+                        unoptimized
+                        className={
+                          styles.previewImg
+                        }
+                      />
+
+                      <button
+                        type="button"
+                        className={
+                          styles.removeImgBtn
+                        }
+                        onClick={() =>
+                          removeImage(index)
+                        }
+                        aria-label="حذف تصویر"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ),
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className={styles.formActions}>
-            <button type="button" onClick={() => setShowForm(false)} className={styles.cancelBtn}>
+            <button
+              type="button"
+              onClick={() =>
+                setShowForm(false)
+              }
+              className={styles.cancelBtn}
+            >
               انصراف
             </button>
-            <button type="submit" className={styles.submitBtn} disabled={submitting}>
-              {submitting ? 'در حال ثبت...' : 'ثبت نظر'}
+
+            <button
+              type="submit"
+              className={styles.submitBtn}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <Loader2
+                  className={styles.spinner}
+                  size={20}
+                />
+              ) : (
+                'ثبت دیدگاه'
+              )}
             </button>
           </div>
         </form>
       )}
 
-      {/* لیست نظرات */}
       <div className={styles.reviewsList}>
         {reviews.length === 0 ? (
           <div className={styles.empty}>
-            <p>هنوز نظری برای این محصول ثبت نشده است.</p>
+            هنوز نظری برای این محصول ثبت نشده
+            است. اولین نفری باشید که نظر
+            می‌دهد!
           </div>
         ) : (
           reviews.map((review) => (
-            <div key={review.productReviewId} className={styles.reviewCard}>
-              <div className={styles.reviewHeader}>
+            <div
+              key={review.productReviewId}
+              className={styles.reviewCard}
+            >
+              <div
+                className={styles.reviewHeader}
+              >
                 <div className={styles.userInfo}>
-                  <IconUser size={20} />
-                  <span className={styles.userName}>{review.userName || 'کاربر'}</span>
-                  {review.isVerifiedPurchase && (
-                    <span className={styles.verifiedBadge}>
-                      <IconCheck size={12} />
-                      خریدار
-                    </span>
-                  )}
+                  <div
+                    className={styles.userAvatar}
+                  >
+                    <User size={16} />
+                  </div>
+                  <span
+                    className={styles.userName}
+                  >
+                    {review.userName ||
+                      'کاربر سایت'}
+                  </span>
                 </div>
-                <div className={styles.reviewRating}>
+
+                <div
+                  className={
+                    styles.reviewRating
+                  }
+                >
                   {renderStars(review.rating)}
                 </div>
               </div>
 
               {review.title && (
-                <h4 className={styles.reviewTitle}>{review.title}</h4>
+                <h4
+                  className={styles.reviewTitle}
+                >
+                  {review.title}
+                </h4>
               )}
 
-              <p className={styles.reviewContent}>{review.content}</p>
+              <p
+                className={styles.reviewContent}
+              >
+                {review.content}
+              </p>
 
-              <div className={styles.reviewFooter}>
-                <span className={styles.reviewDate}>
-                  {new Date(review.createdAt).toLocaleDateString('fa-IR')}
-                </span>
-                <button
-                  className={styles.helpfulBtn}
-                  onClick={() => handleMarkHelpful(review.productReviewId)}
+              <div
+                className={styles.reviewFooter}
+              >
+                <span
+                  className={styles.reviewDate}
                 >
-                  <IconThumbUp size={16} />
-                  مفید بود؟ {review.helpfulCount || 0}
+                  {new Date(
+                    review.createdAt,
+                  ).toLocaleDateString('fa-IR')}
+                </span>
+
+                <button
+                  type="button"
+                  className={styles.helpfulBtn}
+                  onClick={() =>
+                    handleMarkHelpful(
+                      review.productReviewId,
+                    )
+                  }
+                >
+                  <ThumbsUp size={14} />
+                  مفید بود؟ (
+                  {review.helpfulCount || 0})
                 </button>
               </div>
             </div>
           ))
         )}
       </div>
-
-      {/* صفحه‌بندی */}
-      {pagination.totalPages > 1 && (
-        <div className={styles.pagination}>
-          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              className={classNames(styles.pageBtn, {
-                [styles.activePage]: page === pagination.currentPage,
-              })}
-              onClick={() => product && dispatch(fetchProductReviews({ 
-                productId: product.productId, 
-                page 
-              }))}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
-  )
+  );
 }
-
-export default ProductReviews

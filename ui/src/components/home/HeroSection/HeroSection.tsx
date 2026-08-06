@@ -29,6 +29,8 @@ export const HeroSection = () => (
         slidesPerView={1}
         loop
         autoplay={{ delay: 20000, disableOnInteraction: false }}
+        cssMode={false}
+  touchStartPreventDefault={false}
         pagination={{ clickable: true }}
         navigation={{
           nextEl: '.swiper-button-next',

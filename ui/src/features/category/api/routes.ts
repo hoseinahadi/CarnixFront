@@ -1,53 +1,44 @@
-// src/api/services/CategoryApi.ts
-
-import axiosInstance from '@/services/api/common/axiosInstance';
-import { Category} from '@/models/category/Category';
-import {  CreateCategoryDto } from '@/models/category/CreateCategoryDto';
-import {  UpdateCategoryDto } from '@/models/category/UpdateCategoryDto';
+import axiosClient from '@/services/api/common/axiosClient';
+import { Category } from '@/models/category/Category';
+import { CreateCategoryDto } from '@/models/category/CreateCategoryDto';
+import { UpdateCategoryDto } from '@/models/category/UpdateCategoryDto';
 import { OperationResult } from '@/models/common/OperationResult';
 
 const BASE_URL = '/Category';
 
 export const CategoryApi = {
-  // دریافت لیست تمام دسته‌بندی‌ها
+  // 🟢 تطبیق کامل با متد GetAll کنترلر شما (ارسال page و pageSize مطابق با MaxPageSize = 50)
   getAll: async () => {
-    return await axiosInstance.get<OperationResult<Category[]>>(BASE_URL);
+    return await axiosClient.get<OperationResult<any>>(`${BASE_URL}?page=1&pageSize=50`);
   },
 
-  // دریافت یک دسته‌بندی بر اساس شناسه
   getById: async (id: number) => {
-    return await axiosInstance.get<Category>(`${BASE_URL}/${id}`);
+    return await axiosClient.get<Category>(`${BASE_URL}/${id}`);
   },
 
-  // جستجو در دسته‌بندی‌ها
   search: async (keyword: string) => {
-    return await axiosInstance.get<Category[]>(`${BASE_URL}/search`, {
-      params: { keyword }
+    return await axiosClient.get<Category[]>(`${BASE_URL}/search`, {
+      params: { keyword, page: 1, pageSize: 50 }
     });
   },
 
-  // ایجاد دسته‌بندی جدید
   create: async (payload: CreateCategoryDto) => {
-    return await axiosInstance.post<Category>(BASE_URL, payload);
+    return await axiosClient.post<Category>(BASE_URL, payload);
   },
 
-  // ویرایش دسته‌بندی موجود
   update: async (id: number, payload: UpdateCategoryDto) => {
-    return await axiosInstance.put<Category>(`${BASE_URL}/${id}`, payload);
+    return await axiosClient.put<Category>(`${BASE_URL}/${id}`, payload);
   },
 
-  // حذف یک دسته‌بندی
   delete: async (id: number) => {
-    return await axiosInstance.delete(`${BASE_URL}/${id}`);
+    return await axiosClient.delete(`${BASE_URL}/${id}`);
   },
 
-  // ایجاد گروهی دسته‌بندی‌ها
   bulkCreate: async (payload: CreateCategoryDto[]) => {
-    return await axiosInstance.post<Category[]>(`${BASE_URL}/bulk`, payload);
+    return await axiosClient.post<Category[]>(`${BASE_URL}/bulk`, payload);
   },
 
-  // حذف گروهی دسته‌بندی‌ها (ارسال آرایه‌ای از IDها در Body)
   bulkDelete: async (ids: number[]) => {
-    return await axiosInstance.delete(`${BASE_URL}/bulk`, { data: ids });
+    return await axiosClient.delete(`${BASE_URL}/bulk`, { data: ids });
   }
 };

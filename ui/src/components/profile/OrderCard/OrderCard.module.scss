@@ -1,0 +1,232 @@
+// src/components/profile/OrderCard/OrderCard.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 24px;
+  background: white;
+  margin-bottom: 16px;
+  transition: all 0.2s ease-in-out;
+  font-family: $font-family-main;
+  direction: rtl;
+  
+  &:hover {
+    border-color: #3b82f6; 
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+  }
+
+  @media (max-width: 576px) {
+    padding: 16px;
+  }
+}
+
+/* --- ردیف بالا --- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  @media (max-width: 576px) {
+    margin-bottom: 16px;
+  }
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 600;
+
+  @media (max-width: 576px) {
+    font-size: 14px;
+  }
+}
+
+.statusCompleted { color: #10b981; } 
+.statusCancelled { color: #ef4444; } 
+.statusPending { color: #d97706; } // رنگ طلایی/نارنجی مشابه عکس
+
+.detailBtn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: #3b82f6; 
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 576px) {
+    font-size: 13px;
+  }
+}
+
+/* --- ردیف وسط --- */
+.infoRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 16px;
+  }
+  
+  // 🟢 استایل اختصاصی موبایل مطابق عکس
+  @media (max-width: 576px) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 0; // حاشیه را برمیداریم چون Divider اضافه شده
+  }
+}
+
+.infoItem {
+  color: #4b5563;
+  font-size: 14px;
+}
+
+// تغییر ترتیب قرارگیری در حالت موبایل
+.mobileAmount {
+  @media (max-width: 576px) {
+    order: 1; // مبلغ کل در ردیف اول قرار می‌گیرد
+  }
+}
+
+.mobileDate {
+  @media (max-width: 576px) {
+    order: 2; // تاریخ در ردیف دوم قرار می‌گیرد
+  }
+}
+
+.desktopOnly {
+  @media (max-width: 576px) {
+    display: none; // کد سفارش و نوع ارسال در موبایل مخفی می‌شوند
+  }
+}
+
+/* خط جداکننده (فقط در موبایل) */
+.mobileDivider {
+  display: none;
+
+  @media (max-width: 576px) {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 16px 0;
+  }
+}
+
+/* --- ردیف پایین: عکس اقلام --- */
+.galleryWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px dashed #e5e7eb;
+
+  @media (max-width: 576px) {
+    padding-top: 0;
+    border-top: none; // در موبایل چون خط جداکننده کامل داریم این خط نقطه‌چین حذف می‌شود
+  }
+}
+
+.scrollBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #111827;
+  }
+
+  @media (max-width: 576px) {
+    display: none;
+  }
+}
+
+.sliderWindow {
+  display: flex;
+  gap: 12px;
+  max-width: 324px; 
+  flex-wrap: nowrap; 
+  overflow-x: auto; 
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  
+  @media (max-width: 576px) {
+    max-width: 100%; 
+    gap: 8px; 
+  }
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.imageWrapper {
+  flex: 0 0 auto; 
+  position: relative;
+  width: 72px;
+  height: 72px;
+  aspect-ratio: 1 / 1; 
+  background-color: transparent; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 8px;
+  padding: 4px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  @media (max-width: 576px) {
+    width: 60px; // سایز عکس‌ها در موبایل مطابق عکس کمی جمع‌وجورتر
+    height: 60px;
+    border-radius: 6px;
+    padding: 2px;
+  }
+
+  .productImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; 
+  }
+
+  .placeholder {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+  }
+}
+
+.emptyText {
+  font-size: 13px;
+  color: #9ca3af;
+  padding: 8px 0;
+}

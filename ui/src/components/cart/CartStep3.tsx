@@ -1,77 +1,173 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectCartActionLoading } from '@/store/feature/cart/cartSelectors';
+import { selectAddresses } from '@/store/feature/address/AddressSelectors';
+import { placeOrderFromCart } from '@/store/feature/cart/cartThunks';
+import axiosClient from '@/services/api/common/axiosClient'; // 🟢 اضافه شدن Axios ایمن
 import styles from './CartStep3.module.scss';
 
-interface CartStep3Props {
-  cart: any;
-  onBack: () => void;
+// ... (Interface ها مانند قبل باقی می‌مانند) ...
+interface PaymentMethod {
+  paymentMethodId: number;
+  name: string;
+  description: string;
+  methodType: string;
+  displayOrder: number;
+  configurationJson: string;
 }
 
-const CartStep3: React.FC<CartStep3Props> = ({ cart, onBack }) => {
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('online');
-  const [couponCode, setCouponCode] = useState<string>('');
-  const [couponApplied, setCouponApplied] = useState<boolean>(false);
+interface CouponInfo {
+  couponId: number;
+  code: string;
+  discountAmount: number;
+  discountPercentage: number;
+}
 
-  // --- محاسبه مجموع قیمت اقلام از روی آیتم‌ها (به تومان) ---
-  const cartTotalInToman = cart?.items?.reduce((sum: number, item: any) => {
-    const itemPrice = item.price || item.unitPrice || 0;
-    return sum + itemPrice * item.quantity;
-  }, 0) || 0;
+const CartStep3: React.FC<any> = ({ 
+  cart, 
+  onBack, 
+  shippingMethod, 
+  shippingCost,
+  selectedAddressId 
+}) => {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const actionLoading = useAppSelector(selectCartActionLoading);
+  const addresses = useAppSelector(selectAddresses);
+  
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
+  
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<number | null>(null);
+  const [selectedPaymentType, setSelectedPaymentType] = useState<string>('ONLINE');
+  const [couponCode, setCouponCode] = useState<string>('');
+  const [couponInfo, setCouponInfo] = useState<CouponInfo | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMessage, setCouponMessage] = useState<string>('');
+  const [orderNotes, setOrderNotes] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const selectedAddress = addresses.find(a => a.userAddressId === selectedAddressId);
 
   const itemsCount = cart?.totalItemsCount || cart?.items?.length || 0;
+  const cartSubTotal = cart?.subTotal || 0;
+  const cartDiscountTotal = cart?.totalDiscount || 0;
+  const cartTaxTotal = cart?.taxAmount || 0;
+  
+  const couponDiscountAmount = couponInfo?.discountAmount || 0;
+  const totalBeforeCoupon = cartSubTotal - cartDiscountTotal + cartTaxTotal + shippingCost;
+  const finalAmount = totalBeforeCoupon - couponDiscountAmount;
 
-  // هزینه ارسال (در عمل باید از مرحله قبل بیاید، اینجا ثابت گذاشته شده)
-  const shippingCost = 220000; // به تومان
+  const formatCurrency = (amount: number) => amount.toLocaleString('fa-IR');
 
-  // مبلغ تخفیف کوپن (در صورت اعمال)
-  const discountAmount = couponApplied ? 100000 : 0;
-
-  // مبلغ نهایی قابل پرداخت
-  const finalAmount = cartTotalInToman + shippingCost - discountAmount;
-
-  // سود شما از خرید (میتواند به‌صورت داینامیک محاسبه شود در صورت وجود قیمت اصلی)
-  const yourProfit = 635000;
-
-  // --- محاسبه اقساط ۴ ماهه بر اساس مبلغ نهایی ---
-  const installmentCount = 4;
-  const monthlyPayment = Math.floor(finalAmount / installmentCount);
-  const firstPayment = finalAmount - (monthlyPayment * (installmentCount - 1));
-
-  const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('fa-IR');
-  };
-
-  // روش‌های پرداخت
-  const paymentMethods = [
-    { 
-      id: 'online', 
-      label: 'پرداخت اینترنتی', 
-      description: 'پرداخت با کارت‌های عضو شتاب',
-      icon: '💳'
-    },
-    { 
-      id: 'snapp', 
-      label: 'پرداخت اقساطی اسنپ پی', 
-      description: `۴ قسط بدون کارمزد (قسط اول: ${formatCurrency(firstPayment)} تومان + ۳ قسط ${formatCurrency(monthlyPayment)} تومان)`,
-      icon: '🟣'
-    },
-    { 
-      id: 'door', 
-      label: 'پرداخت درب منزل', 
-      description: 'فقط برای تهران و همدان',
-      icon: '🚪'
-    },
-  ];
-
-  const handleApplyCoupon = () => {
-    if (couponCode.trim()) {
-      setCouponApplied(true);
+  const getPaymentIcon = (methodType: string) => {
+    switch (methodType) {
+      case 'ONLINE': return '💳';
+      case 'INSTALLMENT': return '🟣';
+      case 'COD': return '🚪';
+      default: return '💰';
     }
   };
 
-  const handlePayment = () => {
-    alert(`پرداخت با روش ${paymentMethods.find(m => m.id === selectedPaymentMethod)?.label}`);
+  const shippingMethodLabels: Record<string, string> = {
+    'post': 'پست پیشتاز',
+    'tipax': 'تیپاکس',
+    'peyk': 'پیک',
+    'STANDARD': 'پست پیشتاز',
+    'TIPAX': 'تیپاکس',
+    'PICKUP': 'پیک'
+  };
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        // 🟢 استفاده از Axios بجای fetch برای ارسال اتوماتیک هدرها و توکن‌ها
+        const response = await axiosClient.get('/PaymentMethod/GetAll'); 
+        const data = response.data;
+        
+        let methods: PaymentMethod[] = [];
+        if (Array.isArray(data.data)) methods = data.data;
+        else if (Array.isArray(data.mainResults)) methods = data.mainResults;
+
+        if (methods.length > 0) {
+          setPaymentMethods(methods);
+          setSelectedPaymentMethodId(methods[0].paymentMethodId);
+          setSelectedPaymentType(methods[0].methodType);
+        }
+      } catch (error) {
+        console.error('خطا در دریافت روش‌های پرداخت:', error);
+      } finally {
+        setLoadingPaymentMethods(false);
+      }
+    };
+
+    fetchPaymentMethods();
+  }, []);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    
+    setCouponLoading(true);
+    setCouponMessage('');
+    setErrorMessage('');
+    
+    try {
+      // 🟢 اعمال کوپن با Axios
+      const response = await axiosClient.get(`/Coupon/validate?code=${encodeURIComponent(couponCode)}`);
+      const data = response.data;
+      
+      if (data.isSuccess && data.data) {
+        setCouponInfo(data.data);
+        setCouponMessage(data.message || 'کد تخفیف اعمال شد');
+      } else {
+        setCouponInfo(null);
+        setErrorMessage(data.message || 'کد تخفیف نامعتبر است');
+      }
+    } catch (error) {
+      setErrorMessage('خطا در اعمال کد تخفیف');
+      setCouponInfo(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    setErrorMessage('');
+    
+    if (!selectedAddress) {
+      setErrorMessage('لطفاً به مرحله قبل برگشته و آدرس خود را انتخاب کنید.');
+      return;
+    }
+    
+    try {
+      const orderData = {
+        cartId: cart.cartId || cart.id,
+        zipCode:  selectedAddress.postalCode || '',
+        phoneNumber: selectedAddress.phoneNumber || '',
+        destinationAddress: selectedAddress.fullAddress || '',
+        recipientName: selectedAddress.recipientName  || '',
+        city: selectedAddress.city || '',
+        province: selectedAddress.province  || '',
+        shippingMethod: shippingMethod,
+        paymentMethod: selectedPaymentType,
+        couponId: couponInfo?.couponId || null,
+        notes: orderNotes
+      };
+
+      const result = await dispatch(placeOrderFromCart(orderData)).unwrap() as { orderId?: number; id?: number; paymentUrl?: string };
+      
+      if (result.paymentUrl) { 
+        window.location.href = result.paymentUrl;
+      } else if (result.orderId || result.id) {
+        router.push(`/profile/orders/${result.orderId || result.id}/success`);
+      }
+      
+    } catch (error: any) {
+      setErrorMessage(typeof error === 'string' ? error : error?.message || 'خطا در ثبت سفارش');
+    }
   };
 
   return (
@@ -82,71 +178,109 @@ const CartStep3: React.FC<CartStep3Props> = ({ cart, onBack }) => {
       </div>
 
       <div className={styles.step3Container}>
-        
-        {/* سمت راست: محتوای اصلی */}
         <div className={styles.mainSection}>
-          {/* بخش روش‌های پرداخت */}
-          <div className={styles.paymentSection}>
-            <h3 className={styles.sectionTitle}>شیوه پرداخت</h3>
-            <div className={styles.paymentMethods}>
-              {paymentMethods.map((method) => (
-                <div
-                  key={method.id}
-                  className={`${styles.paymentMethod} ${selectedPaymentMethod === method.id ? styles.selected : ''}`}
-                  onClick={() => setSelectedPaymentMethod(method.id)}
-                >
-                  <div className={styles.methodIcon}>{method.icon}</div>
-                  <div className={styles.methodInfo}>
-                    <div className={styles.methodName}>{method.label}</div>
-                    <div className={styles.methodDescription}>{method.description}</div>
-                  </div>
-                  <div className={styles.radioCircle}>
-                    {selectedPaymentMethod === method.id && <div className={styles.radioInner} />}
-                  </div>
+          
+          {selectedAddress && (
+            <div className={styles.selectedAddress}>
+              <h3 className={styles.sectionTitle}>آدرس ارسال</h3>
+              <div className={styles.addressCard}>
+                <div className={styles.addressHeader}>
+                  <span className={styles.addressTitle}>{selectedAddress.addressTitle}</span>
                 </div>
-              ))}
+                <div className={styles.addressDetail}>
+                  <span className={styles.addressIcon}>📍</span>
+                  {selectedAddress.fullAddress}
+                </div>
+                <div className={styles.addressMeta}>
+                  <span>👤 {selectedAddress.recipientName}</span>
+                  <span>📞 {selectedAddress.phoneNumber}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className={styles.selectedShipping}>
+            <h3 className={styles.sectionTitle}>روش ارسال</h3>
+            <div className={styles.shippingCard}>
+              <span className={styles.shippingIcon}>🚚</span>
+              <div className={styles.shippingInfo}>
+                <span className={styles.shippingLabel}>
+                  {shippingMethodLabels[shippingMethod] || shippingMethod}
+                </span>
+                <span className={styles.shippingPrice}>
+                  {formatCurrency(shippingCost)} تومان
+                </span>
+              </div>
             </div>
           </div>
-          {/* بخش کوپن تخفیف */}
+
+          <div className={styles.paymentSection}>
+            <h3 className={styles.sectionTitle}>شیوه پرداخت</h3>
+            {loadingPaymentMethods ? (
+              <div className={styles.loading}>در حال بارگذاری روش‌های پرداخت...</div>
+            ) : (
+              <div className={styles.paymentMethods}>
+                {paymentMethods.map((method) => (
+                  <div
+                    key={method.paymentMethodId}
+                    className={`${styles.paymentMethod} ${selectedPaymentMethodId === method.paymentMethodId ? styles.selected : ''}`}
+                    onClick={() => {
+                      setSelectedPaymentMethodId(method.paymentMethodId);
+                      setSelectedPaymentType(method.methodType);
+                    }}
+                  >
+                    <div className={styles.methodIcon}>
+                      {getPaymentIcon(method.methodType)}
+                    </div>
+                    <div className={styles.methodInfo}>
+                      <div className={styles.methodName}>{method.name}</div>
+                      <div className={styles.methodDescription}>{method.description}</div>
+                    </div>
+                    <div className={styles.radioCircle}>
+                      {selectedPaymentMethodId === method.paymentMethodId && (
+                        <div className={styles.radioInner} />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
           <div className={styles.couponSection}>
             <h3 className={styles.sectionTitle}>کد تخفیف</h3>
-            <p className={styles.sectionSubtitle}>در صورت داشتن کد تخفیف، آن را وارد کنید</p>
             <div className={styles.couponInputGroup}>
               <input
                 type="text"
                 placeholder="کد تخفیف را وارد کنید"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
-                disabled={couponApplied}
+                disabled={!!couponInfo}
                 className={styles.couponInput}
               />
               <button 
                 onClick={handleApplyCoupon}
-                disabled={couponApplied || !couponCode.trim()}
+                disabled={!!couponInfo || !couponCode.trim() || couponLoading}
                 className={styles.couponBtn}
               >
-                {couponApplied ? 'اعمال شد ✓' : 'اعمال'}
+                {couponLoading ? '...' : couponInfo ? '✓ اعمال شد' : 'اعمال'}
               </button>
             </div>
-            {couponApplied && (
-              <p className={styles.couponSuccess}>کد تخفیف با موفقیت اعمال شد (-۱۰۰,۰۰۰ تومان)</p>
-            )}
+            {couponMessage && <p className={styles.couponSuccess}>{couponMessage}</p>}
           </div>
 
-          
-
-          {/* بخش توضیحات */}
           <div className={styles.descriptionSection}>
             <h3 className={styles.sectionTitle}>توضیحات سفارش</h3>
             <textarea
               placeholder="توضیحات تکمیلی خود را اینجا بنویسید..."
               className={styles.descriptionInput}
               rows={4}
+              value={orderNotes}
+              onChange={(e) => setOrderNotes(e.target.value)}
             />
           </div>
         </div>
 
-        {/* سمت چپ: خلاصه سفارش */}
         <div className={styles.summary}>
           <div className={styles.summaryHeader}>
             <h3>جزئیات پرداخت</h3>
@@ -159,44 +293,53 @@ const CartStep3: React.FC<CartStep3Props> = ({ cart, onBack }) => {
             </div>
             <div className={styles.summaryRow}>
               <span>مبلغ کالاها</span>
-              <span>{formatCurrency(cartTotalInToman)} تومان</span>
+              <span>{formatCurrency(cartSubTotal)} تومان</span>
             </div>
+            {cartDiscountTotal > 0 && (
+              <div className={styles.summaryRow}>
+                <span>تخفیف کالاها</span>
+                <span className={styles.discount}>-{formatCurrency(cartDiscountTotal)} تومان</span>
+              </div>
+            )}
             <div className={styles.summaryRow}>
               <span>سود شما از خرید</span>
-              <span className={styles.profit}>{formatCurrency(yourProfit)} تومان</span>
+              {/* 🟢 باگ منطقی محاسبه سود اصلاح شد */}
+              <span className={styles.profit}>{formatCurrency(cart.totalDiscount || 0)} تومان</span>
             </div>
             <div className={styles.summaryRow}>
               <span>هزینه ارسال</span>
               <span>{formatCurrency(shippingCost)} تومان</span>
             </div>
-            {couponApplied && (
+            {couponDiscountAmount > 0 && (
               <div className={styles.summaryRow}>
-                <span>کد تخفیف</span>
-                <span className={styles.discount}>-{formatCurrency(discountAmount)} تومان</span>
+                <span>تخفیف کوپن</span>
+                <span className={styles.discount}>-{formatCurrency(couponDiscountAmount)} تومان</span>
               </div>
             )}
+            <div className={styles.summaryDivider} />
             <div className={styles.summaryRowTotal}>
               <span>مبلغ قابل پرداخت</span>
               <span>{formatCurrency(finalAmount)} تومان</span>
             </div>
-            {selectedPaymentMethod === 'snapp' && (
-              <div className={styles.installmentInfo}>
-                <div className={styles.installmentTitle}>پرداخت اقساطی:</div>
-                <div className={styles.installmentDetails}>
-                  <span>قسط اول: {formatCurrency(firstPayment)} تومان</span>
-                  <span>۳ قسط بعدی: هر کدام {formatCurrency(monthlyPayment)} تومان</span>
-                  <span>بدون کارمزد و بهره</span>
-                </div>
-              </div>
-            )}
           </div>
 
+          {errorMessage && (
+            <div className={styles.errorMessage}>
+              <span className={styles.errorIcon}>⚠️</span>
+              {errorMessage}
+            </div>
+          )}
+
           <div className={styles.actions}>
-            <button className={styles.backBtn} onClick={onBack}>
+            <button className={styles.backBtn} onClick={onBack} disabled={actionLoading}>
               بازگشت
             </button>
-            <button className={styles.payBtn} onClick={handlePayment}>
-              پرداخت
+            <button 
+              className={styles.payBtn} 
+              onClick={handlePayment}
+              disabled={actionLoading || loadingPaymentMethods}
+            >
+              {actionLoading ? 'در حال پردازش...' : 'پرداخت و ثبت نهایی'}
             </button>
           </div>
         </div>

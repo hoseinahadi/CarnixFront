@@ -1,9 +1,13 @@
+// store/feature/orders/orderSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { fetchMyOrders, fetchOrderDetail, cancelOrder } from './orderThunks';
+import { placeOrderFromCart } from '@/store/feature/cart/cartThunks';
+import { OrderDto } from '@/models/order/OrderDto';
 
 interface OrderState {
-  orders: any[];
-  selectedOrder: any | null;
+  orders: OrderDto[];
+  selectedOrder: OrderDto | null;
+  activeTab: 'all' | 'current' | 'completed' | 'cancelled';
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -19,6 +23,7 @@ interface OrderState {
 const initialState: OrderState = {
   orders: [],
   selectedOrder: null,
+  activeTab: 'all',
   pagination: {
     currentPage: 1,
     totalPages: 1,
@@ -35,11 +40,14 @@ const orderSlice = createSlice({
   name: 'orders',
   initialState,
   reducers: {
-    clearOrderError: (state) => {
-      state.error = null;
+    setActiveTab: (state, action: PayloadAction<'all' | 'current' | 'completed' | 'cancelled'>) => {
+      state.activeTab = action.payload;
     },
-    clearSelectedOrder: (state) => {
-      state.selectedOrder = null;
+    clearOrderError: (state) => { 
+      state.error = null; 
+    },
+    clearSelectedOrder: (state) => { 
+      state.selectedOrder = null; 
     },
   },
   extraReducers: (builder) => {
@@ -90,14 +98,34 @@ const orderSlice = createSlice({
         const index = state.orders.findIndex(o => o.orderId === action.payload);
         if (index !== -1) {
           state.orders[index].orderStatus = 'Cancelled';
+          state.orders[index].orderStatusId = 8;
         }
       })
       .addCase(cancelOrder.rejected, (state, action) => {
         state.actionLoading = false;
         state.error = action.payload as string;
       });
+
+    // ─── Place Order From Cart ───
+    builder
+      .addCase(placeOrderFromCart.pending, (state) => {
+        state.actionLoading = true;
+        state.error = null;
+      })
+      .addCase(placeOrderFromCart.fulfilled, (state, action) => {
+        state.actionLoading = false;
+        state.activeTab = 'current';
+        // چک کن payload وجود داره و ساختار OrderDto رو داره
+        if (action.payload && 'orderId' in action.payload) {
+          state.orders.unshift(action.payload as any);
+        }
+      })
+      .addCase(placeOrderFromCart.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
-export const { clearOrderError, clearSelectedOrder } = orderSlice.actions;
+export const { setActiveTab, clearOrderError, clearSelectedOrder } = orderSlice.actions;
 export default orderSlice.reducer;

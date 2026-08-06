@@ -1,63 +1,129 @@
-// src/components/auth/AuthGuard.tsx
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { RootState } from '@/store'
-import { getMeThunk } from '@/store/feature/auth/authThunks'
+import {
+  type ReactNode,
+  useEffect,
+  useRef,
+} from 'react';
 
-// کامپوننت‌های MUI حذف شدند و از استایل ساده استفاده می‌کنیم
+import {
+  usePathname,
+  useRouter,
+} from 'next/navigation';
 
-export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const dispatch = useAppDispatch()
-  const { isAuthenticated, token, loading, userDetail } = useAppSelector((s: RootState) => s.auth)
+import { useAppDispatch } from '@/store/hooks';
+import { useAppSelector } from '@/store/hooks';
 
-  const [isClient, setIsClient] = useState(false)
+import {
+  getMeThunk,
+} from '@/store/feature/auth/authThunks';
+
+interface AuthGuardProps {
+  children: ReactNode;
+}
+
+export default function AuthGuard({
+  children,
+}: AuthGuardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const dispatch = useAppDispatch();
+
+  const hasRequestedUserRef =
+    useRef(false);
+
+  const {
+    token,
+    loading,
+    userDetail,
+  } = useAppSelector(
+    (state) => state.auth,
+  );
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    hasRequestedUserRef.current = false;
+  }, [token]);
 
   useEffect(() => {
-    if (!isClient) return
-
-    if (!token) {
-      router.replace('/login')
-      return
+    if (
+      !token ||
+      userDetail ||
+      loading ||
+      hasRequestedUserRef.current
+    ) {
+      return;
     }
 
-    if (isAuthenticated && !userDetail) {
-      dispatch(getMeThunk())
-    }
-  }, [token, isAuthenticated, userDetail, isClient, router, dispatch])
+    hasRequestedUserRef.current = true;
+    void dispatch(getMeThunk());
+  }, [
+    token,
+    userDetail,
+    loading,
+    dispatch,
+  ]);
 
-  // استفاده از HTML ساده به جای کامپوننت‌های MUI
-  if (!isClient || loading) {
+  useEffect(() => {
+    if (token || loading) {
+      return;
+    }
+
+    const callbackUrl =
+      encodeURIComponent(
+        pathname || '/profile',
+      );
+
+    router.replace(
+      `/login?callbackUrl=${callbackUrl}`,
+    );
+  }, [
+    token,
+    loading,
+    pathname,
+    router,
+  ]);
+
+  if (loading && !userDetail) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <div style={{
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #3498db',
-          borderRadius: '50%',
-          width: '40px',
-          height: '40px',
-          animation: 'spin 1s linear infinite'
-        }} />
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+        }}
+      >
+        <div
+          aria-label="در حال دریافت اطلاعات کاربر"
+          style={{
+            border: '4px solid #f3f3f3',
+            borderTop: '4px solid #3498db',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            animation:
+              'auth-guard-spin 1s linear infinite',
+          }}
+        />
+
         <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+          @keyframes auth-guard-spin {
+            from {
+              transform: rotate(0deg);
+            }
+
+            to {
+              transform: rotate(360deg);
+            }
           }
         `}</style>
       </div>
-    )
+    );
   }
 
-  if (isAuthenticated && userDetail) {
-    return <>{children}</>
+  if (!token) {
+    return null;
   }
-  
-  return null
+
+  return <>{children}</>;
 }

@@ -3,4 +3,12 @@
 
 .container{
 padding: $spacing-xl $spacing-xxxl;
+
+@include respond-down('md') {
+    padding: $spacing-xl ;
+  }
+
+  @include respond-down('sm') {
+    padding: $spacing-xl ;
+  }
 }

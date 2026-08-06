@@ -3,6 +3,16 @@
 
 .sliderContainer {
   width: 100%;
+  touch-action: pan-y; // 👈 اجازه اسکرول عمودی
+  
+  // مطمئن شو Swiper داخلی هم اسکرول رو قورت نده
+  :global(.swiper-wrapper) {
+    touch-action: pan-y; // فقط عمودی
+  }
+  
+  :global(.swiper-slide) {
+    touch-action: pan-y;
+  }
 }
 
 .header {
@@ -28,13 +38,13 @@
 
   // موبایل
   @include respond-down('md') {
-    margin-top: 216px;
+    margin-top: 400px;
     margin-bottom: $spacing-md;
   }
 
   // موبایل کوچک
   @include respond-down('sm') {
-    margin-top: 216px;
+    margin-top: 400px;
 
     margin-bottom: $spacing-sm;
   }

@@ -1,0 +1,282 @@
+// app/wholesale/WholesalePage.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.page {
+  min-height: 100vh;
+  background: white;
+  padding: $spacing-xl 0;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+/* ─── Header ─── */
+.header {
+  text-align: center;
+  margin-bottom: $spacing-xxl;
+  padding: $spacing-xxl $spacing-xl;
+  background: $color-white;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-sm;
+}
+
+.headerIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: $border-radius-full;
+  background: $color-primary-light;
+  color: $color-primary;
+  @include flex-center;
+  margin: 0 auto $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  font-family: $font-family-main;
+  margin: 0 0 $spacing-md 0;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  font-family: $font-family-main;
+  line-height: 1.8;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ─── Form ─── */
+.form {
+  background: $color-white;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-sm;
+  padding: $spacing-xl;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Field Group ─── */
+.fieldGroup {
+  @include flex-column;
+  gap: $spacing-xs;
+
+  &.fieldError {
+    .label {
+      color: $color-danger;
+    }
+
+    .input,
+    .select {
+      border-color: $color-danger;
+      background: #fff5f5;
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba($color-danger, 0.1);
+      }
+    }
+  }
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-main;
+  font-family: $font-family-main;
+  margin-bottom: $spacing-xs;
+
+  svg {
+    color: $color-primary;
+    flex-shrink: 0;
+  }
+}
+
+.required {
+  color: $color-danger;
+  margin-right: -2px;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  font-size: $font-size-sm;
+  font-family: $font-family-main;
+  color: $color-text-main;
+  background: $color-white;
+  @include transition-ease;
+
+  &::placeholder {
+    color: $color-text-placeholder;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+  }
+
+  &:hover:not(:focus):not(:disabled) {
+    border-color: $color-border-dark;
+  }
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left $spacing-md center;
+  padding-left: $spacing-xxl;
+  cursor: pointer;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.8;
+}
+
+/* ─── Error Text ─── */
+.errorText {
+  font-size: $font-size-xs;
+  color: $color-danger;
+  font-family: $font-family-main;
+  margin-top: $spacing-xs;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+
+  &::before {
+    content: '•';
+    font-weight: bold;
+  }
+}
+
+/* ─── Submit Button ─── */
+.submitButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  width: 100%;
+  padding: $spacing-md $spacing-xl;
+  background: $color-primary;
+  color: $color-white;
+  border: none;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
+  font-family: $font-family-main;
+  margin-top: $spacing-xl;
+  @include transition-ease;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-dark;
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+/* ─── Spinner ─── */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: $color-white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Success State ─── */
+.successState {
+  text-align: center;
+  padding: $spacing-xxl;
+  background: $color-white;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-sm;
+}
+
+.successIcon {
+  width: 100px;
+  height: 100px;
+  border-radius: $border-radius-full;
+  background: #e8f5e9;
+  color: #2e7d32;
+  @include flex-center;
+  margin: 0 auto $spacing-lg;
+}
+
+.successTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  font-family: $font-family-main;
+  margin: 0 0 $spacing-md 0;
+}
+
+.successText {
+  font-size: $font-size-sm;
+  color: $color-text-muted;
+  font-family: $font-family-main;
+  line-height: 1.8;
+  max-width: 500px;
+  margin: 0 auto $spacing-xl;
+}
+
+.newRequestButton {
+  padding: $spacing-sm $spacing-xl;
+  background: transparent;
+  color: $color-primary;
+  border: 1px solid $color-primary;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  font-family: $font-family-main;
+  @include transition-ease;
+
+  &:hover {
+    background: $color-primary;
+    color: $color-white;
+  }
+}

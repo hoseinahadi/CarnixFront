@@ -1,13 +1,12 @@
-// آدرس‌دهی فایل متغیرها و میکسین‌ها با توجه به ساختار پوشه شما
 @import '@/assets/styles/utils/variables'; 
 @import '@/assets/styles/utils/mixins';
 
 .footer {
-  background-color: $color-primary-dark; // استفاده از رنگ سرمه‌ای هدر/فوتر
+  background-color: $color-primary-dark;
   color: $color-white;
-  padding: $spacing-xxl 0 $spacing-md 0;
+  padding: $spacing-xl 0 $spacing-md 0;
   font-family: $font-family-main;
-  margin-top: $spacing-xxl; // فاصله فوتر از محتوای بالای صفحه
+  margin-top: $spacing-xxl;
 }
 
 .container {
@@ -18,18 +17,13 @@
 
 // --- بخش بالایی (گرید ستون‌ها) ---
 .topSection {
-  display: grid;
-  grid-template-columns: 1fr; // در موبایل زیر هم هستند
+  display: flex;
+  flex-direction: column;
   gap: $spacing-xl;
 
-  // در تبلت ۲ ستونه
-  @include respond-to('md') {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  // در دسکتاپ ۴ ستونه (ستون توضیحات کمی بزرگتر است)
   @include respond-to('lg') {
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    display: grid;
+    grid-template-columns: 2fr 3fr;
     gap: $spacing-xxl;
   }
 }
@@ -37,7 +31,12 @@
 // -- ستون درباره ما --
 .aboutCol {
   @include flex-column;
-  gap: $spacing-md;
+  gap: $spacing-sm;
+
+  @include respond-down('md') {
+    align-items: center;
+    text-align: center;
+  }
 
   .brandName {
     font-size: $font-size-xl;
@@ -51,7 +50,7 @@
     color: $color-on-primary;
     line-height: 1.8;
     margin: 0;
-    @include line-clamp(3); // استفاده از میکسین برای محدود کردن خطوط در صورت طولانی شدن
+    max-width: 450px;
   }
 
   .enamad {
@@ -64,15 +63,40 @@
   }
 }
 
+// -- گروه لینک‌ها (۲ ستونه در موبایل، ۳ ستونه در دسکتاپ) --
+.linksGroup {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-lg $spacing-md;
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-xl;
+  }
+}
+
 // -- ستون لینک‌ها --
 .linksCol {
   @include flex-column;
   
   .listTitle {
     font-size: $font-size-md;
-    font-weight: $font-weight-medium;
+    font-weight: $font-weight-bold;
     color: $color-white;
-    margin-bottom: $spacing-md;
+    margin-bottom: $spacing-sm;
+    position: relative;
+    padding-bottom: 6px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 25px;
+      height: 2px;
+      background-color: $color-primary;
+      border-radius: 2px;
+    }
   }
 
   ul {
@@ -80,18 +104,20 @@
     padding: 0;
     margin: 0;
     @include flex-column;
-    gap: $spacing-md;
+    gap: $spacing-xs;
 
     li {
       a {
         color: $color-on-primary;
         font-size: $font-size-sm;
         text-decoration: none;
-        @include transition-ease; // استفاده از ترانزیشن نرم شما
+        display: inline-block;
+        padding: 4px 0;
+        @include transition-ease;
 
         &:hover {
           color: $color-white;
-          padding-right: $spacing-xs; // یک افکت هاور جذاب با حرکت به چپ (در حالت RTL)
+          transform: translateX(-4px);
         }
       }
     }
@@ -100,22 +126,40 @@
 
 // --- بخش پایینی (شماره و شبکه‌های اجتماعی) ---
 .bottomSection {
-  margin-top: $spacing-xxl;
+  margin-top: $spacing-xl;
   padding-top: $spacing-md;
-  border-top: 1px solid rgba($color-on-primary, 0.2); // خط جداکننده ملایم
+  border-top: 1px solid rgba($color-white, 0.1);
   
-  @include flex-column; // در موبایل زیر هم
+  @include flex-column;
   align-items: center;
   gap: $spacing-md;
 
   @include respond-to('md') {
-    @include flex-between; // در تبلت و دسکتاپ روبروی هم
+    @include flex-between;
+    flex-direction: row;
   }
 
-  .phone {
+  .phoneBox {
+    @include flex-center;
+    gap: $spacing-xs;
     font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-    color: $color-white;
+    color: $color-on-primary;
+
+    svg {
+      color: $color-primary;
+    }
+
+    .phoneNumber {
+      color: $color-white;
+      font-weight: $font-weight-bold;
+      text-decoration: none;
+      direction: ltr;
+      margin-right: 4px;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 
   .socials {
@@ -124,13 +168,17 @@
 
     a {
       color: $color-on-primary;
-      font-size: $font-size-lg;
+      background: rgba($color-white, 0.08);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       @include flex-center;
       @include transition-ease;
 
       &:hover {
         color: $color-white;
-        transform: translateY(-3px); // افکت پرش کوتاه در هاور
+        background: $color-primary;
+        transform: translateY(-3px);
       }
     }
   }

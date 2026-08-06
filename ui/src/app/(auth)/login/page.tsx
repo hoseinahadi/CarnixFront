@@ -1,119 +1,188 @@
-'use client'; // اضافه شدن این خط برای Next.js (App Router) الزامی است
+'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation'; // استفاده از روتر نکست
-import Link from 'next/link'; // استفاده از کامپوننت لینک نکست
+import {
+  type FormEvent,
+  useState,
+} from 'react';
 
-// Thunk مربوط به لاگین را import کنید (مسیر را بر اساس پروژه خود تنظیم کنید)
-import { loginThunk } from '@/store/feature/auth/authThunks'; 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-// تایپ‌های مربوط به Redux Store
-import { RootState, AppDispatch } from '@/store'; 
+import { Loader2 } from 'lucide-react';
 
-// استایل‌های ماژولار
+import { useAppDispatch } from '@/store/hooks';
+import {
+  sendOtpThunk,
+} from '@/store/feature/auth/authThunks';
+
 import styles from './Login.module.scss';
 
-const Login = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const router = useRouter(); // نمونه‌سازی روتر نکست
+const getRejectedMessage = (
+  error: unknown,
+  fallbackMessage: string,
+): string =>
+  typeof error === 'string' && error.trim()
+    ? error
+    : fallbackMessage;
 
-  // خواندن وضعیت احراز هویت، لودینگ و خطا از استور Redux
-  const { loading, error, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
+export default function Login() {
+  const [phoneNumber, setPhoneNumber] =
+    useState('');
 
-  // استیت‌های محلی برای مدیریت مقادیر فرم
-  const [userName, setuserName] = useState(''); // ایمیل یا شماره موبایل
-  const [password, setPassword] = useState('');
+  const [localError, setLocalError] =
+    useState('');
 
-  // اگر کاربر قبلاً لاگین کرده باشد، به داشبورد (یا صفحه اصلی) هدایت می‌شود
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/'); // استفاده از متد push در روتر نکست
-    }
-  }, [isAuthenticated, router]);
+  const [loading, setLoading] =
+    useState(false);
 
-  // مدیریت ارسال فرم
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
-    if (!userName || !password) {
+
+    const normalizedPhoneNumber =
+      phoneNumber.trim();
+
+    if (
+      !/^09[0-9]{9}$/.test(
+        normalizedPhoneNumber,
+      )
+    ) {
+      setLocalError(
+        'شماره موبایل معتبر نیست.',
+      );
       return;
     }
-    
-    // فراخوانی thunk برای انجام عملیات لاگین
-    dispatch(loginThunk({ userName, password }));
+
+    setLocalError('');
+    setLoading(true);
+
+    try {
+      await dispatch(
+        sendOtpThunk({
+          phoneNumber:
+            normalizedPhoneNumber,
+        }),
+      ).unwrap();
+
+      router.push(
+        `/verify-otp?phone=${encodeURIComponent(
+          normalizedPhoneNumber,
+        )}`,
+      );
+    } catch (error: unknown) {
+      setLocalError(
+        getRejectedMessage(
+          error,
+          'ارسال کد تأیید انجام نشد.',
+        ),
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className={styles.loginPage}>
       <div className={styles.loginContainer}>
-        <h2 className={styles.title}>ورود به حساب کاربری</h2>
-        <p className={styles.subtitle}>برای دسترسی به پنل خود، وارد شوید.</p>
-        
-        <form onSubmit={handleSubmit} noValidate>
-          {/* نمایش خطای بازگشتی از API */}
-          {error && <div className={styles.errorMessage}>{error}</div>}
+        <div className={styles.header}>
+          <h1
+            className={styles.logoTitleDesktop}
+          >
+            قطعه فروش
+          </h1>
+
+          <h1
+            className={styles.logoTitleMobile}
+          >
+            کارنیکس
+          </h1>
+
+          <p className={styles.subtitle}>
+            ورود به سایت
+          </p>
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className={styles.form}
+        >
+          <p
+            className={
+              styles.instructionText
+            }
+          >
+            لطفاً شماره موبایل خود را وارد کنید
+          </p>
 
           <div className={styles.formGroup}>
-            <label htmlFor="userName" className={styles.label}>
-              ایمیل یا شماره موبایل
-            </label>
             <input
-              type="text"
-              id="userName"
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel"
               className={styles.input}
-              value={userName}
-              onChange={(e) => setuserName(e.target.value)}
-              placeholder="example@email.com"
-              required
-              disabled={loading}
-              dir="ltr" // برای تایپ راحت‌تر ایمیل و شماره
-            />
-          </div>
+              value={phoneNumber}
+              onChange={(event) => {
+                setPhoneNumber(
+                  event.target.value,
+                );
 
-          <div className={styles.formGroup}>
-            <label htmlFor="password" className={styles.label}>
-              رمز عبور
-            </label>
-            <input
-              type="password"
-              id="password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              disabled={loading}
+                if (localError) {
+                  setLocalError('');
+                }
+              }}
+              placeholder="۰۹۱۲۱۲۳۴۵۶۷"
               dir="ltr"
+              required
+              autoFocus
+              disabled={loading}
+              maxLength={11}
             />
           </div>
 
-          <div className={styles.linksContainer}>
-            {/* در نکست از href به جای to استفاده می‌شود */}
-            <Link href="/forgot-password" className={styles.link}>
-              فراموشی رمز عبور
-            </Link>
-          </div>
+          {localError && (
+            <div
+              role="alert"
+              className={
+                styles.errorMessage
+              }
+            >
+              {localError}
+            </div>
+          )}
 
           <button
             type="submit"
-            className={styles.submitButton}
+            className={
+              styles.submitButton
+            }
             disabled={loading}
           >
-            {loading ? 'در حال ورود...' : 'ورود'}
+            {loading ? (
+              <Loader2
+                size={20}
+                className={styles.spinner}
+              />
+            ) : (
+              'ادامه'
+            )}
           </button>
         </form>
 
-        <div className={styles.registerPrompt}>
-          حساب کاربری ندارید؟{' '}
-          <Link href="/register" className={styles.link}>
-            ثبت‌نام کنید
-          </Link>
+        <div className={styles.termsFooter}>
+          ورود به منزله پذیرش{' '}
+          <Link
+            href="/terms"
+            className={styles.boldLink}
+          >
+            قوانین و مقررات
+          </Link>{' '}
+          است.
         </div>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

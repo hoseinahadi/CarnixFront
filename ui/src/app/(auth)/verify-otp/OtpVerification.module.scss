@@ -1,0 +1,162 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+/* استایل‌های پایه دقیقاً مشابه صفحه لاگین است */
+.authPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: radial-gradient(circle at 35% 50%, #1e3a8a 0%, #0f172a 60%);
+  padding: $spacing-md;
+
+  @include respond-down('sm') {
+    background: radial-gradient(circle at 50% 30%, #1e3a8a 0%, #0f172a 70%);
+  }
+}
+
+.authCard {
+  width: 100%;
+  max-width: 420px;
+  background-color: $color-white;
+  padding: $spacing-xxl $spacing-xl;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  @include flex-column;
+  gap: $spacing-lg;
+
+  @include respond-down('sm') {
+    padding: $spacing-xl $spacing-lg;
+  }
+}
+
+.header {
+  text-align: center;
+  
+  .titleDesktop {
+    font-size: $font-size-xxl;
+    color: $color-text-main;
+    margin: 0;
+    @include respond-down('sm') { display: none; }
+  }
+
+  .titleMobile {
+    display: none;
+    font-size: $font-size-xxl;
+    color: $color-text-main;
+    margin: 0;
+    @include respond-down('sm') { display: block; }
+  }
+
+  .subtitle {
+    font-size: $font-size-sm;
+    color: $color-text-main;
+    margin: $spacing-sm 0 0 0;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.phoneInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  font-size: 11px;
+  color: $color-text-main;
+
+  .editBtn {
+    background: none;
+    border: none;
+    color: #1d4ed8;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.form {
+  @include flex-column;
+  gap: $spacing-md;
+
+  .otpContainer {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .otpInput {
+    width: 46px;
+    height: 46px;
+    border: 1px solid $color-border-light;
+    border-radius: 8px;
+    text-align: center;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: #1e3a8a;
+    outline: none;
+    @include transition-ease;
+
+    &:focus {
+      border-color: #1d4ed8;
+      box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.1);
+    }
+
+    @include respond-down('sm') {
+      width: 40px;
+      height: 40px;
+      gap: 8px;
+    }
+  }
+
+  .timer {
+    text-align: center;
+    font-size: 12px;
+    color: $color-text-muted;
+    margin: $spacing-xs 0;
+
+    .resendBtn {
+      background: none;
+      border: none;
+      color: #1d4ed8;
+      cursor: pointer;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  .submitBtn {
+    width: 100%;
+    padding: 14px;
+    background-color: #1d4ed8;
+    color: $color-white;
+    border: none;
+    border-radius: 8px;
+    font-size: $font-size-md;
+    cursor: pointer;
+    @include transition-ease;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: darken(#1d4ed8, 5%);
+    }
+  }
+}
+
+.footer {
+  text-align: center;
+  font-size: 9px;
+  color: $color-text-muted;
+  margin-top: $spacing-md;
+
+  .link {
+    color: #1d4ed8;
+    text-decoration: none;
+  }
+}

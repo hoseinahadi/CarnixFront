@@ -12,6 +12,7 @@ import {
 import { clearProfileMessages } from '@/store/feature/profile/profileSlice'
 import styles from './ProfileInfo.module.scss'
 import { IconCheck } from '@tabler/icons-react'
+import BackToSidebar from '../BackToSidebar/BackToSidebar'
 
 const ProfileInfo = () => {
   const dispatch = useAppDispatch()
@@ -72,7 +73,15 @@ const ProfileInfo = () => {
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>اطلاعات حساب کاربری</h2>
+       
+      
+      
+      <h2 className={styles.title}>
+        <BackToSidebar />
+         حساب کاربری
+         </h2>
+      
+    
 
       {/* Messages */}
       {successMessage && (

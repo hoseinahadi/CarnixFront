@@ -76,7 +76,7 @@ const ProductOverViewModal = (props: any) => {
                     
                     {/* سمت راست: گالری عکس */}
                     <div className={styles.productGalleryContainer}>
-                        <ProductGallery slug={product.slug || "default-slug"} />
+                        <ProductGallery  />
                     </div>
 
                     {/* سمت چپ: اطلاعات محصول */}

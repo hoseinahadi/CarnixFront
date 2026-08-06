@@ -1,504 +1,267 @@
-'use client';
+// components/common/AddressModal/AddressModal.tsx
+'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { 
-  createAddress, 
-  updateAddress, 
-  deleteAddress,
-  setDefaultAddress
-} from '@/store/feature/address/AddressThunks';
-import { 
-  selectAddressesActionLoading, 
-  selectAddressesError
-} from '@/store/feature/address/AddressSelectors';
-import { 
-  X, 
-  MapPin, 
-  Phone, 
-  User, 
-  Home, 
-  Building2,
-  Trash2
-} from 'lucide-react';
-import styles from './AddressModal.module.scss';
+import React, { useEffect, useState, useCallback } from 'react'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { createAddress, updateAddress, deleteAddress } from '@/store/feature/address/AddressThunks'
+import { selectAddressActionLoading, selectAddressError } from '@/store/feature/address/AddressSelectors'
+import { X, ChevronLeft, Trash2, AlertCircle, Loader2 } from 'lucide-react'
+import MapPicker from '@/components/common/MapPicker/MapPicker'
+import styles from './AddressModal.module.scss'
 
-interface AddressModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  initialData?: any;
-  mode: 'create' | 'edit' | 'delete';
-  userId?: number;
+interface AddressFormData {
+  addressTitle: string
+  recipientName: string
+  phoneNumber: string
+  landlineNumber: string
+  fullAddress: string
+  city: string
+  province: string
+  postalCode: string
+  isDefault: boolean
+  latitude: number | null
+  longitude: number | null
 }
 
-const AddressModal: React.FC<AddressModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  initialData, 
-  mode,
-  userId 
-}) => {
-  const dispatch = useAppDispatch();
-  const actionLoading = useAppSelector(selectAddressesActionLoading);
-  const error = useAppSelector(selectAddressesError);
+interface AddressModalProps {
+  isOpen: boolean
+  onClose: () => void
+  initialData?: any
+  mode: 'create' | 'edit' | 'delete'
+  userId?: number
+}
 
-  // State برای تشخیص اینکه عملیات انجام شده یا خیر
-  const [operationCompleted, setOperationCompleted] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
+interface FormErrors { [key: string]: string }
+
+const initialFormState: AddressFormData = {
+  addressTitle: '', recipientName: '', phoneNumber: '', landlineNumber: '', fullAddress: '', city: '', province: '', postalCode: '', isDefault: false, latitude: null, longitude: null
+}
+
+const validateForm = (data: AddressFormData): FormErrors => {
+  const errors: FormErrors = {}
+  if (!data.recipientName.trim()) errors.recipientName = 'نام الزامی است'
+  if (!data.phoneNumber.trim()) errors.phoneNumber = 'شماره الزامی است'
+  else if (!/^(\+98|0)?9\d{9}$/.test(data.phoneNumber.replace(/-/g, ''))) errors.phoneNumber = 'موبایل نامعتبر است'
+  if (!data.province.trim()) errors.province = 'استان الزامی است'
+  if (!data.city.trim()) errors.city = 'شهر الزامی است'
+  if (!data.fullAddress.trim()) errors.fullAddress = 'آدرس کامل الزامی است'
+  else if (data.fullAddress.trim().length < 10) errors.fullAddress = 'حداقل ۱۰ کاراکتر'
+  if (!data.postalCode.trim()) errors.postalCode = 'کد پستی الزامی است'
+  else if (!/^\d{10}$/.test(data.postalCode)) errors.postalCode = '۱۰ رقم'
+  return errors
+}
+
+const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialData, mode, userId }) => {
+  const dispatch = useAppDispatch()
+  const actionLoadingState = useAppSelector(selectAddressActionLoading)
+  const error = useAppSelector(selectAddressError)
+
+  const [formData, setFormData] = useState<AddressFormData>(initialFormState)
+  const [formErrors, setFormErrors] = useState<FormErrors>({})
+  const [localError, setLocalError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   
-  // State فرم
-  const [formData, setFormData] = useState({
-    addressTitle: '',
-    recipientName: '',
-    phoneNumber: '',
-    landlineNumber: '',
-    fullAddress: '',
-    city: '',
-    province: '',
-    postalCode: '',
-    isDefault: false,
-    latitude: null as number | null,
-    longitude: null as number | null,
-  });
+  const [showMap, setShowMap] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // وقتی مودال باز می‌شود، داده‌ها را پر کن
+  const isLoading = isSubmitting || actionLoadingState !== null
+
   useEffect(() => {
-    if (isOpen) {
-      console.log('Modal opened in mode:', mode, 'with data:', initialData);
-      
-      if (mode === 'edit' && initialData) {
-        setFormData({
-          addressTitle: initialData.addressTitle || '',
-          recipientName: initialData.recipientName || '',
-          phoneNumber: initialData.phoneNumber || '',
-          landlineNumber: initialData.landlineNumber || '',
-          fullAddress: initialData.fullAddress || '',
-          city: initialData.city || '',
-          province: initialData.province || '',
-          postalCode: initialData.postalCode || '',
-          isDefault: initialData.isDefault || false,
-          latitude: initialData.latitude || null,
-          longitude: initialData.longitude || null,
-        });
-      } else if (mode === 'create') {
-        // ریست فرم برای ایجاد جدید
-        setFormData({
-          addressTitle: '',
-          recipientName: '',
-          phoneNumber: '',
-          landlineNumber: '',
-          fullAddress: '',
-          city: '',
-          province: '',
-          postalCode: '',
-          isDefault: false,
-          latitude: null,
-          longitude: null,
-        });
-      }
-      
-      // ریست وضعیت‌ها
-      setOperationCompleted(false);
-      setLocalError(null);
+    if (!isOpen) { 
+      setShowMap(false)
+      return 
     }
-  }, [isOpen, mode, initialData]);
-
-  // فقط زمانی مودال را ببند که عملیات انجام شده باشد
-  useEffect(() => {
-    if (operationCompleted && !actionLoading && isOpen) {
-      console.log('Operation completed, closing modal');
-      const timer = setTimeout(() => {
-        onClose();
-        setOperationCompleted(false);
-      }, 500); // یک تأخیر کوچک برای نمایش پیام موفقیت
-      
-      return () => clearTimeout(timer);
+    
+    const checkIsMobile = () => {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      if (!mobile) setShowMap(true)
     }
-  }, [actionLoading, isOpen, onClose, operationCompleted]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
-  };
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+
+    if (mode === 'edit' && initialData) {
+      setFormData({
+        addressTitle: initialData.addressTitle || '',
+        recipientName: initialData.recipientName || '',
+        phoneNumber: initialData.phoneNumber || '',
+        landlineNumber: initialData.landlineNumber || '',
+        fullAddress: initialData.fullAddress || '',
+        city: initialData.city || '',
+        province: initialData.province || '',
+        postalCode: initialData.postalCode || '',
+        isDefault: initialData.isDefault || false,
+        latitude: initialData.latitude || null,
+        longitude: initialData.longitude || null
+      })
+    } else {
+      setFormData(initialFormState)
+    }
+    
+    setFormErrors({})
+    setLocalError(null)
+    setIsSubmitting(false)
+
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [isOpen, mode, initialData])
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    if (formErrors[name]) { setFormErrors(prev => { const n = { ...prev }; delete n[name]; return n }) }
+  }, [formErrors])
+
+  const handleLocationSelect = useCallback((lat: number, lng: number, address?: string) => {
+    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng, fullAddress: address || prev.fullAddress }))
+  }, [])
 
   const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
-    setLocalError(null);
-    console.log('Submitting form in mode:', mode);
-    
+    if (e) e.preventDefault()
+    const errors = validateForm(formData)
+    setFormErrors(errors)
+    if (Object.keys(errors).length > 0) return
+
+    setLocalError(null)
+    setIsSubmitting(true)
     try {
       if (mode === 'create') {
-        const dataToSend = {
-          ...formData,
-          userId: userId || 0,
-          isActive: true,
-        };
-        const result = await dispatch(createAddress(dataToSend)).unwrap();
-        console.log('Create successful:', result);
-        setOperationCompleted(true);
+        await dispatch(createAddress({ ...formData, userId: userId || 0, isActive: true, latitude: formData.latitude ?? undefined, longitude: formData.longitude ?? undefined })).unwrap()
+        onClose()
       } else if (mode === 'edit' && initialData) {
-        const dataToSend = {
-          ...formData,
-          userAddressId: initialData.userAddressId,
-          userId: initialData.userId,
-          isActive: initialData.isActive,
-        };
-        const result = await dispatch(updateAddress({ 
-          id: initialData.userAddressId, 
-          data: dataToSend 
-        })).unwrap();
-        console.log('Update successful:', result);
-        setOperationCompleted(true);
+        await dispatch(updateAddress({ id: initialData.userAddressId, data: { ...formData, userAddressId: initialData.userAddressId,  isActive: initialData.isActive, latitude: formData.latitude ?? undefined, longitude: formData.longitude ?? undefined } })).unwrap()
+        onClose()
       }
     } catch (err: any) {
-      console.error('Error in form submission:', err);
-      
-      // اگر خطا شامل پیام موفقیت است (مشکل در ساختار thunk)
-      if (typeof err === 'string' && err.includes('موفقیت')) {
-        setOperationCompleted(true);
-      } else {
-        setLocalError(typeof err === 'string' ? err : err?.message || 'خطا در انجام عملیات');
-      }
+      setLocalError(typeof err === 'string' ? err : err?.message || 'خطا در عملیات')
+    } finally {
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (initialData) {
-      setLocalError(null);
-      
-      try {
-        const result = await dispatch(deleteAddress(initialData.userAddressId)).unwrap();
-        console.log('Delete successful:', result);
-        setOperationCompleted(true);
-      } catch (err: any) {
-        console.log('Delete response:', err); // دیباگ
-        
-        // اگر پاسخ شامل پیام موفقیت است
-        if (
-          typeof err === 'string' && 
-          (err.includes('موفقیت') || err.includes('حذف شد'))
-        ) {
-          console.log('Delete was actually successful');
-          setOperationCompleted(true);
-        } else if (err?.message && (
-          err.message.includes('موفقیت') || 
-          err.message.includes('حذف شد')
-        )) {
-          console.log('Delete was actually successful (from message)');
-          setOperationCompleted(true);
-        } else {
-          console.error('Error in delete:', err);
-          setLocalError(
-            typeof err === 'string' 
-              ? err 
-              : err?.message || 'خطا در حذف آدرس'
-          );
-        }
-      }
-    }
-  };
+    if (!initialData) return
+    setIsSubmitting(true)
+    try {
+      await dispatch(deleteAddress(initialData.userAddressId)).unwrap()
+      onClose()
+    } catch (err: any) { setLocalError(err?.message || 'خطا') } finally { setIsSubmitting(false) }
+  }
 
-  const handleSetDefault = async () => {
-    if (initialData) {
-      setLocalError(null);
-      
-      try {
-        const result = await dispatch(setDefaultAddress(initialData.userAddressId)).unwrap();
-        console.log('Set default successful:', result);
-        setOperationCompleted(true);
-      } catch (err: any) {
-        console.error('Error in set default:', err);
-        
-        if (typeof err === 'string' && err.includes('موفقیت')) {
-          setOperationCompleted(true);
-        } else {
-          setLocalError(typeof err === 'string' ? err : err?.message || 'خطا در تغییر آدرس پیش‌فرض');
-        }
-      }
-    }
-  };
+  if (!isOpen) return null
 
-  // اگر مودال بسته است، هیچ چیزی رندر نکن
-  if (!isOpen) return null;
+  if (mode === 'delete') {
+    return (
+      <div className={styles.modalOverlay} onClick={isLoading ? undefined : onClose}>
+        <div className={styles.modalContainerDelete} onClick={e => e.stopPropagation()}>
+          <div className={styles.deleteContent}>
+            <Trash2 size={48} className={styles.deleteIcon} />
+            <h4>حذف آدرس</h4>
+            <p>آیا از حذف این آدرس اطمینان دارید؟</p>
+            <div className={styles.deleteActions}>
+              <button type="button" className={styles.cancelBtn} onClick={onClose}>انصراف</button>
+              <button type="button" className={styles.deleteConfirmBtn} onClick={handleDelete} disabled={isLoading}>
+                {isLoading ? <Loader2 className={styles.spinning} /> : 'حذف آدرس'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
-        {/* هدر مودال */}
+    <div className={styles.modalOverlay} onClick={isLoading ? undefined : onClose}>
+      <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
+        
         <div className={styles.modalHeader}>
-          <h3 className={styles.modalTitle}>
-            {mode === 'create' && 'افزودن آدرس جدید'}
-            {mode === 'edit' && 'ویرایش آدرس'}
-            {mode === 'delete' && 'حذف آدرس'}
-          </h3>
-          <button className={styles.closeBtn} onClick={onClose} type="button">
-            <X size={24} />
+          <h3 className={styles.modalTitle}>{mode === 'create' ? 'آدرس جدید' : 'ویرایش آدرس'}</h3>
+          <button className={styles.closeBtn} onClick={onClose} disabled={isLoading}>
+            <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
-        {/* بدنه مودال */}
         <div className={styles.modalBody}>
-          {/* نمایش پیام موفقیت */}
-          {operationCompleted && !actionLoading && (
-            <div className={styles.successMessage}>
-              عملیات با موفقیت انجام شد. در حال بستن...
-            </div>
-          )}
-
-          {mode === 'delete' ? (
-            /* حالت حذف */
-            <div className={styles.deleteContent}>
-              <div className={styles.deleteIcon}>
-                <Trash2 size={48} />
+          <form className={styles.addressForm} onSubmit={handleSubmit} noValidate>
+            
+            <h4 className={styles.sectionTitle}>اطلاعات گیرنده</h4>
+            <div className={styles.formGrid}>
+              <div className={`${styles.formGroup} ${formErrors.recipientName ? styles.hasError : ''}`}>
+                <label className={styles.floatingLabel}>نام و نام خانوادگی</label>
+                <input name="recipientName" value={formData.recipientName} onChange={handleInputChange} className={styles.input} />
               </div>
-              <p className={styles.deleteText}>
-                آیا مطمئن هستید که می‌خواهید آدرس "{initialData?.addressTitle}" را حذف کنید؟
-              </p>
-              
-              {/* نمایش خطا */}
-              {(error || localError) && (
-                <div className={styles.errorMessage}>
-                  {localError || error}
-                </div>
-              )}
-              
-              <div className={styles.deleteActions}>
-                <button 
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={onClose}
-                  disabled={actionLoading}
-                >
-                  انصراف
-                </button>
-                <button 
-                  type="button"
-                  className={styles.deleteConfirmBtn}
-                  onClick={handleDelete}
-                  disabled={actionLoading || operationCompleted}
-                >
-                  {actionLoading ? 'در حال حذف...' : 'حذف آدرس'}
-                </button>
+              <div className={`${styles.formGroup} ${formErrors.phoneNumber ? styles.hasError : ''}`}>
+                <label className={styles.floatingLabel}>شماره تماس</label>
+                <input dir="ltr" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className={styles.input} />
               </div>
             </div>
-          ) : (
-            /* فرم ایجاد و ویرایش */
-            <form className={styles.addressForm} onSubmit={handleSubmit}>
-              <div className={styles.formGrid}>
-                {/* عنوان آدرس */}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    عنوان آدرس <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.inputWrapper}>
-                    <Home size={20} className={styles.inputIcon} />
-                    <input
-                      type="text"
-                      name="addressTitle"
-                      value={formData.addressTitle}
-                      onChange={handleInputChange}
-                      placeholder="مثلاً: منزل، محل کار"
-                      className={styles.input}
-                      required
-                      disabled={actionLoading}
-                    />
-                  </div>
-                </div>
 
-                {/* نام گیرنده */}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    نام و نام خانوادگی گیرنده <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.inputWrapper}>
-                    <User size={20} className={styles.inputIcon} />
-                    <input
-                      type="text"
-                      name="recipientName"
-                      value={formData.recipientName}
-                      onChange={handleInputChange}
-                      placeholder="نام و نام خانوادگی"
-                      className={styles.input}
-                      required
-                      disabled={actionLoading}
-                    />
-                  </div>
-                </div>
-
-                {/* شماره تماس */}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    شماره تماس <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.inputWrapper}>
-                    <Phone size={20} className={styles.inputIcon} />
-                    <input
-                      type="tel"
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={handleInputChange}
-                      placeholder="۰۹۱۲۳۴۵۶۷۸۹"
-                      className={styles.input}
-                      required
-                      disabled={actionLoading}
-                    />
-                  </div>
-                </div>
-
-                {/* تلفن ثابت (اختیاری) */}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    تلفن ثابت
-                  </label>
-                  <div className={styles.inputWrapper}>
-                    <Building2 size={20} className={styles.inputIcon} />
-                    <input
-                      type="text"
-                      name="landlineNumber"
-                      value={formData.landlineNumber}
-                      onChange={handleInputChange}
-                      placeholder="۰۲۱-۱۲۳۴۵۶۷۸"
-                      className={styles.input}
-                      disabled={actionLoading}
-                    />
-                  </div>
-                </div>
-
-                {/* استان */}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    استان <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.inputWrapper}>
-                    <MapPin size={20} className={styles.inputIcon} />
-                    <input
-                      type="text"
-                      name="province"
-                      value={formData.province}
-                      onChange={handleInputChange}
-                      placeholder="استان"
-                      className={styles.input}
-                      required
-                      disabled={actionLoading}
-                    />
-                  </div>
-                </div>
-
-                {/* شهر */}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    شهر <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.inputWrapper}>
-                    <MapPin size={20} className={styles.inputIcon} />
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      placeholder="شهر"
-                      className={styles.input}
-                      required
-                      disabled={actionLoading}
-                    />
-                  </div>
-                </div>
-
-                {/* کد پستی */}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    کد پستی <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.inputWrapper}>
-                    <Building2 size={20} className={styles.inputIcon} />
-                    <input
-                      type="text"
-                      name="postalCode"
-                      value={formData.postalCode}
-                      onChange={handleInputChange}
-                      placeholder="کد پستی ۱۰ رقمی"
-                      className={styles.input}
-                      required
-                      disabled={actionLoading}
-                    />
-                  </div>
-                </div>
-
-                {/* آدرس کامل */}
-                <div className={styles.fullWidthGroup}>
-                  <label className={styles.label}>
-                    آدرس کامل <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.textareaWrapper}>
-                    <textarea
-                      name="fullAddress"
-                      value={formData.fullAddress}
-                      onChange={handleInputChange}
-                      placeholder="خیابان، پلاک، واحد، کوچه، ..."
-                      className={styles.textarea}
-                      rows={3}
-                      required
-                      disabled={actionLoading}
-                    />
-                  </div>
-                </div>
-
-                {/* آدرس پیش‌فرض */}
-                <div className={styles.fullWidthGroup}>
-                  <label className={styles.checkboxLabel}>
-                    <input
-                      type="checkbox"
-                      name="isDefault"
-                      checked={formData.isDefault}
-                      onChange={handleInputChange}
-                      disabled={actionLoading}
-                    />
-                    <span>این آدرس به عنوان آدرس پیش‌فرض انتخاب شود</span>
-                  </label>
-                </div>
+            <h4 className={styles.sectionTitle}>جزئیات آدرس</h4>
+            <div className={styles.formGrid}>
+              <div className={`${styles.formGroup} ${formErrors.province ? styles.hasError : ''}`}>
+                <label className={styles.floatingLabel}>استان</label>
+                <select name="province" value={formData.province} onChange={handleInputChange} className={styles.input}>
+                  <option value="">انتخاب...</option>
+                  <option value="تهران">تهران</option>
+                  <option value="اصفهان">اصفهان</option>
+                </select>
               </div>
-
-              {/* نمایش خطا */}
-              {(error || localError) && (
-                <div className={styles.errorMessage}>
-                  {localError || error}
-                </div>
-              )}
-
-              {/* دکمه‌های اقدام */}
-              <div className={styles.formActions}>
-                <button 
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={onClose}
-                  disabled={actionLoading}
-                >
-                  انصراف
-                </button>
-                <button 
-                  type="submit"
-                  className={styles.submitBtn}
-                  disabled={actionLoading || operationCompleted}
-                >
-                  {actionLoading ? 'در حال ذخیره...' : (
-                    <>
-                      {mode === 'create' ? 'ایجاد آدرس' : 'ذخیره تغییرات'}
-                    </>
-                  )}
-                </button>
+              <div className={`${styles.formGroup} ${formErrors.city ? styles.hasError : ''}`}>
+                <label className={styles.floatingLabel}>شهر</label>
+                <select name="city" value={formData.city} onChange={handleInputChange} className={styles.input}>
+                  <option value="">انتخاب...</option>
+                  <option value="تهران">تهران</option>
+                  <option value="اصفهان">اصفهان</option>
+                </select>
               </div>
-            </form>
-          )}
+              <div className={`${styles.formGroup} ${formErrors.postalCode ? styles.hasError : ''} ${styles.fullWidthMobile}`}>
+                <label className={styles.floatingLabel}>کد پستی</label>
+                <input dir="ltr" name="postalCode" value={formData.postalCode} onChange={handleInputChange} className={styles.input} maxLength={10} />
+              </div>
+            </div>
+
+            <div className={`${styles.formGroup} ${styles.fullWidth} ${formErrors.fullAddress ? styles.hasError : ''}`}>
+              <label className={styles.floatingLabel}>آدرس کامل</label>
+              <textarea name="fullAddress" value={formData.fullAddress} onChange={handleInputChange} className={styles.textarea} rows={2} />
+            </div>
+
+            {isMobile && (
+              <div className={styles.mapLinkSection}>
+                 <button type="button" className={styles.mapLinkBtn} onClick={() => setShowMap(!showMap)}>
+                    {showMap ? 'بستن نقشه' : 'انتخاب موقعیت روی نقشه'}
+                    {!showMap && <ChevronLeft size={16} />}
+                 </button>
+              </div>
+            )}
+
+            {(!isMobile || showMap) && (
+              <div className={styles.mapContainer}>
+                <MapPicker 
+                  initialLocation={formData.latitude ? { lat: formData.latitude, lng: formData.longitude! } : null} 
+                  onLocationSelect={handleLocationSelect} 
+                  showSearch={false} 
+                  showCurrentLocation={false} 
+                  
+                />
+              </div>
+            )}
+
+            {(error || localError) && (
+              <div className={styles.errorMessage}><AlertCircle size={16} /> <span>{localError || error}</span></div>
+            )}
+
+          </form>
         </div>
+
+        <div className={styles.modalFooter}>
+          <button type="button" className={styles.submitBtn} onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? <Loader2 className={styles.spinning} /> : 'ذخیره تغییرات'}
+          </button>
+        </div>
+
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AddressModal;
+export default AddressModal

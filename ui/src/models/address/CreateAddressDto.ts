@@ -1,5 +1,5 @@
+// models/address/CreateAddressDto.ts
 export interface CreateAddressDto {
-  userAddressId: number;
   userId: number;
   addressTitle: string;
   recipientName: string;

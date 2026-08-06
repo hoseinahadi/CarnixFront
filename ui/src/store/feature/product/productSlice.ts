@@ -1,33 +1,38 @@
-// مسیر: src/features/products/store/ProductSlice.ts
-
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { Product } from '@/models/product/Product';
-import { ProductState } from '@/models/product/ProductState'; // مطمئن شوید مسیر درست است
-import { 
-  getAllProducts, 
-  getProductBySlug, 
-  getProductDetails, 
+// import { ProductState } from '@/models/product/ProductState'; // اگر اینترفیس دقیق دارید می‌توانید به جای any استفاده کنید
+import {
+  getAllProducts,
+  getProductBySlug,
+  getProductDetails,
   getBestSellingProducts,
-  getFeaturedProductsPaged, // 🟢
-  getDiscountedProductsPaged // 🟢
+  getFeaturedProductsPaged,
+  getDiscountedProductsPaged,
+  fetchPDPAdditionalData,
+  getNewestProductsPaged
 } from './productThunks';
 
-const initialState: ProductState = {
+const initialState: any = {
   products: [],
   bestSellers: null,
-  featuredProducts: null, // 🟢
-  discountedProducts: null, // 🟢
+  featuredProducts: null, 
+  discountedProducts: null, 
+  newestProducts: null, // ✅ اضافه شد (چون در extraReducers استفاده شده بود)
   selectedProduct: null,
   productDetails: null,
+  bundles: [], 
+  effectivePrice: null, 
   
   loading: false,
   bestSellersLoading: false,
-  featuredLoading: false, // 🟢
-  discountedLoading: false, // 🟢
+  featuredLoading: false, 
+  discountedLoading: false, 
+  newestLoading: false, // ✅ اضافه شد (چون در extraReducers استفاده شده بود)
   detailsLoading: false,
   actionLoading: false,
-  
+
   error: null,
+  relatedProducts: []
 };
 
 const productSlice = createSlice({
@@ -36,6 +41,12 @@ const productSlice = createSlice({
   reducers: {
     setSelectedProduct: (state, action: PayloadAction<Product | null>) => {
       state.selectedProduct = action.payload;
+    },
+    // ✅ اضافه شده برای تزریق دیتای SSR به استور به صورت همگام (Hydration)
+    setProductDetails: (state, action: PayloadAction<any>) => {
+      state.productDetails = action.payload;
+      state.detailsLoading = false;
+      state.error = null;
     },
     clearProductDetails: (state) => {
       state.productDetails = null;
@@ -60,6 +71,19 @@ const productSlice = createSlice({
         state.error = action.payload as string;
       });
 
+    // ─── Fetch PDP Additional Data (قیمت موثر و بسته‌ها) ───
+    builder
+      .addCase(fetchPDPAdditionalData.pending, (state) => {
+        // در صورت نیاز وضعیت لودینگ مجزا اضافه کنید
+      })
+      .addCase(fetchPDPAdditionalData.fulfilled, (state, action) => {
+        state.bundles = action.payload.bundles;
+        state.effectivePrice = action.payload.effectivePrice;
+      })
+      .addCase(fetchPDPAdditionalData.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
     // ─── GetBestSellingProducts ───
     builder
       .addCase(getBestSellingProducts.pending, (state) => {
@@ -75,7 +99,7 @@ const productSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // 🟢 ─── GetFeaturedProductsPaged ───
+    // ─── GetFeaturedProductsPaged ───
     builder
       .addCase(getFeaturedProductsPaged.pending, (state) => {
         state.featuredLoading = true;
@@ -90,7 +114,22 @@ const productSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // 🟢 ─── GetDiscountedProductsPaged ───
+    // ─── GetNewestProductsPaged ───
+    builder
+      .addCase(getNewestProductsPaged.pending, (state) => {
+        state.newestLoading = true;
+        state.error = null;
+      })
+      .addCase(getNewestProductsPaged.fulfilled, (state, action) => {
+        state.newestLoading = false;
+        state.newestProducts = action.payload;
+      })
+      .addCase(getNewestProductsPaged.rejected, (state, action) => {
+        state.newestLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // ─── GetDiscountedProductsPaged ───
     builder
       .addCase(getDiscountedProductsPaged.pending, (state) => {
         state.discountedLoading = true;
@@ -139,5 +178,6 @@ const productSlice = createSlice({
   },
 });
 
-export const { setSelectedProduct, clearProductDetails, clearError } = productSlice.actions;
+// ✅ setProductDetails اکسپورت شد تا کامپوننت بتواند آن را صدا بزند
+export const { setSelectedProduct, setProductDetails, clearProductDetails, clearError } = productSlice.actions;
 export default productSlice.reducer;

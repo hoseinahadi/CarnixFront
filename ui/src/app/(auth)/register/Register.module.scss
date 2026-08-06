@@ -1,0 +1,161 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.authPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: radial-gradient(circle at 35% 50%, #1e3a8a 0%, #0f172a 60%);
+  padding: $spacing-md;
+
+  @include respond-down('sm') {
+    background: radial-gradient(circle at 50% 30%, #1e3a8a 0%, #0f172a 70%);
+  }
+}
+
+.authCard {
+  width: 100%;
+  max-width: 460px; // عرض کارت تکمیل اطلاعات کمی بیشتر است
+  background-color: $color-white;
+  padding: $spacing-xxl $spacing-xl;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  @include flex-column;
+  gap: $spacing-lg;
+
+  @include respond-down('sm') {
+    padding: $spacing-xl $spacing-md;
+  }
+}
+
+.header {
+  text-align: center;
+  
+  .titleDesktop {
+    font-size: $font-size-xxl;
+    color: $color-text-main;
+    margin: 0;
+    @include respond-down('sm') { display: none; }
+  }
+
+  .titleMobile {
+    display: none;
+    font-size: $font-size-xxl;
+    color: $color-text-main;
+    margin: 0;
+    @include respond-down('sm') { display: block; }
+  }
+
+  .subtitle {
+    font-size: $font-size-sm;
+    color: $color-text-main;
+    margin: $spacing-sm 0 0 0;
+    font-weight: $font-weight-medium;
+  }
+
+  .mobileHint {
+    display: none;
+    font-size: 10px;
+    color: $color-text-muted;
+    margin: 4px 0 0 0;
+
+    @include respond-down('sm') {
+      display: block;
+    }
+  }
+}
+
+.form {
+  @include flex-column;
+  gap: $spacing-md;
+
+  .row {
+    display: flex;
+    gap: $spacing-sm;
+
+    input {
+      flex: 1;
+    }
+
+    @include respond-down('sm') {
+      flex-direction: column;
+      gap: $spacing-md;
+    }
+  }
+
+  .input, .selectInput {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid $color-border-light;
+    border-radius: 8px;
+    font-size: $font-size-sm;
+    font-family: inherit;
+    color: $color-text-main;
+    outline: none;
+    @include transition-ease;
+
+    &::placeholder {
+      color: $color-gray-400;
+    }
+
+    &:focus {
+      border-color: #1d4ed8;
+    }
+  }
+
+  .selectWrapper {
+    position: relative;
+    width: 100%;
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-left: 2px solid $color-gray-400;
+      border-bottom: 2px solid $color-gray-400;
+      transform: translateY(-70%) rotate(-45deg);
+      pointer-events: none;
+    }
+  }
+
+  .selectInput {
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .submitBtn {
+    font-family: 'IRANYEKAN';
+    width: 100%;
+    padding: 14px;
+    background-color: #1d4ed8;
+    color: $color-white;
+    border: none;
+    border-radius: 8px;
+    font-size: $font-size-md;
+    cursor: pointer;
+    margin-top: $spacing-xs;
+    @include transition-ease;
+
+    &:hover {
+      background-color: darken(#1d4ed8, 5%);
+    }
+  }
+
+  .skipBtn {
+    background: none;
+    border: none;
+    color: $color-text-muted;
+    font-size: 11px;
+    cursor: pointer;
+    padding: $spacing-xs;
+
+    &:hover {
+      color: $color-text-main;
+    }
+  }
+}

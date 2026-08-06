@@ -3,288 +3,110 @@
 
 .productInfo {
   @include flex-column;
-  padding: $spacing-md 0;
+  padding: 0;
 
   @include respond-to('lg') {
-    padding-right: $spacing-lg;
-  }
-
-  @include respond-down('md') {
-    padding: 0;
+    padding: 0 $spacing-md;
   }
 }
 
 .header {
-  @include flex-column;
-  gap: $spacing-sm;
-
-  .breadcrumbLinks {
-    display: flex;
-    align-items: center;
-    font-size: $font-size-xs;
-    color: $color-primary;
-    flex-wrap: wrap;
-
-    @include respond-down('sm') {
-      font-size: 10px;
-    }
-
-    .link {
-      cursor: pointer;
-      @include transition-ease(color);
-      &:hover {
-        color: $color-primary-dark;
-        text-decoration: underline;
-      }
-    }
-
-    .separator {
-      color: $color-gray-300;
-      margin: 0 $spacing-xs;
-      font-size: 10px;
-    }
-  }
+  margin-bottom: $spacing-md;
 
   .title {
-    font-size: $font-size-lg;
+    font-size: $font-size-xl;
     font-weight: $font-weight-bold;
     color: $color-text-main;
-    line-height: 1.7;
+    line-height: 1.6;
     margin: 0;
-
-    @include respond-down('md') {
-      font-size: $font-size-md;
-    }
-
+&::before {
+    content: '';
+  }
     @include respond-down('sm') {
-      font-size: $font-size-base;
-    }
-  }
-
-  .metaInfo {
-    display: flex;
-    align-items: center;
-    margin-top: $spacing-xs;
-    flex-wrap: wrap;
-
-    .productCode {
-      font-size: $font-size-sm;
-      color: $color-text-muted;
-      display: flex;
-      align-items: center;
-      gap: $spacing-xs;
-
-      @include respond-down('sm') {
-        font-size: $font-size-xs;
-      }
-
-      .codeValue {
-        font-family: Arial, sans-serif;
-        background-color: $color-gray-100;
-        padding: 2px 8px;
-        border-radius: $border-radius-sm;
-        color: $color-text-main;
-        font-weight: $font-weight-medium;
-        letter-spacing: 1px;
-      }
+      font-size: $font-size-lg;
     }
   }
 }
 
-.divider {
-  border: none;
-  border-top: 2px solid $color-gray-100;
-  margin: $spacing-lg 0;
+.metaInfo {
+  margin-bottom: $spacing-xl;
 
-  @include respond-down('md') {
-    margin: $spacing-md 0;
+  .productCode {
+    font-size: $font-size-sm;
+    color: $color-text-muted;
   }
 }
 
-.dividerLight {
-  border: none;
-  border-top: 1px solid $color-gray-100;
-  margin: $spacing-md 0;
-}
-
-.variantSection {
+.featuresSection {
   @include flex-column;
   gap: $spacing-md;
 
-  .variantTitle {
+  .featuresTitle {
     font-size: $font-size-base;
-    font-weight: $font-weight-bold;
+    font-weight: $font-weight-regular;
     color: $color-text-main;
     margin: 0;
-    display: flex;
-    align-items: center;
-
-    @include respond-down('sm') {
-      font-size: $font-size-sm;
-    }
-
-    .selectedValue {
-      font-weight: $font-weight-regular;
-      color: $color-text-muted;
-      margin-right: $spacing-sm;
-    }
-  }
-
-  .colorOptions {
-    display: flex;
-    gap: $spacing-md;
-    flex-wrap: wrap;
-
-    @include respond-down('sm') {
-      gap: $spacing-sm;
-    }
-
-    .colorBtn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 1px solid $color-border-light;
-      background: $color-white;
-      padding: 3px;
-      cursor: pointer;
-      @include flex-center;
-      @include transition-ease(all);
-
-      @include respond-down('sm') {
-        width: 36px;
-        height: 36px;
-      }
-
-      &:hover {
-        border-color: $color-gray-400;
-      }
-
-      &.active {
-        border-color: $color-primary;
-        border-width: 2px;
-        padding: 2px;
-      }
-
-      .colorCircle {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        border: 1px solid rgba(0,0,0,0.1);
-        @include flex-center;
-        position: relative;
-
-        .checkIcon {
-          width: 18px;
-          height: 18px;
-          stroke-width: 3;
-          color: $color-white;
-          filter: drop-shadow(0px 1px 1px rgba(0,0,0,0.5));
-
-          @include respond-down('sm') {
-            width: 14px;
-            height: 14px;
-          }
-        }
-      }
-    }
-  }
-
-  .sizeOptions {
-    display: flex;
-    gap: $spacing-sm;
-    flex-wrap: wrap;
-
-    .sizeBtn {
-      padding: 8px 16px;
-      border: 1px solid $color-border-dark;
-      border-radius: $border-radius-full;
-      background-color: transparent;
-      font-size: $font-size-sm;
-      font-weight: $font-weight-medium;
-      color: $color-text-main;
-      cursor: pointer;
-      @include transition-ease(all);
-
-      @include respond-down('sm') {
-        padding: 6px 12px;
-        font-size: $font-size-xs;
-      }
-
-      &:hover {
-        border-color: $color-gray-500;
-      }
-
-      &.active {
-        border-color: $color-primary;
-        color: $color-primary;
-        border-width: 2px;
-        padding: 7px 15px;
-
-        @include respond-down('sm') {
-          padding: 5px 11px;
-        }
-      }
-    }
   }
 }
 
-.description {
-  .descTitle {
-    font-size: $font-size-md;
-    font-weight: $font-weight-bold;
-    color: $color-text-main;
-    margin-bottom: $spacing-md;
-    position: relative;
-    padding-right: $spacing-sm;
+.featuresGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+  width: 100%;
+  
+  @include respond-to('lg') {
+    width: 85%; // در دسکتاپ کمی جمع‌تر باشد تا شبیه عکس شود
+  }
+}
 
-    @include respond-down('sm') {
-      font-size: $font-size-sm;
-    }
+.featureItem {
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-sm;
+  padding: $spacing-sm;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background-color: $color-white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-    &::before {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 20%;
-      height: 60%;
-      width: 3px;
-      background-color: $color-primary;
-      border-radius: 4px;
-    }
+.viewAllBtn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: $color-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  padding: 0;
+  margin-top: $spacing-sm;
+  width: 100%;
+  
+  @include respond-to('lg') {
+    width: 85%;
   }
 
-  .descContent {
-    font-size: $font-size-sm;
-    color: $color-text-muted;
-    line-height: 2.2;
-    text-align: justify;
-
-    @include respond-down('sm') {
-      font-size: $font-size-xs;
-      line-height: 1.8;
-    }
+  &:hover {
+    text-decoration: underline;
   }
 }
 
 .loadingSkeleton {
   @include flex-column;
   gap: $spacing-lg;
-
+  
   div {
     background-color: $color-gray-100;
     border-radius: $border-radius-md;
     animation: pulse 1.5s infinite ease-in-out;
   }
-
-  .skeletonBreadcrumb { height: 16px; width: 30%; }
-  .skeletonTitle { height: 28px; width: 85%; }
-  .skeletonCode { height: 20px; width: 40%; }
-  .skeletonDivider { height: 2px; width: 100%; background-color: $color-gray-50; }
-  .skeletonDesc { height: 120px; width: 100%; }
-}
-
-@keyframes pulse {
-  0% { background-color: $color-gray-100; }
-  50% { background-color: $color-gray-200; }
-  100% { background-color: $color-gray-100; }
+  .skeletonTitle { height: 28px; width: 100%; }
+  .skeletonCode { height: 16px; width: 40%; }
+  .skeletonGrid { height: 100px; width: 85%; }
 }

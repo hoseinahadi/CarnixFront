@@ -2,27 +2,36 @@
 @import '@/assets/styles/utils/mixins';
 
 .layout {
-  width: 100%;
   min-height: 100vh;
-  background: $color-neutral-50;
-  padding: $spacing-xl 0;
+  background: $color-background;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: $container-max-width;
   margin: 0 auto;
-  padding: 0 $spacing-lg;
+  padding: $spacing-xl;
   display: flex;
   gap: $spacing-xl;
   align-items: flex-start;
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     flex-direction: column;
-    padding: 0 $spacing-md;
+    padding: $spacing-md;
+    gap: $spacing-md;
   }
 }
 
 .content {
   flex: 1;
-  min-width: 0; // جلوگیری از overflow
+  min-width: 0;
+  background: $color-white;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+  padding: $spacing-xl;
+  width: 100%;
+  font-family: $font-family-main;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-md;
+  }
 }

@@ -1,0 +1,53 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.section {
+  padding: $spacing-xxl 0;
+  background-color: $color-background; 
+}
+
+.container {
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.header {
+  @include flex-between;
+  margin-bottom: $spacing-xl;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-main;
+  margin: 0;
+}
+
+.viewAll {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  text-decoration: none;
+  font-weight: $font-weight-medium;
+  @include transition-ease;
+
+  &:hover {
+    color: $color-primary-dark;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-lg;
+
+  @include respond-to('md') { grid-template-columns: repeat(2, 1fr); }
+  @include respond-to('lg') { grid-template-columns: repeat(3, 1fr); }
+}
+
+.loading {
+  text-align: center;
+  padding: $spacing-xxl;
+  color: $color-text-muted;
+  font-family: $font-family-main;
+}

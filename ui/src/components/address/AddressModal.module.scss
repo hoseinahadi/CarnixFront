@@ -3,289 +3,252 @@
 
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: $z-index-modal;
+  inset: 0;
+  z-index: 99999; /* افزایش شدید z-index برای قرار گرفتن روی هدر کارنیکس */
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: $spacing-md;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+
+  @media (max-width: 768px) {
+    padding: 0;
+    align-items: flex-end; // در موبایل از پایین باز شود
+  }
 }
 
 .modalContainer {
-  background-color: $color-white;
-  border-radius: $border-radius-lg;
-  max-width: 800px;
+  background: #fff;
   width: 100%;
-  max-height: 100vh;
-  overflow-y: auto;
-  box-shadow: $shadow-xl;
-  animation: slideUp 0.3s ease;
+  max-width: 650px; // پهنای استاندارد به جای 60vh
+  max-height: 90vh;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 
-  @include custom-scrollbar;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  @media (max-width: 768px) {
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
   }
 }
 
+.modalContainerDelete {
+  @extend .modalContainer;
+  max-width: 400px; 
+  padding: 24px; 
+  text-align: center;
+  height: auto; // برای مُدال حذف در موبایل تمام‌صفحه نشود
+  
+  @media (max-width: 768px) {
+    border-radius: 16px 16px 0 0; // در موبایل لبه‌های بالا گرد باشد
+    height: auto;
+  }
+}
+
+/* Header */
 .modalHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: $spacing-lg;
-  border-bottom: 1px solid $color-border-light;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eaeaea;
+  background: #fff;
+  flex-shrink: 0;
+}
 
-  .modalTitle {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-bold;
-    color: $color-text-main;
-  }
+.modalTitle { 
+  font-size: 1.1rem; 
+  font-weight: bold; 
+  margin: 0; 
+  color: #333; 
+}
 
-  .closeBtn {
-    background: none;
-    border: none;
-    color: $color-text-muted;
-    cursor: pointer;
-    padding: $spacing-xs;
-    transition: color 0.2s;
-
-    &:hover {
-      color: $color-text-main;
-    }
+.closeBtn {
+  background: none; 
+  border: 1px solid #e5e7eb;
+  width: 32px; 
+  height: 32px; 
+  border-radius: 50%;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  color: #555; 
+  cursor: pointer; 
+  transition: all 0.2s;
+  
+  &:hover { 
+    background: #f3f4f6; 
+    color: #000; 
   }
 }
 
+/* Body */
 .modalBody {
-  padding: $spacing-lg;
+  padding: 20px;
+  overflow-y: auto; 
+  flex: 1; // فضای باقیمانده را پر می‌کند
 }
 
-/* ========== فرم آدرس ========== */
-.addressForm {
-  .formGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: $spacing-md;
-  }
+.sectionTitle {
+  font-size: 0.95rem; 
+  font-weight: bold; 
+  color: #444;
+  margin: 0 0 16px 0;
+}
 
-  .formGroup {
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-xs;
-
-    .label {
-      font-size: $font-size-sm;
-      font-weight: $font-weight-medium;
-      color: $color-text-main;
-
-      .required {
-        color: $color-danger;
-      }
-    }
-
-    .inputWrapper {
-      position: relative;
-
-      .inputIcon {
-        position: absolute;
-        right: $spacing-sm;
-        top: 50%;
-        transform: translateY(-50%);
-        color: $color-text-muted;
-      }
-
-      .input {
-        width: 100%;
-        padding: $spacing-sm $spacing-xxl $spacing-sm $spacing-sm;
-        border: 1px solid $color-border-light;
-        border-radius: $border-radius-md;
-        font-size: $font-size-base;
-        font-family: $font-family-main;
-        transition: border-color 0.2s;
-
-        &:focus {
-          outline: none;
-          border-color: $color-primary;
-        }
-
-        &::placeholder {
-          color: $color-text-placeholder;
-        }
-      }
-    }
-  }
-
-  .fullWidthGroup {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    gap: $spacing-xs;
-    margin-top: $spacing-sm;
-
-    .label {
-      font-size: $font-size-sm;
-      font-weight: $font-weight-medium;
-      color: $color-text-main;
-
-      .required {
-        color: $color-danger;
-      }
-    }
-
-    .textareaWrapper {
-      .textarea {
-        width: 100%;
-        padding: $spacing-sm;
-        border: 1px solid $color-border-light;
-        border-radius: $border-radius-md;
-        font-size: $font-size-base;
-        font-family: $font-family-main;
-        resize: vertical;
-        transition: border-color 0.2s;
-
-        &:focus {
-          outline: none;
-          border-color: $color-primary;
-        }
-
-        &::placeholder {
-          color: $color-text-placeholder;
-        }
-      }
-    }
-
-    .checkboxLabel {
-      display: flex;
-      align-items: center;
-      gap: $spacing-sm;
-      font-size: $font-size-sm;
-      color: $color-text-main;
-      cursor: pointer;
-
-      input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        accent-color: $color-primary;
-      }
-    }
-  }
-
-  .errorMessage {
-    color: $color-danger;
-    font-size: $font-size-sm;
-    padding: $spacing-sm;
-    background-color: rgba($color-danger, 0.1);
-    border-radius: $border-radius-sm;
-    margin-top: $spacing-sm;
-  }
-
-  .formActions {
-    display: flex;
-    gap: $spacing-md;
-    margin-top: $spacing-lg;
-    justify-content: flex-end;
-
-    .cancelBtn {
-      padding: $spacing-sm $spacing-lg;
-      background-color: $color-white;
-      color: $color-text-main;
-      border: 1px solid $color-border-light;
-      border-radius: $border-radius-md;
-      cursor: pointer;
-      font-weight: $font-weight-medium;
-      transition: all 0.2s;
-
-      &:hover {
-        background-color: $color-gray-50;
-      }
-    }
-
-    .submitBtn {
-      padding: $spacing-sm $spacing-lg;
-      background-color: $color-primary;
-      color: $color-white;
-      border: none;
-      border-radius: $border-radius-md;
-      cursor: pointer;
-      font-weight: $font-weight-medium;
-      transition: all 0.2s;
-
-      &:hover:not(:disabled) {
-        background-color: darken($color-primary, 10%);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
+/* Grid & Inputs */
+.formGrid {
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 16px; 
+  margin-bottom: 24px; 
+  
+  @media (max-width: 768px) { 
+    grid-template-columns: 1fr; 
+    gap: 20px;
   }
 }
 
-/* ========== حالت حذف ========== */
+.formGroup { position: relative; }
+.fullWidth { width: 100%; margin-bottom: 16px; }
+.fullWidthMobile { 
+  @media (max-width: 768px) { grid-column: 1 / -1; } 
+}
+
+.floatingLabel {
+  position: absolute;
+  top: -9px; right: 12px;
+  background: #fff; padding: 0 4px;
+  font-size: 0.75rem; color: #6b7280; z-index: 1;
+}
+
+.input, .textarea {
+  width: 100%; 
+  border: 1px solid #d1d5db; 
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.9rem;
+  background: transparent; 
+  color: #1f2937; 
+  transition: border-color 0.2s;
+  font-family: inherit;
+  
+  &:focus { border-color: #1a56db; outline: none; }
+  &:disabled { background: #f9fafb; opacity: 0.7; }
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: left 12px center;
+  background-size: 16px;
+}
+
+.hasError {
+  .input, .textarea { border-color: #ef4444; }
+  .floatingLabel { color: #ef4444; }
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ef4444;
+  background: #fef2f2;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 16px;
+}
+
+/* Map Section */
+.mapLinkSection {
+  margin: 16px 0;
+  text-align: right;
+}
+
+.mapLinkBtn {
+  background: none; border: none;
+  color: #1a56db; font-size: 0.9rem; font-weight: bold;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit;
+  padding: 8px 0;
+}
+
+.mapContainer {
+  border-radius: 12px; 
+  overflow: hidden; 
+  border: 1px solid #e5e7eb; 
+  margin-bottom: 16px;
+  height: 250px;
+  width: 100%;
+}
+
+/* Footer & Actions */
+.modalFooter {
+  padding: 16px 20px;
+  border-top: 1px solid #eaeaea;
+  background: #fff;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+
+  @media (max-width: 768px) { 
+    padding: 16px;
+  }
+}
+
+.submitBtn {
+  background: #1a56db; color: #fff;
+  border: none; border-radius: 8px;
+  padding: 12px 32px; 
+  font-size: 1rem; 
+  font-weight: bold;
+  cursor: pointer; 
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+
+  &:hover:not(:disabled) { opacity: 0.9; }
+  
+  @media (max-width: 768px) { 
+    width: 100%; 
+    padding: 14px; // دکمه بزرگتر در موبایل برای لمس راحت‌تر
+  }
+}
+
+/* Delete Modal */
 .deleteContent {
-  text-align: center;
-  padding: $spacing-md 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  .deleteIcon { color: #ef4444; margin-bottom: 16px; }
+  h4 { margin: 0 0 8px 0; font-size: 1.2rem; }
+  p { margin: 0 0 24px 0; color: #6b7280; font-size: 0.95rem; }
+}
 
-  .deleteIcon {
-    color: $color-danger;
-    margin-bottom: $spacing-md;
+.deleteActions {
+  display: flex; gap: 12px; width: 100%;
+  button { 
+    flex: 1; padding: 12px; border-radius: 8px; 
+    cursor: pointer; font-family: inherit; font-size: 0.95rem; font-weight: bold;
   }
-
-  .deleteText {
-    font-size: $font-size-base;
-    color: $color-text-main;
-    margin-bottom: $spacing-lg;
-  }
-
-  .deleteActions {
-    display: flex;
-    gap: $spacing-md;
-    justify-content: center;
-
-    .cancelBtn {
-      padding: $spacing-sm $spacing-lg;
-      background-color: $color-white;
-      color: $color-text-main;
-      border: 1px solid $color-border-light;
-      border-radius: $border-radius-md;
-      cursor: pointer;
-      font-weight: $font-weight-medium;
-      transition: all 0.2s;
-
-      &:hover {
-        background-color: $color-gray-50;
-      }
-    }
-
-    .deleteConfirmBtn {
-      padding: $spacing-sm $spacing-lg;
-      background-color: $color-danger;
-      color: $color-white;
-      border: none;
-      border-radius: $border-radius-md;
-      cursor: pointer;
-      font-weight: $font-weight-medium;
-      transition: all 0.2s;
-
-      &:hover:not(:disabled) {
-        background-color: darken($color-danger, 10%);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-    }
+  .cancelBtn { background: #f3f4f6; border: none; color: #374151; }
+  .deleteConfirmBtn { 
+    background: #ef4444; border: none; color: #fff;
+    display: flex; align-items: center; justify-content: center;
   }
 }
+
+.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }

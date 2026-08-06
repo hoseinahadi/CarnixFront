@@ -1,118 +1,220 @@
-'use client'
 
-import { useEffect, useState } from 'react'
+'use client';
+
 import {
-  useFloating,
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  FloatingPortal,
   autoUpdate,
   offset,
-  useDismiss,
-  useRole,
-  useInteractions,
-  useHover,
   safePolygon,
-  FloatingPortal,
-} from '@floating-ui/react'
+  useDismiss,
+  useFloating,
+  useHover,
+  useInteractions,
+  useRole,
+} from '@floating-ui/react';
 
-import { LayoutGrid, Car, Tag } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import DropdownMenu from './DropdownMenu'
+import {
+  Car,
+  LayoutGrid,
+  Tag,
+} from 'lucide-react';
 
-import styles from './FrontMenu.module.scss'
+import { useRouter } from 'next/navigation';
 
-// === Redux Imports ===
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import type { RootState } from '@/store'
-import { fetchCategories } from '@/store/feature/Category/categoryThunks'
-import { getAllBrands } from '@/store/feature/brand/BrandThunks'
-import { getAllMakes } from '@/store/feature/vehicle/VehicleThunks'
+import DropdownMenu from './DropdownMenu';
+import styles from './FrontMenu.module.scss';
+
+import type {
+  RootState,
+} from '@/store';
+
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/store/hooks';
+
+import {
+  fetchCategories,
+} from '@/store/feature/Category/categoryThunks';
+
+import {
+  getAllBrands,
+} from '@/store/feature/brand/BrandThunks';
+
+import {
+  getAllMakes,
+} from '@/store/feature/vehicle/VehicleThunks';
 
 const FrontMenu = () => {
-  const dispatch = useAppDispatch()
-  const router = useRouter()
+  const dispatch = useAppDispatch();
+  const router = useRouter();
 
-  // خواندن داده‌ها از استیت ریداکس
-  const categories = useAppSelector((state: RootState) => state.category.categories)
-  const brands = useAppSelector((state: RootState) => state.brand.brands)
-  const makes = useAppSelector((state: RootState) => state.vehicle.makes)
+  const categories = useAppSelector(
+    (state: RootState) =>
+      state.category.categories,
+  );
 
-  const [openCategory, setOpenCategory] = useState(false)
+  const categoryStatus = useAppSelector(
+    (state: RootState) =>
+      state.category.fetchStatus ??
+      'idle',
+  );
 
+  const brandStatus = useAppSelector(
+    (state: RootState) =>
+      state.brand.listStatus ??
+      'idle',
+  );
+
+  const vehicleStatus = useAppSelector(
+    (state: RootState) =>
+      state.vehicle.makesStatus ??
+      'idle',
+  );
+
+  const [
+    openCategory,
+    setOpenCategory,
+  ] = useState(false);
+
+  /*
+   * هر منبع فقط وقتی status=idle است یک بار درخواست می‌شود.
+   * بعد از شکست، status=failed باقی می‌ماند و Effect دیگر Retry نمی‌کند.
+   */
   useEffect(() => {
-    if (categories.length === 0) {
-      dispatch(fetchCategories())
+    if (categoryStatus === 'idle') {
+      void dispatch(fetchCategories());
     }
-    if (brands.length === 0) {
-      dispatch(getAllBrands())
-    }
-    if (makes.length === 0) {
-      dispatch(getAllMakes())
-    }
-  }, [dispatch, categories.length, brands.length, makes.length])
 
-  /* ================= Floating فقط برای دسته‌بندی ================= */
+    if (brandStatus === 'idle') {
+      void dispatch(getAllBrands());
+    }
+
+    if (vehicleStatus === 'idle') {
+      void dispatch(getAllMakes());
+    }
+  }, [
+    dispatch,
+    categoryStatus,
+    brandStatus,
+    vehicleStatus,
+  ]);
 
   const category = useFloating({
     open: openCategory,
     onOpenChange: setOpenCategory,
     placement: 'bottom',
     whileElementsMounted: autoUpdate,
-    middleware: [offset(12)],
-  })
+    middleware: [
+      offset(12),
+    ],
+  });
 
-  const categoryInteractions = useInteractions([
-    useHover(category.context, {
-      handleClose: safePolygon(),
-      delay: { open: 80, close: 120 },
-    }),
-    useDismiss(category.context),
-    useRole(category.context, { role: 'menu' }),
-  ])
+  const categoryInteractions =
+    useInteractions([
+      useHover(
+        category.context,
+        {
+          handleClose: safePolygon(),
+          delay: {
+            open: 80,
+            close: 120,
+          },
+        },
+      ),
+
+      useDismiss(category.context),
+
+      useRole(
+        category.context,
+        {
+          role: 'menu',
+        },
+      ),
+    ]);
 
   return (
     <>
-      {/* ================= Header Menu ================= */}
       <div className={styles.container}>
-        {/* دسته‌بندی کالاها - دراپ‌داون */}
         <div
           ref={category.refs.setReference}
           className={styles.trigger}
-          style={{ paddingLeft: '5rem' }}
+          style={{
+            paddingLeft: '5rem',
+          }}
           {...categoryInteractions.getReferenceProps()}
         >
           <LayoutGrid size={20} />
-          <span className={styles.triggerText}>دسته‌بندی کالاها</span>
+
+          <span className={styles.triggerText}>
+            دسته‌بندی کالاها
+          </span>
         </div>
 
-        {/* ماشین‌ها - لینک به صفحه */}
         <div
           className={styles.trigger}
-          style={{ paddingLeft: '4rem', cursor: 'pointer' }}
-          onClick={() => router.push('/vehicles')}
+          style={{
+            paddingLeft: '4rem',
+            cursor: 'pointer',
+          }}
+          onClick={() =>
+            router.push('/vehicles')
+          }
         >
           <Car size={18} />
-          <span className={styles.triggerText}>ماشین‌ها</span>
+
+          <span className={styles.triggerText}>
+            ماشین‌ها
+          </span>
         </div>
 
-        {/* برندها - لینک به صفحه */}
         <div
           className={styles.trigger}
-          style={{ cursor: 'pointer' }}
-          onClick={() => router.push('/brands')}
+          style={{
+            cursor: 'pointer',
+          }}
+          onClick={() =>
+            router.push('/brands')
+          }
         >
           <Tag size={18} />
-          <span className={styles.triggerText}>برندها</span>
+
+          <span className={styles.triggerText}>
+            برندها
+          </span>
+        </div>
+
+        <div
+          className={styles.trigger}
+          style={{
+            cursor: 'pointer',
+          }}
+          onClick={() =>
+            router.push('/faq')
+          }
+        >
+          <Tag size={18} />
+
+          <span className={styles.triggerText}>
+            سوالات متداول
+          </span>
         </div>
       </div>
 
-      {/* ================= Overlay فقط برای دسته‌بندی ================= */}
       {openCategory && (
         <div
           className={styles.overlay}
-          onMouseEnter={() => setOpenCategory(false)}
+          onMouseEnter={() =>
+            setOpenCategory(false)
+          }
         />
       )}
 
-      {/* ================= Mega Menu فقط برای دسته‌بندی ================= */}
       {openCategory && (
         <FloatingPortal>
           <div
@@ -120,12 +222,14 @@ const FrontMenu = () => {
             className={styles.megaMenu}
             {...categoryInteractions.getFloatingProps()}
           >
-            <DropdownMenu categories={categories} />
+            <DropdownMenu
+              categories={categories}
+            />
           </div>
         </FloatingPortal>
       )}
     </>
-  )
-}
+  );
+};
 
-export default FrontMenu
+export default FrontMenu;

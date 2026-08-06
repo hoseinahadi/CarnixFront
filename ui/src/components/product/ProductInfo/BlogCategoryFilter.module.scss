@@ -1,0 +1,45 @@
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.filterContainer {
+  width: 100%;
+  margin-bottom: $spacing-xxl;
+  overflow-x: auto; // اسکرول افقی برای حالت موبایل
+  touch-action: pan-y; // اجازه اسکرول عمودی روی دکمه‌ها
+  @include custom-scrollbar(4px);
+  padding-bottom: $spacing-sm; 
+}
+
+.categoryList {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-width: max-content; 
+  justify-content: center;
+
+  @include respond-down('md') {
+    justify-content: flex-start; // در موبایل لیست از سمت راست شروع شود (RTL)
+  }
+}
+
+.categoryBtn {
+  background-color: $color-white;
+  border: 1px solid $color-border-light;
+  color: $color-text-muted;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $border-radius-full;
+  font-family: $font-family-main;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  @include transition-ease;
+
+  &.active, &:hover {
+    background-color: $color-primary;
+    color: $color-white;
+    border-color: $color-primary;
+  }
+}

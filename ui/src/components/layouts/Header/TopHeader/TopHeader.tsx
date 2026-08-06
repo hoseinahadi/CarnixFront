@@ -34,14 +34,15 @@ const TopHeader = ({ onMenuClick, isMenuOpen }: TopHeaderProps) => {
           <SearchAutocomplete/>
         </div>
         
-        <button 
+        
+        
+        <div className={styles.actionContainer}>
+          <button 
           className={styles.mobileSearchBtn}
           onClick={() => setIsSearchModalOpen(true)}
         >
           <IconSearch size={20} />
         </button>
-        
-        <div className={styles.actionContainer}>
           <HeaderAction/>
         </div>
       </div>

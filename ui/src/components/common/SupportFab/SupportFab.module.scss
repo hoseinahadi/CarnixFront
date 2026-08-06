@@ -1,0 +1,207 @@
+// components/common/SupportFab/SupportFab.module.scss
+@import '@/assets/styles/utils/variables';
+@import '@/assets/styles/utils/mixins';
+
+.fabContainer {
+  position: fixed;
+  bottom: $spacing-xl;
+  left: $spacing-xl;
+  z-index: 60; // بالاتر از سایدبار، پایین‌تر از مدال
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $spacing-md;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+
+  &.hidden {
+    transform: translateY(30px); // تغییر جهت محو شدن به سمت پایین
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (max-width: $breakpoint-md) {
+    bottom: $spacing-lg;
+    left: $spacing-lg;
+  }
+}
+
+/* ─── Overlay موبایل ─── */
+.overlay {
+  display: none;
+
+  @media (max-width: $breakpoint-md) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba($color-text-main, 0.3);
+    z-index: -1;
+    animation: fadeIn 0.3s ease;
+  }
+}
+
+/* ─── Menu Items ─── */
+.menu {
+  @include flex-column;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xs;
+  opacity: 0;
+  transform: translateY(20px) scale(0.9);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: bottom left;
+
+  &.menuOpen {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+  }
+}
+
+.menuItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: $spacing-md $spacing-lg;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-lg;
+  cursor: pointer;
+  min-width: 200px;
+  box-shadow: $shadow-lg;
+  @include transition-ease;
+  gap: $spacing-xs;
+
+  &:hover {
+    transform: translateX(-4px);
+    box-shadow: $shadow-xl;
+  }
+
+  &:active {
+    transform: translateX(-2px) scale(0.98);
+  }
+}
+
+.menuItemContent {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  font-family: $font-family-main;
+}
+
+.menuItemSub {
+  font-size: $font-size-xs;
+  font-family: $font-family-main;
+  opacity: 0.7;
+}
+
+.whatsappButton {
+  color: #25D366;
+
+  .menuItemContent {
+    color: #25D366;
+  }
+
+  .menuItemSub {
+    color: $color-text-muted;
+  }
+
+  &:hover {
+    background: #e8f5e9;
+    border-color: #25D366;
+  }
+}
+
+.chatButton {
+  color: #7c3aed;
+
+  .menuItemContent {
+    color: #7c3aed;
+  }
+
+  .menuItemSub {
+    color: $color-text-muted;
+  }
+
+  &:hover {
+    background: #f3e8ff;
+    border-color: #7c3aed;
+  }
+}
+
+/* ─── Main FAB Button ─── */
+.fabButton {
+  width: 56px;
+  height: 56px;
+  border-radius: $border-radius-full;
+  background: $color-primary;
+  color: $color-white;
+  border: none;
+  cursor: pointer;
+  @include flex-center;
+  box-shadow: 0 4px 12px rgba($color-primary, 0.3);
+  @include transition-ease;
+  position: relative;
+  z-index: 2;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba($color-primary, 0.4);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.fabActive {
+    background: $color-text-main;
+    transform: rotate(90deg);
+    box-shadow: 0 4px 12px rgba($color-text-main, 0.3);
+
+    &:hover {
+      background: darken($color-text-main, 10%);
+      transform: rotate(90deg) scale(1.05);
+    }
+  }
+
+  // پالس انیمیشن
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: $border-radius-full;
+    border: 2px solid $color-primary;
+    animation: pulse 2s infinite;
+    opacity: 0;
+  }
+
+  &.fabActive::before {
+    animation: none;
+    display: none;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

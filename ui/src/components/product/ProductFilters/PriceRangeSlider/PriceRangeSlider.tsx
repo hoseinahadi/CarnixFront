@@ -1,5 +1,5 @@
 // components/product/ProductFilters/PriceRangeSlider/PriceRangeSlider.tsx
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import styles from './PriceRangeSlider.module.scss'
 
 interface PriceRangeSliderProps {
@@ -40,9 +40,13 @@ const PriceRangeSlider = ({ min, max, currentMin, currentMax, onChange }: PriceR
     onChange(localMin, localMax)
   }
 
-  // درصد موقعیت slider ها
-  const minPercent = ((localMin - min) / (max - min)) * 100
-  const maxPercent = ((localMax - min) / (max - min)) * 100
+  // ✅ جلوگیری از تقسیم بر صفر در صورتی که کمترین و بیشترین قیمت یکی باشد
+  const rangeDiff = max - min === 0 ? 1 : max - min;
+  const minPercent = ((localMin - min) / rangeDiff) * 100
+  const maxPercent = ((localMax - min) / rangeDiff) * 100
+
+  // استپ داینامیک برای راحتی حرکت اسلایدر روی مبالغ بالا
+  const stepAmount = rangeDiff > 1000000 ? 10000 : 1000;
 
   return (
     <div className={styles.container}>
@@ -60,6 +64,7 @@ const PriceRangeSlider = ({ min, max, currentMin, currentMax, onChange }: PriceR
           type="range"
           min={min}
           max={max}
+          step={stepAmount}
           value={localMin}
           onChange={handleMinChange}
           className={`${styles.slider} ${styles.sliderMin}`}
@@ -68,6 +73,7 @@ const PriceRangeSlider = ({ min, max, currentMin, currentMax, onChange }: PriceR
           type="range"
           min={min}
           max={max}
+          step={stepAmount}
           value={localMax}
           onChange={handleMaxChange}
           className={`${styles.slider} ${styles.sliderMax}`}

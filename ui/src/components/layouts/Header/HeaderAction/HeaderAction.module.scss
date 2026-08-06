@@ -7,6 +7,7 @@
   gap: $spacing-xl;
 }
 
+// ✅ مدال نباید هیچگونه ترنسفرمی در CSS داشته باشد
 .dropdown {
   z-index: $z-index-megamenu;
 }
@@ -30,8 +31,9 @@
   background-color: $color-white;
   border-radius: $border-radius-lg !important;
   box-shadow: $shadow-xl !important;
-  border: 1px solid $color-border-dark;
+  border: 1px solid $color-border-light;
   overflow: hidden;
+  max-width: calc(100vw - 32px); // جلوگیری از بیرون زدن در موبایل
 }
 
 .popoverContent {
@@ -44,34 +46,75 @@
 
 .popoverContentSmall {
   @extend .popoverContent;
-  width: 220px;
+  width: 260px;
   z-index: 20000;
 }
 
-.popoverTitle {
-  font-size: $font-size-base;
+/* ---------------- User Profile Header ---------------- */
+.userInfoHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding-bottom: $spacing-xs;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 50%;
+  background-color: $color-primary-light;
+  color: $color-primary;
+  @include flex-center;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-md;
+  border: 1px solid rgba($color-primary, 0.1);
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.userName {
+  font-size: $font-size-sm;
   font-weight: $font-weight-bold;
   color: $color-text-main;
-  margin-bottom: $spacing-xs;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
 }
 
-.popoverText {
-  font-size: $font-size-sm;
+.userPhone {
+  font-size: $font-size-xs;
   color: $color-text-muted;
-  margin-bottom: $spacing-md;
+  direction: ltr;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* ---------------- Menu Items ---------------- */
 .divider {
-  border-bottom: 1px solid $color-gray-200;
+  border-bottom: 1px solid $color-gray-100;
   margin: $spacing-sm 0;
   width: 100%;
+}
+
+.menuGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .menuItem {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  padding: $spacing-sm;
+  padding: 10px $spacing-sm;
   width: 100%;
   border: none;
   background: transparent;
@@ -79,15 +122,23 @@
   border-radius: $border-radius-sm;
   font-family: $font-family-main;
   font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
   color: $color-text-main;
-  @include transition-ease(background-color, 0.2s);
+  @include transition-ease(all, 0.2s);
 
   &:hover {
     background-color: $color-gray-50;
+    color: $color-primary;
+    
+    svg {
+      color: $color-primary;
+      transform: translateX(-2px);
+    }
   }
 
   svg {
-    color: $color-gray-500;
+    color: $color-gray-400;
+    @include transition-ease(all, 0.2s);
   }
 
   &.danger {
@@ -99,6 +150,11 @@
     
     &:hover {
       background-color: rgba($color-danger, 0.05);
+      color: $color-danger;
+      
+      svg {
+        color: $color-danger;
+      }
     }
   }
 }
@@ -122,6 +178,7 @@
 }
 
 /* ============ Media Queries ============ */
+
 @media (max-width: 1199.98px) {
   .actionsContainer {
     gap: $spacing-md;
@@ -143,10 +200,7 @@
     }
   }
   .popoverContent {
-    width: 240px;
-  }
-  .popoverContentSmall {
-    width: 200px;
+    width: 260px;
   }
 }
 
@@ -162,12 +216,9 @@
       height: 22px;
     }
   }
-  .popoverContent {
-    width: 260px;
-    padding: $spacing-sm;
-  }
+  .popoverContent,
   .popoverContentSmall {
-    width: 200px;
+    width: 250px;
     padding: $spacing-sm;
   }
 }
@@ -180,10 +231,28 @@
       height: 20px;
     }
   }
-  .popoverContent {
-    width: 240px;
-  }
+  
+  // در موبایل‌های کوچک عرض بر اساس صفحه تنظیم می‌شود
+  .popoverContent,
   .popoverContentSmall {
-    width: 180px;
+    width: 100vw !important;
+    max-width: calc(100vw - 32px);
+    padding: $spacing-sm;
+  }
+}
+
+@media (max-width: 399.98px) {
+  .popoverContent,
+  .popoverContentSmall {
+    max-width: calc(100vw - 20px);
+  }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: $font-size-sm;
+  }
+  .userName {
+    font-size: $font-size-xs;
   }
 }

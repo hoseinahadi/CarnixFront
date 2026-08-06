@@ -1,162 +1,254 @@
-'use client'
+'use client';
 
-import React, { useEffect, useState } from 'react'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchProductQuestions, createQuestion } from '@/store/feature/product/productQuestionThunks'
-import { 
-  selectProductQuestions, 
-  selectQuestionsLoading, 
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+} from 'react';
+import {
+  CornerDownLeft,
+  Loader2,
+  MessageCircleQuestion,
+  ShieldCheck,
+  User,
+} from 'lucide-react';
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  createQuestion,
+  fetchProductQuestions,
+} from '@/store/feature/product/productQuestionThunks';
+import {
+  selectProductQuestions,
+  selectQuestionsLoading,
   selectQuestionSubmitting,
-  selectQuestionsPagination 
-} from '@/store/feature/product/productDetailSelectors'
-import { selectProductDetails } from '@/store/feature/product/productSelectors'
-import styles from './ProductQuestions.module.scss'
-import { IconMessageCircle, IconUser, IconChevronDown, IconChevronUp } from '@tabler/icons-react'
-import classNames from 'classnames'
+} from '@/store/feature/product/productDetailSelectors';
 
-const ProductQuestions = () => {
-  const dispatch = useAppDispatch()
-  const product = useAppSelector(selectProductDetails)
-  const questions = useAppSelector(selectProductQuestions)
-  const loading = useAppSelector(selectQuestionsLoading)
-  const submitting = useAppSelector(selectQuestionSubmitting)
-  const pagination = useAppSelector(selectQuestionsPagination)
+import styles from './ProductQuestions.module.scss';
 
-  const [showForm, setShowForm] = useState(false)
-  const [questionText, setQuestionText] = useState('')
-  const [expandedAnswers, setExpandedAnswers] = useState<Record<number, boolean>>({})
+interface ProductQuestionsProps {
+  productId: number;
+}
+
+export default function ProductQuestions({
+  productId,
+}: ProductQuestionsProps) {
+  const dispatch = useAppDispatch();
+  const questions = useAppSelector(
+    selectProductQuestions,
+  );
+  const loading = useAppSelector(
+    selectQuestionsLoading,
+  );
+  const submitting = useAppSelector(
+    selectQuestionSubmitting,
+  );
+  const [questionText, setQuestionText] =
+    useState('');
 
   useEffect(() => {
-    if (product?.productId) {
-      dispatch(fetchProductQuestions({ productId: product.productId }))
+    void dispatch(
+      fetchProductQuestions({ productId }),
+    );
+  }, [dispatch, productId]);
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    const normalizedQuestion =
+      questionText.trim();
+
+    if (!normalizedQuestion || submitting) {
+      return;
     }
-  }, [product?.productId, dispatch])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!product || !questionText.trim()) return
+    const action = await dispatch(
+      createQuestion({
+        productId,
+        questionText: normalizedQuestion,
+      }),
+    );
 
-    dispatch(createQuestion({
-      productId: product.productId,
-      questionText: questionText.trim(),
-    }))
+    if (createQuestion.fulfilled.match(action)) {
+      setQuestionText('');
+    }
+  };
 
-    setQuestionText('')
-    setShowForm(false)
-  }
-
-  const toggleAnswers = (questionId: number) => {
-    setExpandedAnswers(prev => ({
-      ...prev,
-      [questionId]: !prev[questionId],
-    }))
-  }
-
-  if (loading) {
+  if (loading && questions.length === 0) {
     return (
-      <div className={styles.loading}>
-        <p>در حال دریافت پرسش‌ها...</p>
+      <div className={styles.loadingWrapper}>
+        <Loader2
+          className={styles.spinner}
+          size={32}
+        />
       </div>
-    )
+    );
   }
 
   return (
     <div className={styles.questionsContainer}>
-      {/* هدر */}
-      <div className={styles.header}>
-        <h3 className={styles.title}>پرسش و پاسخ</h3>
-        <button 
-          className={styles.askBtn}
-          onClick={() => setShowForm(!showForm)}
-        >
-          پرسش جدید
-        </button>
-      </div>
+      <div className={styles.askSection}>
+        <h3 className={styles.sectionTitle}>
+          پرسش خود را درباره محصول مطرح کنید
+        </h3>
 
-      {/* فرم پرسش */}
-      {showForm && (
-        <form onSubmit={handleSubmit} className={styles.questionForm}>
-          <h4 className={styles.formTitle}>ثبت پرسش جدید</h4>
-          <div className={styles.field}>
-            <textarea
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              placeholder="پرسش خود را درباره این محصول بنویسید..."
-              rows={4}
-              required
-            />
-          </div>
-          <div className={styles.formActions}>
-            <button type="button" onClick={() => setShowForm(false)} className={styles.cancelBtn}>
-              انصراف
-            </button>
-            <button type="submit" className={styles.submitBtn} disabled={submitting}>
-              {submitting ? 'در حال ثبت...' : 'ثبت پرسش'}
+        <form
+          onSubmit={handleSubmit}
+          className={styles.askForm}
+        >
+          <textarea
+            value={questionText}
+            onChange={(event) =>
+              setQuestionText(
+                event.target.value,
+              )
+            }
+            placeholder="سؤال شما چیست؟"
+            rows={3}
+            required
+            className={styles.textarea}
+          />
+
+          <div className={styles.formFooter}>
+            <span className={styles.hint}>
+              پس از ثبت، پشتیبانان یا کاربران
+              به شما پاسخ خواهند داد.
+            </span>
+
+            <button
+              type="submit"
+              className={styles.submitBtn}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <Loader2
+                  className={styles.spinner}
+                  size={20}
+                />
+              ) : (
+                'ثبت پرسش'
+              )}
             </button>
           </div>
         </form>
-      )}
+      </div>
 
-      {/* لیست پرسش‌ها */}
       <div className={styles.questionsList}>
         {questions.length === 0 ? (
           <div className={styles.empty}>
-            <p>هنوز پرسشی برای این محصول ثبت نشده است.</p>
+            پرسشی ثبت نشده است. اولین نفری
+            باشید که سؤال می‌پرسد!
           </div>
         ) : (
           questions.map((question) => (
-            <div key={question.productQuestionId} className={styles.questionCard}>
-              <div className={styles.questionHeader}>
-                <IconMessageCircle size={20} className={styles.questionIcon} />
-                <div className={styles.questionContent}>
-                  <p className={styles.questionText}>{question.questionText}</p>
-                  <span className={styles.questionMeta}>
-                    {new Date(question.createdAt).toLocaleDateString('fa-IR')}
+            <div
+              key={question.productQuestionId}
+              className={styles.questionCard}
+            >
+              <div
+                className={styles.questionBody}
+              >
+                <div
+                  className={styles.iconWrapper}
+                >
+                  <MessageCircleQuestion
+                    size={20}
+                  />
+                </div>
+
+                <div className={styles.content}>
+                  <p className={styles.text}>
+                    {question.questionText}
+                  </p>
+                  <span className={styles.date}>
+                    {new Date(
+                      question.createdAt,
+                    ).toLocaleDateString(
+                      'fa-IR',
+                    )}
                   </span>
                 </div>
               </div>
 
-              {/* پاسخ‌ها */}
-              {question.answers && question.answers.length > 0 && (
-                <div className={styles.answersSection}>
-                  <button 
-                    className={styles.toggleAnswers}
-                    onClick={() => toggleAnswers(question.productQuestionId)}
+              {question.answers &&
+                question.answers.length > 0 && (
+                  <div
+                    className={
+                      styles.answersContainer
+                    }
                   >
-                    {expandedAnswers[question.productQuestionId] ? (
-                      <IconChevronUp size={16} />
-                    ) : (
-                      <IconChevronDown size={16} />
-                    )}
-                    {question.answers.length} پاسخ
-                  </button>
+                    {question.answers.map(
+                      (answer, index) => (
+                        <div
+                          key={
+                            answer.productQuestionAnswerId ||
+                            `${question.productQuestionId}-${index}`
+                          }
+                          className={`${
+                            styles.answerCard
+                          } ${
+                            answer.isAdminReply
+                              ? styles.adminAnswer
+                              : ''
+                          }`}
+                        >
+                          <CornerDownLeft
+                            size={16}
+                            className={
+                              styles.replyIcon
+                            }
+                          />
 
-                  {expandedAnswers[question.productQuestionId] && (
-                    <div className={styles.answersList}>
-                      {question.answers.map((answer: any, idx: number) => (
-                        <div key={idx} className={classNames(styles.answerCard, {
-                          [styles.adminAnswer]: answer.isAdminReply,
-                        })}>
-                          <div className={styles.answerHeader}>
-                            <IconUser size={16} />
-                            <span>{answer.isAdminReply ? 'پشتیبانی' : 'کاربر'}</span>
-                            {answer.isAdminReply && (
-                              <span className={styles.adminBadge}>پاسخ رسمی</span>
-                            )}
+                          <div
+                            className={
+                              styles.answerContent
+                            }
+                          >
+                            <div
+                              className={
+                                styles.answerHeader
+                              }
+                            >
+                              {answer.isAdminReply ? (
+                                <span
+                                  className={
+                                    styles.adminBadge
+                                  }
+                                >
+                                  <ShieldCheck
+                                    size={14}
+                                  />
+                                  پشتیبانی سایت
+                                </span>
+                              ) : (
+                                <span
+                                  className={
+                                    styles.userBadge
+                                  }
+                                >
+                                  <User size={14} />
+                                  کاربر سایت
+                                </span>
+                              )}
+                            </div>
+
+                            <p
+                              className={styles.text}
+                            >
+                              {answer.answerText}
+                            </p>
                           </div>
-                          <p className={styles.answerText}>{answer.answerText}</p>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                      ),
+                    )}
+                  </div>
+                )}
             </div>
           ))
         )}
       </div>
     </div>
-  )
+  );
 }
-
-export default ProductQuestions

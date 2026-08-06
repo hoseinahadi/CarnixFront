@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import styles from './ProductTabs.module.scss'
 import classNames from 'classnames'
 
@@ -13,14 +13,13 @@ interface Tab {
 interface ProductTabsProps {
   tabs: Tab[]
   defaultTab?: string
+  activeTab: string
+  onTabChange: (tabId: string) => void
 }
 
-const ProductTabs = ({ tabs, defaultTab }: ProductTabsProps) => {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id)
-
+const ProductTabs = ({ tabs, defaultTab, activeTab, onTabChange }: ProductTabsProps) => {
   return (
     <div className={styles.tabsContainer}>
-      {/* نوار تب‌ها */}
       <div className={styles.tabHeader}>
         {tabs.map((tab) => (
           <button
@@ -28,14 +27,13 @@ const ProductTabs = ({ tabs, defaultTab }: ProductTabsProps) => {
             className={classNames(styles.tabButton, {
               [styles.active]: activeTab === tab.id,
             })}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => onTabChange(tab.id)}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* محتوای تب فعال */}
       <div className={styles.tabContent}>
         {tabs.find((tab) => tab.id === activeTab)?.content}
       </div>

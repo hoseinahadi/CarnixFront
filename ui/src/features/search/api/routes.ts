@@ -1,32 +1,24 @@
 import { SearchSuggestion } from "@/models/search/SearchSuggestion";
-import axiosInstance from "@/services/api/common/axiosInstance";
-
-// در صورت تمایل می‌توانید این اینترفیس را به پوشه models منتقل کنید
-
-
-// نگهداری کنترلر در سطح ماژول برای لغو درخواست‌های قبلی همین متد
-let searchAbortController: AbortController | null = null;
+import axiosClient from "@/services/api/common/axiosClient"; // 🟢 جایگزین شد
 
 export const searchApi = {
-  // دریافت پیشنهادات جستجو
-  getSuggestions: async (query: string, limit: number = 5) => {
-    // اگر درخواست قبلی هنوز در جریان است، آن را لغو کن
-    if (searchAbortController) {
-      searchAbortController.abort();
-    }
-    searchAbortController = new AbortController();
-
+  // 🟢 پارامتر signal اضافه شد تا کامپوننت بتواند مستقیماً درخواست را کنترل کند
+  getSuggestions: async (query: string, signal?: AbortSignal, limit: number = 5) => {
     try {
-      const response = await axiosInstance.get<SearchSuggestion[]>('/search/suggestions', {
+      const response = await axiosClient.get<SearchSuggestion[]>('/search/suggestions', {
         params: { q: query, limit },
-        signal: searchAbortController.signal,
+        signal: signal, // 🟢 سیگنال اختصاصیِ هر رندر به Axios پاس داده می‌شود
       });
-      return response.data;
+      
+      // توجه: اگر بک‌اند شما دیتا را داخل یک آبجکت data برمی‌گرداند، این خط را به response.data.data تغییر دهید
+      return response.data; 
+      
     } catch (error: any) {
-      // اگر خطا به خاطر لغو درخواست (Abort) بود، خطای خالی برگردان تا استیت خراب نشود
-      if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
+      // 🟢 اگر خطا به خاطر لغو درخواست (Abort) بود، آرایه خالی برگردان تا استیت خراب نشود
+      if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED' || error.name === 'AbortError') {
         return [];
       }
+      
       // در غیر این صورت خطا را به کامپوننت پاس بده (یا لاگ کن)
       console.error('getSuggestions error:', error);
       throw error;

@@ -1,3 +1,4 @@
+// src/components/product/ProductFilters/ProductFilters.module.scss
 @import '@/assets/styles/utils/variables';
 @import '@/assets/styles/utils/mixins';
 
@@ -8,6 +9,7 @@
   border-radius: $border-radius-lg;
   border: 1px solid $color-border-light;
   overflow: hidden;
+  font-family: 'IRANYEKAN', Tahoma, sans-serif; // ✅ فونت سراسری برای کل فیلترها
 
   @include respond-down('lg') {
     width: 100%;
@@ -58,6 +60,8 @@
   border: none;
   color: #e74c3c;
   font-size: $font-size-xs;
+  font-family: inherit;
+  font-weight: $font-weight-medium;
   cursor: pointer;
 
   &:hover {
@@ -135,7 +139,7 @@
   }
 
   input:checked + .sliderRound {
-    background-color: #9aaebf;
+    background-color: $color-primary; // رنگ تم بجای استاتیک
   }
 
   input:checked + .sliderRound:before {
@@ -163,6 +167,7 @@
   color: $color-text-secondary;
   cursor: pointer;
   padding: $spacing-xs 0;
+  transition: color 0.2s;
 
   @include respond-down('md') {
     font-size: $font-size-xs;

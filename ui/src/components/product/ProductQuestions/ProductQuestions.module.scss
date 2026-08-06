@@ -2,66 +2,34 @@
 @import '@/assets/styles/utils/mixins';
 
 .questionsContainer {
-  width: 100%;
+  @include flex-column;
+  gap: $spacing-xl;
 }
 
-.loading, .empty {
-  @include flex-center;
-  padding: $spacing-xxl;
-  color: $color-text-muted;
-  font-size: $font-size-sm;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $spacing-xl;
-  padding-bottom: $spacing-lg;
-  border-bottom: 1px solid $color-border-light;
-}
-
-.title {
-  font-size: $font-size-md;
-  font-weight: $font-weight-bold;
-  margin: 0;
-}
-
-.askBtn {
-  padding: $spacing-sm $spacing-xl;
-  background: $color-primary;
-  color: $color-white;
-  border: none;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  font-size: $font-size-sm;
-}
-
-/* ─── Form ─── */
-.questionForm {
-  background: $color-gray-50;
-  border: 1px solid $color-border-light;
+.askSection {
+  background-color: $color-gray-50;
+  padding: $spacing-lg;
   border-radius: $border-radius-lg;
-  padding: $spacing-xl;
-  margin-bottom: $spacing-xl;
+  border: 1px solid $color-border-light;
+
+  .sectionTitle {
+    font-size: $font-size-md;
+    color: $color-text-main;
+    margin: 0 0 $spacing-md 0;
+  }
 }
 
-.formTitle {
-  font-size: $font-size-md;
-  font-weight: $font-weight-bold;
-  margin-bottom: $spacing-lg;
-}
+.askForm {
+  @include flex-column;
+  gap: $spacing-md;
 
-.field {
-  margin-bottom: $spacing-md;
-
-  textarea {
+  .textarea {
     width: 100%;
     padding: $spacing-md;
     border: 1px solid $color-border-light;
-    border-radius: $border-radius-md;
-    font-size: $font-size-sm;
+    border-radius: $border-radius-sm;
     font-family: inherit;
+    font-size: $font-size-sm;
     resize: vertical;
 
     &:focus {
@@ -71,125 +39,146 @@
   }
 }
 
-.formActions {
+.formFooter {
   display: flex;
-  gap: $spacing-md;
-  justify-content: flex-end;
-}
+  justify-content: space-between;
+  align-items: center;
 
-.submitBtn {
-  padding: $spacing-sm $spacing-xl;
-  background: $color-primary;
-  color: $color-white;
-  border: none;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.6;
+  @include respond-down('sm') {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-sm;
   }
-}
 
-.cancelBtn {
-  padding: $spacing-sm $spacing-xl;
-  background: $color-white;
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-md;
-  cursor: pointer;
+  .hint {
+    font-size: 11px;
+    color: $color-text-muted;
+  }
+
+  .submitBtn {
+    padding: $spacing-sm $spacing-xl;
+    background-color: $color-primary;
+    color: $color-white;
+    border: none;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    @include flex-center;
+
+    &:disabled {
+      opacity: 0.7;
+    }
+  }
 }
 
 /* ─── Questions List ─── */
 .questionsList {
   @include flex-column;
-  gap: $spacing-md;
+  gap: $spacing-lg;
 }
 
 .questionCard {
-  border: 1px solid $color-border-light;
-  border-radius: $border-radius-md;
-  padding: $spacing-lg;
+  border-bottom: 1px solid $color-gray-100;
+  padding-bottom: $spacing-lg;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
 }
 
-.questionHeader {
+.questionBody {
   display: flex;
   gap: $spacing-md;
+  margin-bottom: $spacing-md;
+
+  .iconWrapper {
+    color: $color-primary;
+    margin-top: 4px;
+  }
+
+  .content {
+    flex: 1;
+
+    .text {
+      font-size: $font-size-sm;
+      color: $color-text-main;
+      line-height: 1.8;
+      margin: 0 0 $spacing-xs 0;
+    }
+
+    .date {
+      font-size: 11px;
+      color: $color-text-muted;
+    }
+  }
 }
 
-.questionIcon {
-  color: $color-primary;
-  flex-shrink: 0;
-}
-
-.questionContent {
-  flex: 1;
-}
-
-.questionText {
-  font-size: $font-size-sm;
-  color: $color-text-main;
-  line-height: 1.8;
-  margin-bottom: $spacing-xs;
-}
-
-.questionMeta {
-  font-size: $font-size-xs;
-  color: $color-text-muted;
-}
-
-/* ─── Answers ─── */
-.answersSection {
-  margin-top: $spacing-md;
-  padding-top: $spacing-md;
-  border-top: 1px solid $color-border-light;
-}
-
-.toggleAnswers {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  background: none;
-  border: none;
-  color: $color-primary;
-  cursor: pointer;
-  font-size: $font-size-sm;
-}
-
-.answersList {
+.answersContainer {
+  margin-right: 32px; // تورفتگی برای پاسخ‌ها
   @include flex-column;
   gap: $spacing-sm;
-  margin-top: $spacing-md;
+  border-right: 2px solid $color-gray-100;
+  padding-right: $spacing-md;
 }
 
 .answerCard {
-  padding: $spacing-md;
-  background: $color-gray-50;
-  border-radius: $border-radius-md;
+  display: flex;
+  gap: $spacing-sm;
+  background-color: $color-white;
+  padding: $spacing-sm 0;
 
   &.adminAnswer {
-    background: #e8f5e9;
-    border: 1px solid #c8e6c9;
+    background-color: #f8fafc; // رنگ ملایم برای پاسخ پشتیبان
+    padding: $spacing-sm;
+    border-radius: $border-radius-sm;
+  }
+
+  .replyIcon {
+    color: $color-gray-300;
+    margin-top: 4px;
+  }
+
+  .answerContent {
+    flex: 1;
   }
 }
 
 .answerHeader {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  margin-bottom: $spacing-sm;
-  font-size: $font-size-xs;
-  color: $color-text-muted;
+  margin-bottom: $spacing-xs;
+
+  .adminBadge, .userBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+  }
+
+  .adminBadge { color: $color-primary; }
+  .userBadge { color: $color-text-muted; }
 }
 
-.adminBadge {
-  padding: 1px 8px;
-  background: $color-primary;
-  color: $color-white;
-  border-radius: 10px;
-  font-size: 10px;
-}
-
-.answerText {
+.text {
   font-size: $font-size-sm;
-  color: $color-text-main;
+  color: $color-text-secondary;
   line-height: 1.8;
+  margin: 0;
+}
+
+.empty {
+  padding: $spacing-xl 0;
+  text-align: center;
+  color: $color-text-muted;
+  font-size: $font-size-sm;
+}
+
+.loadingWrapper {
+  @include flex-center;
+  padding: $spacing-xxl;
+  color: $color-primary;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
 }

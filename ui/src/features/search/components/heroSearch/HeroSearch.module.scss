@@ -1,91 +1,50 @@
-@import '../../../../assets/styles/utils/variables';
-@import '../../../../assets/styles/utils/mixins';
+@use '../../../../assets/styles/utils/variables' as *;
 
 .heroSearchWrapper {
-  z-index: 10;
+  // 🟢 حل مشکل افتادن دراپ دان زیر بقیه المان‌ها
+  z-index: 100; // این عدد باید از Swiper بالاتر باشد
   width: 100%;
-  padding: 0 1rem;
   position: relative;
-  height: auto;
-  min-height: 60px;
-
-  @include respond-down('md') {
-    min-height: 80px;
-  }
-
-  @include respond-down('sm') {
-    min-height: 120px;
-  }
 }
 
 .searchForm {
-  height: 100%;
-  background-color: transparent;
-  box-shadow: none;
+  background-color: $color-white;
+  border-radius: $border-radius-lg;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  border: 1px solid $color-border-light;
+  position: relative;
   
-  @include respond-down('md') {
+  @media (max-width: 767px) {
     flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem;
+    align-items: stretch;
+    padding: 1.5rem 1rem;
+    gap: 1rem; 
+    border-radius: 12px;
   }
+}
 
-  @include respond-down('sm') {
-    gap: 0.5rem;
-    padding: 0.75rem;
+.mobileFormTitle {
+  display: none;
+  
+  @media (max-width: 767px) {
+    display: block;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    color: #4b5563;
+    margin: 0 0 0.5rem 0;
   }
 }
 
 .formGroup {
   flex: 1;
-  display: flex;
-  align-items: center;
   width: 100%;
-  min-width: 120px;
-
-  @include respond-down('md') {
-    width: 100%;
-    min-width: unset;
-  }
-}
-
-.selectInput {
-  width: 100%;
-  border: none;
-  background: transparent;
-  color: $color-text-main;
-  font-size: $font-size-base;
-  font-family: $font-family-main;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  outline: none;
-  appearance: none;
-  
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: left 1rem center;
-  background-size: 1em;
-
-  @include respond-down('md') {
-    font-size: $font-size-sm;
-    padding: 0.5rem 0.75rem;
-    background-position: left 0.5rem center;
-  }
-
-  @include respond-down('sm') {
-    font-size: $font-size-xs;
-    padding: 0.4rem 0.5rem;
-  }
-
-  &:disabled {
-    color: $color-text-placeholder;
-    cursor: not-allowed;
-  }
+  // 🟢 این بخش بسیار مهم است تا لیست محدود به کادر والد نشود
+  position: static; 
 }
 
 .divider {
@@ -94,49 +53,158 @@
   background-color: $color-border-light;
   margin: 0 0.5rem;
 
-  @include respond-down('md') {
+  @media (max-width: 767px) {
     display: none;
   }
 }
 
 .searchBtn {
-  background-color: $color-primary;
+  background-color: #1a56db;
   color: $color-white;
   border: none;
   border-radius: $border-radius-md;
-  padding: 0.6rem 2rem;
-  font-size: $font-size-base;
-  font-weight: $font-weight-medium;
-  font-family: $font-family-main;
+  padding: 0.75rem 2rem;
+  font-size: 15px;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 48px;
+  margin-right: 0.5rem;
+  position: relative;
 
-  &:hover {
-    background-color: darken($color-primary, 10%);
-  }
-
-  @include respond-down('md') {
+  @media (max-width: 767px) {
     width: 100%;
-    padding: 0.75rem;
-  }
-
-  @include respond-down('sm') {
-    padding: 0.5rem;
-    font-size: $font-size-sm;
+    margin-right: 0;
+    margin-top: 0.5rem;
+    border-radius: 8px;
   }
 }
 
-.srOnly {
+// ==========================================
+// استایل‌های کاستوم سلکت
+// ==========================================
+
+.customSelectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.customSelectHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  height: 48px;
+
+  @media (max-width: 767px) {
+    border: 1px solid #d1d5db; 
+    border-radius: 8px;
+    background-color: $color-white;
+  }
+
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f9fafb;
+  }
+
+  .placeholderText {
+    color: #4b5563;
+    font-size: 14px;
+  }
+
+  .selectedText {
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .chevron {
+    color: #9ca3af;
+    transition: transform 0.3s;
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.customSelectList {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: $color-white;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  // 🟢 اعمال ایندکس بالا برای رفع باگ افتادن زیر دسته‌بندی
+  z-index: 9999; 
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+}
+
+.searchBox {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: $color-white;
+  position: sticky;
+  top: 0;
+
+  input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 14px;
+    background: transparent;
+  }
+}
+
+.optionsList {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 4px;
+  }
+
+  .optionItem {
+    padding: 0.75rem 1rem;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+
+    &:hover {
+      background: #f9fafb;
+    }
+
+    &.selected {
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+  }
+
+  .noResult {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 14px;
+  }
 }

@@ -4,6 +4,7 @@
 
 .container {
   padding: $spacing-sm 0;
+  font-family: 'IRANYEKAN', Tahoma, sans-serif;
 }
 
 .labels {
@@ -12,6 +13,7 @@
   font-size: $font-size-xs;
   color: $color-text-muted;
   margin-bottom: $spacing-md;
+  direction: ltr; // برای نمایش درست واحد پول و عدد کنار هم
 }
 
 .sliderTrack {
@@ -51,6 +53,11 @@
     cursor: pointer;
     pointer-events: auto;
     box-shadow: $shadow-sm;
+    transition: transform 0.1s;
+
+    &:active {
+      transform: scale(1.15);
+    }
   }
 
   &.sliderMin {
@@ -68,8 +75,10 @@
   font-size: $font-size-sm;
   cursor: pointer;
   margin-top: $spacing-md;
+  font-family: inherit;
+  transition: background 0.2s;
 
   &:hover {
-    background: $color-primary-dark;
+    background: darken(#2563eb, 10%); // یا $color-primary-dark
   }
 }

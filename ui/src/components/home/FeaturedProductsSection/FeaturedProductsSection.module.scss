@@ -3,14 +3,15 @@
 
 .featuredSection {
   background-color: white;
-  border: 1px solid $color-border-dark;
-  border-radius: $border-radius-lg;
-  padding: $spacing-xl $spacing-md 0 $spacing-md;
+  padding: $spacing-xl 0 $spacing-xxl 0;
   margin-top: $spacing-xxxl;
+  overflow: hidden;
+  direction: rtl;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif !important;
 
   @include respond-down('md') {
-    padding: $spacing-md $spacing-sm 0 $spacing-sm;
-    border-radius: $border-radius-md;
+    padding: $spacing-lg 0 $spacing-xl 0;
+    margin-top: $spacing-xxl;
   }
 }
 
@@ -20,114 +21,53 @@
   gap: $spacing-xl;
 
   @include respond-down('md') {
-    gap: $spacing-md;
+    gap: $spacing-lg;
   }
 }
 
 .header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: $spacing-md;
-  padding-bottom: $spacing-md;
-
-  @include respond-down('md') {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $spacing-sm;
-  }
-}
-
-.titleAndTabs {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xxl;
-  flex-wrap: wrap;
-
-  @include respond-down('lg') {
-    gap: $spacing-xl;
-  }
+  padding-bottom: $spacing-lg;
+  border-bottom: 2px solid $color-gray-100;
 
   @include respond-down('md') {
     gap: $spacing-md;
-    width: 100%;
+    padding: 0 $spacing-sm $spacing-md;
+    border-bottom: none;
   }
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: $color-text-main;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
   margin: 0;
 
   @include respond-down('md') {
-    font-size: $font-size-lg;
-  }
-}
-
-.tabs {
-  display: flex;
-  gap: $spacing-xl;
-
-  @include respond-down('lg') {
-    gap: $spacing-md;
-  }
-
-  @include respond-down('md') {
-    gap: $spacing-sm;
-    width: 100%;
-  }
-}
-
-.tabBtn {
-  background: transparent;
-  border: 1px solid $color-border-dark;
-  padding: $spacing-sm $spacing-md;
-  border-radius: $border-radius-lg;
-  color: $color-text-secondary;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: $font-size-base;
-  font-weight: 500;
-  font-family: 'IRANYEKAN';
-  border-color: $color-primary-dark;
-  color: $color-primary-dark;
-
-  @include respond-down('lg') {
-    padding: $spacing-sm;
-    font-size: $font-size-sm;
-  }
-
-  @include respond-down('md') {
-    font-size: $font-size-xs;
-    padding: $spacing-xs $spacing-sm;
-    flex: 1;
-  }
-
-  &:hover {
-    border-color: $color-primary-dark;
-    color: $color-primary-dark;
-  }
-
-  &.activeTab {
-    background-color: $color-primary-dark;
-    color: $color-white;
-    border-color: $color-primary-dark;
+    font-size: 1.1rem;
   }
 }
 
 .viewAllLink {
   display: flex;
   align-items: center;
-  gap: $spacing-xs;
-  color: $color-primary;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
+  gap: 4px;
+  color: #2563eb;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-decoration: none;
 
-  @include respond-down('md') {
-    font-size: $font-size-xs;
+  &:hover {
+    color: darken(#2563eb, 15%);
   }
 
   svg {
@@ -136,41 +76,136 @@
   }
 }
 
-.grid {
-  display: grid;
-  // موبایل: 1 ستون
-  grid-template-columns: 1fr;
-  gap: $spacing-md;
-
-  @include respond-to('sm') {
-    // از 576 به بالا: 2 ستون
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @include respond-to('lg') {
-    // از 992 به بالا: 3 ستون
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @include respond-to('xl') {
-    // از 1200 به بالا: 4 ستون
-    grid-template-columns: repeat(4, 1fr);
+.tabsWrapper {
+  width: 100%;
+  
+  @include respond-down('md') {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
   }
 }
 
-.skeletonCard {
-  background-color: #eee;
-  border-radius: $border-radius-md;
-  height: 350px;
-  animation: pulse 1.5s infinite ease-in-out;
+.tabs {
+  display: inline-flex;
+  gap: $spacing-sm;
+  background: #f8fafc;
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.tabBtn {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &:hover {
+    color: #2563eb;
+    background: #eff6ff;
+  }
+
+  &.activeTab {
+    background: #2563eb;
+    color: $color-white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+    &:hover {
+      background: darken(#2563eb, 8%);
+    }
+  }
+}
+
+// 🟢 تبدیل گرید قدیمی به اسکرول افقی با کشیدن کارت‌ها
+.scrollContainer {
+  display: flex;
+  gap: 12px; 
+  align-items: stretch; 
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y; 
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar { display: none; }
+  
+  padding: 8px $spacing-sm 24px $spacing-sm; 
+  margin: 0;
+  cursor: grab;
+  
+  * {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+  a { pointer-events: auto; }
+  
+  &.active {
+    cursor: grabbing;
+    scroll-behavior: auto; 
+  }
+
+  @include respond-to('md') {
+    gap: 16px;
+    padding: 8px 0 24px 0; 
+  }
+}
+
+.cardWrapper {
+  flex: 0 0 auto;
+  display: flex; 
+  flex-direction: column;
+  align-items: stretch;
+  height: auto; 
+  width: 240px; 
+
+  > div {
+    flex: 1; 
+  }
+
+  @include respond-down('md') {
+    width: 190px; 
+  }
 
   @include respond-down('sm') {
-    height: 280px;
+    width: 160px; 
+  }
+}
+
+.emptyState {
+  flex: 0 0 auto;
+  width: 100%;
+  text-align: center;
+  padding: $spacing-xxl;
+  color: $color-text-muted;
+}
+
+.skeletonCard {
+  flex: 0 0 auto;
+  width: 240px;
+  height: 350px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  animation: pulse 1.5s infinite;
+
+  @include respond-down('md') {
+    width: 190px;
+    height: 300px;
+  }
+
+  @include respond-down('sm') {
+    width: 160px;  
+    height: 280px; 
   }
 }
 
 @keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }

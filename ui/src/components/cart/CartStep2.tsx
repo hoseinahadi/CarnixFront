@@ -2,34 +2,53 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectAddresses, selectAddressesLoading } from '@/store/feature/address/AddressSelectors';
+import { selectAddresses, selectAddressActionLoading} from '@/store/feature/address/AddressSelectors';
 import { fetchAddresses } from '@/store/feature/address/AddressThunks';
 import { 
   Plus, 
   Home, 
   MapPin, 
   Edit3,
-  Trash2
+  Trash2,
+  Truck,
+  Loader2
 } from 'lucide-react';
 import styles from './CartStep2.module.scss';
 import AddressModal from '../address/AddressModal';
+import axiosClient from '@/services/api/common/axiosClient';
 
 interface CartStep2Props {
   cart: any;
-  onNext: (shippingMethod: string) => void;
+  onNext: (addressId: number, shippingMethod: string, shippingCost: number) => void;
   onBack: () => void;
+}
+
+interface ShippingMethod {
+  shippingMethodId: number;
+  name: string;
+  code: string;
+  description: string;
+  baseCost: number;
+  estimatedDeliveryDays: number;
+  isActive: boolean;
+  maxWeightKg: number | null;
+  regionLimit: string | null;
 }
 
 const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
   const dispatch = useAppDispatch();
   const addresses = useAppSelector(selectAddresses);
-  const addressesLoading = useAppSelector(selectAddressesLoading);
+  const addressesLoading = useAppSelector(selectAddressActionLoading);
 
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
-  const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('post');
-  const [modalKey, setModalKey] = useState<number>(0);
+  const [selectedShippingCode, setSelectedShippingCode] = useState<string>('STANDARD');
+  const [selectedShippingCost, setSelectedShippingCost] = useState<number>(220000);
   
-  // State مودال
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+  const [shippingLoading, setShippingLoading] = useState(true);
+  const [shippingError, setShippingError] = useState<string | null>(null);
+  
+  const [modalKey, setModalKey] = useState<number>(0);
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean;
     mode: 'create' | 'edit' | 'delete';
@@ -40,20 +59,15 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
     initialData: undefined,
   });
 
-  // محاسبه مجموع قیمت اقلام از روی آیتم‌های سبد (حتی اگر grandTotal موجود نباشد)
-  const cartTotal = cart?.items?.reduce((sum: number, item: any) => {
-    const itemPrice = item.price || item.unitPrice || 0;
-    return sum + itemPrice * item.quantity;
-  }, 0) || 0;
-
   const itemsCount = cart?.totalItemsCount || cart?.items?.length || 0;
+  const cartSubTotal = cart?.subTotal || 0;
+  const cartTax = cart?.taxAmount || 0;
 
-  // دریافت آدرس‌ها در زمان لود
   useEffect(() => {
     dispatch(fetchAddresses());
-  }, [dispatch]);
+    fetchShippingMethods();
+  }, []);
 
-  // اگر آدرس پیش‌فرض وجود دارد، آن را انتخاب کن
   useEffect(() => {
     if (addresses.length > 0 && selectedAddressId === null) {
       const defaultAddress = addresses.find(a => a.isDefault);
@@ -63,31 +77,135 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
         setSelectedAddressId(addresses[0].userAddressId);
       }
     }
-  }, [addresses, selectedAddressId]);
+  }, [addresses]);
 
-  // روش‌های ارسال
-  const shippingMethods = [
-    { id: 'post', label: 'پست پیشتاز', price: 220000, days: '۳-۵ روز کاری' },
-    { id: 'tipax', label: 'تیپاکس', price: 300000, days: '۲-۳ روز کاری' },
-    { id: 'peyk', label: 'پیک', price: 0, days: 'فقط تهران و همدان' },
-  ];
+  // ⭐ دریافت روش‌های ارسال
+  const fetchShippingMethods = async () => {
+    setShippingLoading(true);
+    setShippingError(null);
+    
+    try {
+      const response = await axiosClient.get('/ShippingMethod/GetAll');
+      
+      console.log('📦 API Response:', response.data);
+      
+      let methods: ShippingMethod[] = [];
+      
+      // ⭐ بررسی ساختارهای مختلف پاسخ
+      if (response.data?.data) {
+        // ممکنه response.data.data آرایه باشه
+        if (Array.isArray(response.data.data)) {
+          methods = response.data.data;
+        }
+        // یا response.data.data.data
+        else if (response.data.data?.data && Array.isArray(response.data.data.data)) {
+          methods = response.data.data.data;
+        }
+        // یا response.data.data.mainResults
+        else if (response.data.data?.mainResults && Array.isArray(response.data.data.mainResults)) {
+          methods = response.data.data.mainResults;
+        }
+      }
+      // یا response.data.mainResults
+      else if (response.data?.mainResults && Array.isArray(response.data.mainResults)) {
+        methods = response.data.mainResults;
+      }
+      
+      console.log('📦 Extracted Methods:', methods);
+      
+      if (methods.length > 0) {
+        // فیلتر روش‌های فعال
+        const activeMethods = methods.filter(m => m.isActive);
+        
+        if (activeMethods.length > 0) {
+          setShippingMethods(activeMethods);
+          // انتخاب اولین روش به عنوان پیش‌فرض
+          setSelectedShippingCode(activeMethods[0].code);
+          setSelectedShippingCost(activeMethods[0].baseCost);
+          console.log('✅ Active Methods:', activeMethods);
+        } else {
+          setShippingMethods(getDefaultMethods());
+        }
+      } else {
+        console.log('⚠️ No methods found, using defaults');
+        setShippingMethods(getDefaultMethods());
+      }
+    } catch (error: any) {
+      console.error('❌ Error fetching shipping methods:', error);
+      setShippingMethods(getDefaultMethods());
+      setShippingError('روش‌های پیش‌فرض نمایش داده می‌شوند.');
+    } finally {
+      setShippingLoading(false);
+    }
+  };
 
-  // هزینه ارسال انتخاب شده
-  const selectedShipping = shippingMethods.find(m => m.id === selectedShippingMethod);
-  const shippingCost = selectedShipping?.price || 0;
+  // ⭐ روش‌های پیش‌فرض
+  const getDefaultMethods = (): ShippingMethod[] => {
+    return [
+      {
+        shippingMethodId: 1,
+        name: 'پست پیشتاز',
+        code: 'STANDARD',
+        description: 'ارسال استاندارد با پست',
+        baseCost: 220000,
+        estimatedDeliveryDays: 5,
+        isActive: true,
+        maxWeightKg: null,
+        regionLimit: null
+      },
+      {
+        shippingMethodId: 2,
+        name: 'تیپاکس',
+        code: 'TIPAX',
+        description: 'ارسال سریع با تیپاکس',
+        baseCost: 300000,
+        estimatedDeliveryDays: 3,
+        isActive: true,
+        maxWeightKg: null,
+        regionLimit: null
+      },
+      {
+        shippingMethodId: 3,
+        name: 'پیک',
+        code: 'PICKUP',
+        description: 'تحویل حضوری در تهران و همدان',
+        baseCost: 0,
+        estimatedDeliveryDays: 1,
+        isActive: true,
+        maxWeightKg: null,
+        regionLimit: 'تهران, همدان'
+      }
+    ];
+  };
 
-  // مبلغ کل
-  const totalAmount = cartTotal + shippingCost;
+  // ⭐ بررسی محدودیت منطقه‌ای
+  const isShippingAvailable = (method: ShippingMethod): boolean => {
+    if (!selectedAddressId || !method.regionLimit) return true;
+    
+    const selectedAddress = addresses.find(a => a.userAddressId === selectedAddressId);
+    if (!selectedAddress) return true;
+    
+    const allowedCities = method.regionLimit.split(',').map(c => c.trim());
+    const userCity = selectedAddress.city  || selectedAddress.province || '';
+    
+    return allowedCities.some(city => userCity.includes(city));
+  };
+
+  const handleShippingSelect = (method: ShippingMethod) => {
+    if (!isShippingAvailable(method)) return;
+    
+    setSelectedShippingCode(method.code);
+    setSelectedShippingCost(method.baseCost);
+  };
 
   const handleSubmit = () => {
     if (!selectedAddressId) {
       alert('لطفاً یک آدرس انتخاب کنید');
       return;
     }
-    onNext(selectedShippingMethod);
+    onNext(selectedAddressId, selectedShippingCode, selectedShippingCost);
   };
 
-  // باز کردن مودال
   const openModal = (mode: 'create' | 'edit' | 'delete', address?: any) => {
     setModalKey(prev => prev + 1);
     setModalConfig({
@@ -97,7 +215,6 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
     });
   };
 
-  // بستن مودال
   const closeModal = () => {
     setModalConfig({
       isOpen: false,
@@ -107,12 +224,24 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
     dispatch(fetchAddresses());
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number): string => {
     return amount.toLocaleString('fa-IR');
   };
 
+  const getDeliveryDaysText = (days: number): string => {
+    if (days === 0) return 'همان روز';
+    if (days === 1) return '۱ روز کاری';
+    return `${days} روز کاری`;
+  };
+
+  // ⭐ لودینگ آدرس‌ها
   if (addressesLoading) {
-    return <div className={styles.loading}>در حال بارگذاری آدرس‌ها...</div>;
+    return (
+      <div className={styles.loading}>
+        <Loader2 className={styles.spinner} size={32} />
+        <p>در حال بارگذاری آدرس‌ها...</p>
+      </div>
+    );
   }
 
   return (
@@ -123,8 +252,10 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
       </div>
 
       <div className={styles.step2Container}>
-        {/* سمت راست: لیست آدرس‌ها */}
+        {/* سمت راست */}
         <div className={styles.addressesSection}>
+          
+          {/* ⭐ لیست آدرس‌ها */}
           <div className={styles.addressList}>
             {addresses.length === 0 ? (
               <div className={styles.noAddress}>
@@ -183,15 +314,14 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
                       <span>{address.fullAddress}</span>
                     </div>
                     <div className={styles.addressFooter}>
-                      <span>{address.phoneNumber}</span>
-                      <span>{address.recipientName}</span>
+                      <span>👤 {address.recipientName}</span>
+                      <span>📞 {address.phoneNumber}</span>
                     </div>
                   </div>
                 </div>
               ))
             )}
 
-            {/* دکمه افزودن آدرس جدید */}
             {addresses.length > 0 && (
               <button 
                 className={styles.addAddressBtn}
@@ -203,33 +333,82 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
             )}
           </div>
 
-          {/* بخش روش ارسال */}
+          {/* ⭐ روش‌های ارسال */}
           <div className={styles.shippingSection}>
             <h3 className={styles.shippingTitle}>نحوه ارسال</h3>
-            <div className={styles.shippingMethods}>
-              {shippingMethods.map((method) => (
-                <div
-                  key={method.id}
-                  className={`${styles.shippingMethod} ${selectedShippingMethod === method.id ? styles.selected : ''}`}
-                  onClick={() => setSelectedShippingMethod(method.id)}
-                >
-                  <div className={styles.methodInfo}>
-                    <div className={styles.methodName}>{method.label}</div>
-                    <div className={styles.methodDetails}>
-                      <span className={styles.methodPrice}>{formatCurrency(method.price)} تومان</span>
-                      <span className={styles.methodDays}>{method.days}</span>
+            
+            {shippingError && (
+              <div className={styles.shippingError}>
+                ⚠️ {shippingError}
+              </div>
+            )}
+            
+            {shippingLoading ? (
+              <div className={styles.loading}>
+                <Loader2 className={styles.spinner} size={24} />
+                <p>در حال بارگذاری روش‌های ارسال...</p>
+              </div>
+            ) : shippingMethods.length === 0 ? (
+              <div className={styles.noMethods}>
+                <p>روش ارسالی یافت نشد.</p>
+              </div>
+            ) : (
+              <div className={styles.shippingMethods}>
+                {shippingMethods.map((method) => {
+                  const available = isShippingAvailable(method);
+                  const isSelected = selectedShippingCode === method.code;
+                  
+                  return (
+                    <div
+                      key={method.shippingMethodId}
+                      className={`
+                        ${styles.shippingMethod} 
+                        ${isSelected ? styles.selected : ''}
+                        ${!available ? styles.disabled : ''}
+                      `}
+                      onClick={() => handleShippingSelect(method)}
+                    >
+                      <div className={styles.methodInfo}>
+                        <div className={styles.methodName}>
+                          <Truck size={18} />
+                          <span>{method.name}</span>
+                        </div>
+                        <div className={styles.methodDetails}>
+                          <span className={styles.methodPrice}>
+                            {method.baseCost > 0 
+                              ? `${formatCurrency(method.baseCost)} تومان` 
+                              : 'رایگان'
+                            }
+                          </span>
+                          <span className={styles.methodDays}>
+                            {getDeliveryDaysText(method.estimatedDeliveryDays)}
+                          </span>
+                        </div>
+                        {method.description && (
+                          <div className={styles.methodDescription}>
+                            {method.description}
+                          </div>
+                        )}
+                        {!available && method.regionLimit && (
+                          <div className={styles.methodUnavailable}>
+                            ⚠️ فقط {method.regionLimit}
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.radioCircle}>
+                        {isSelected && (
+                          <div className={styles.radioInner} />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className={styles.radioCircle}>
-                    {selectedShippingMethod === method.id && <div className={styles.radioInner} />}
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* سمت چپ: خلاصه سفارش */}
+        {/* ⭐ سمت چپ: خلاصه سفارش */}
         <div className={styles.summary}>
           <div className={styles.summaryHeader}>
             <h3>خلاصه سفارش</h3>
@@ -242,15 +421,27 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
             </div>
             <div className={styles.summaryRow}>
               <span>قیمت کالاها</span>
-              <span>{formatCurrency(cartTotal)} تومان</span>
+              <span>{formatCurrency(cartSubTotal)} تومان</span>
             </div>
+            {cartTax > 0 && (
+              <div className={styles.summaryRow}>
+                <span>مالیات</span>
+                <span>{formatCurrency(cartTax)} تومان</span>
+              </div>
+            )}
             <div className={styles.summaryRow}>
               <span>هزینه ارسال</span>
-              <span>{formatCurrency(shippingCost)} تومان</span>
+              <span>
+                {selectedShippingCost > 0 
+                  ? `${formatCurrency(selectedShippingCost)} تومان` 
+                  : 'رایگان'
+                }
+              </span>
             </div>
+            <div className={styles.summaryDivider} />
             <div className={styles.summaryRowTotal}>
               <span>جمع کل</span>
-              <span>{formatCurrency(totalAmount)} تومان</span>
+              <span>{formatCurrency(cartSubTotal + cartTax + selectedShippingCost)} تومان</span>
             </div>
           </div>
 
@@ -258,14 +449,18 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
             <button className={styles.backBtn} onClick={onBack}>
               بازگشت
             </button>
-            <button className={styles.nextBtn} onClick={handleSubmit}>
+            <button 
+              className={styles.nextBtn} 
+              onClick={handleSubmit}
+              disabled={!selectedAddressId || shippingLoading}
+            >
               ادامه
             </button>
           </div>
         </div>
       </div>
 
-      {/* مودال */}
+      {/* ⭐ مودال آدرس */}
       {modalConfig.isOpen && (
         <AddressModal
           key={modalKey}

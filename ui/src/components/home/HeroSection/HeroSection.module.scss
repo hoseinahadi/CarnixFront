@@ -1,35 +1,34 @@
 @import '@/assets/styles/utils/variables';
 @import '@/assets/styles/utils/mixins';
 
+
 .heroContainer {
   position: relative;
   width: 100%;
   height: 500px;
-  // ❌ حذف margin-bottom: $spacing-xxxl; چون دسته‌بندی‌ها پایین‌تر می‌آیند
   margin-bottom: $spacing-xl;
   background-color: $color-background;
+  
+  // 🟢 مقصر اصلی پیدا شد! isolation: isolate باعث میشد z-index های داخل فرم، از این کادر بیرون نزنند. (حذف شد)
+  // به جای آن، به کل این سکشن یک z-index قوی می‌دهیم تا روی سکشن دسته‌بندی‌ها که پایینش هست قرار بگیرد
+  z-index: 90; 
 
-  // دسکتاپ بزرگ
   @include respond-to('xl') {
     height: 550px;
   }
 
-  // لپ‌تاپ
   @include respond-to('lg') {
     height: 450px;
   }
 
-  // تبلت
   @include respond-to('md') {
     height: 350px;
   }
 
-  // موبایل
   @include respond-down('md') {
     height: 280px;
   }
 
-  // موبایل کوچک
   @include respond-down('sm') {
     height: 220px;
   }
@@ -40,8 +39,9 @@
   height: 100%;
   overflow: hidden;
   border-radius: $border-radius-lg;
-
-  
+  // 🟢 ایندکس پایین برای عکس‌های پس‌زمینه تا فرم سرچ روی آنها بیفتد
+  position: relative;
+  z-index: 1; 
 }
 
 .swiperRoot {
@@ -103,7 +103,7 @@
   }
 }
 
-// ✅ باکس جستجوی شناور - پایین اسلایدر
+// باکس جستجوی شناور
 .searchOverlay {
   position: absolute;
   bottom: -40px;
@@ -111,52 +111,38 @@
   transform: translateX(-50%);
   width: 90%;
   max-width: $container-max-width;
-  z-index: $z-index-sticky;
+  
+  // 🟢 بالا بردن ایندکسِ کانتینرِ سرچ بار تا با قدرت روی همه‌چیز (حتی دسته‌بندی‌های پایین صفحه) شناور شود
+  z-index: 100; 
 
   @include respond-down('md') {
-    width: 95%;
-    bottom: -200px;
-    
-  }
-
-  @include respond-down('sm') {
-    width: 98%;
-    bottom: -20px;
+    width: 100%;
+    max-width: 1320px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    transform: translateX(0);
   }
 }
 
 .searchBoxPlaceholder {
   @include flex-center;
-  background-color: $color-surface;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-lg;
   padding: $spacing-lg;
   min-height: 80px;
-  border: 1px solid $color-border-light;
 
   @include respond-down('md') {
     min-height: 60px;
-    padding: $spacing-md;
+    padding: 0;
+    position: absolute;
+    width: 100%;
+    margin-top: 24px;
   }
 
   @include respond-down('sm') {
     min-height: 50px;
     padding: $spacing-sm;
     border-radius: $border-radius-sm;
-  }
-
-  p {
-    color: $color-text-muted;
-    font-family: $font-family-main;
-    font-size: $font-size-md;
-    font-weight: $font-weight-medium;
-
-    @include respond-down('md') {
-      font-size: $font-size-sm;
-    }
-
-    @include respond-down('sm') {
-      font-size: $font-size-xs;
-    }
+    position: absolute;
+    width: 100%;
   }
 }

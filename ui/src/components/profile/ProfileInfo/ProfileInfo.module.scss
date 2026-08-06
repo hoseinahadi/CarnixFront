@@ -2,10 +2,8 @@
 @import '@/assets/styles/utils/mixins';
 
 .container {
-  background: $color-white;
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-sm;
-  padding: $spacing-xl;
+  
+  padding: $spacing-md;
   width: 100%;
 }
 
@@ -15,7 +13,8 @@
   color: $color-text-main;
   margin-bottom: $spacing-xl;
   padding-bottom: $spacing-md;
-  border-bottom: 1px solid $color-border-light;
+  
+  display: flex;
 }
 
 /* ─── Messages ─── */

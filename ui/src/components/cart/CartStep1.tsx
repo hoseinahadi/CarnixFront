@@ -2,16 +2,8 @@
 
 import React from 'react';
 import { useAppDispatch } from '@/store/hooks';
-import { 
-  updateItemQuantity, 
-  removeCartItem 
-} from '@/store/feature/cart/cartThunks';
-import { 
-  Trash2, 
-  Minus, 
-  Plus, 
-  ShoppingBag 
-} from 'lucide-react';
+import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks';
+import { Trash2, Minus, Plus } from 'lucide-react';
 import styles from './CartStep1.module.scss';
 
 interface CartStep1Props {
@@ -20,11 +12,9 @@ interface CartStep1Props {
   onNext: () => void;
 }
 
-// تابع کمکی برای تبدیل عدد به رشتهٔ فارسی با جداکنندهٔ هزارگان
 const toPersianNumber = (value: number | undefined | null): string => {
   if (value == null || isNaN(value)) return '۰';
-  const formatted = value.toLocaleString('fa-IR'); // ارقام فارسی + کاما
-  return formatted;
+  return value.toLocaleString('fa-IR'); 
 };
 
 const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) => {
@@ -46,7 +36,6 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
       </div>
     
       <div className={styles.step1Container}>
-        {/* سمت راست: لیست محصولات */}
         <div className={styles.cartItems}>
           {cart.items.map((item: any) => (
             <div key={item.cartItemId} className={styles.cartItem}>
@@ -84,7 +73,6 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
                       onClick={() => handleQuantityChange(item.cartItemId, item.quantity - 1)}
                       disabled={item.quantity <= 1 || actionLoading}
                       className={styles.qtyBtn}
-                      aria-label="کاهش تعداد"
                     >
                       <Minus size={16} />
                     </button>
@@ -95,7 +83,6 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
                       onClick={() => handleQuantityChange(item.cartItemId, item.quantity + 1)}
                       disabled={actionLoading}
                       className={styles.qtyBtn}
-                      aria-label="افزایش تعداد"
                     >
                       <Plus size={16} />
                     </button>
@@ -106,7 +93,6 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
           ))}
         </div>
 
-        {/* سمت چپ: خلاصه سفارش */}
         <div className={styles.summary}>
           <div className={styles.summaryHeader}>
             <h3>خلاصه سفارش</h3>
@@ -119,16 +105,25 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
             </div>
             <div className={styles.summaryRow}>
               <span>قیمت کالاها</span>
-              <span>{toPersianNumber(cart.grandTotal || cart.totalAmount)} تومان</span>
+              <span>{toPersianNumber(cart.subTotal || cart.totalAmount)} تومان</span>
             </div>
             <div className={styles.summaryRow}>
               <span>سود شما از خرید</span>
-              <span className={styles.discountAmount}>۶۳۵,۰۰۰ تومان</span>
+              <span className={styles.discountAmount}>
+                {/* 🟢 باگ منطقی اصلاح شد: فقط مقدار تخفیف نمایش داده شود */}
+                {toPersianNumber(cart.totalDiscount || 0)} تومان
+              </span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>مالیات</span>
+              <span className={styles.discountAmount}>
+                {toPersianNumber(cart.taxAmount || 0)} تومان
+              </span>
             </div>
             <div className={styles.summaryRow}>
               <span>هزینه ارسال</span>
               <span className={styles.shippingInfo}>
-                {toPersianNumber(0)} تومان
+                وابسته به آدرس
                 <span className={styles.infoIcon}>ⓘ</span>
               </span>
             </div>
