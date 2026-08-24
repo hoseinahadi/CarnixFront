@@ -22,16 +22,14 @@ jobs:
         run: npm run build
 
       - name: 📂 Copy to Deployment Folder
-        # این مرحله در صورت نبود پوشه دیپلوی آن را می‌سازد و کدهای پوشه ui را به آنجا منتقل می‌کند
         run: |
           if (!(Test-Path C:\Deploy\CarnixFront)) { New-Item -ItemType Directory -Force -Path C:\Deploy\CarnixFront }
           Copy-Item -Path .\ui\* -Destination C:\Deploy\CarnixFront -Recurse -Force
 
       - name: 🚀 Manage PM2 Service
         working-directory: C:\Deploy\CarnixFront
-        # استفاده از npx برای رفع مشکل شناخته نشدن pm2
-        # اگر ری‌استارت خطا داد (یعنی سرویس از قبل نیست)، آن را برای اولین بار استارت می‌کند
         run: |
+          $env:PM2_HOME = "C:\Users\Administrator\.pm2"
           npx pm2 restart carnix-front
           if ($LASTEXITCODE -ne 0) {
             npx pm2 start npm --name "carnix-front" -- run start
