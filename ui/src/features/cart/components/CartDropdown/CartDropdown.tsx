@@ -1,13 +1,12 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { CircularProgress } from '@mui/material'
 import { IconX, IconMinus, IconPlus, IconTrash } from '@tabler/icons-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useAppDispatch } from '@/store/hooks'
 import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks'
-import { selectCartActionLoading } from '@/store/feature/cart/cartSelectors'
 import styles from './CartDropdown.module.scss'
 import { Cart } from '@/models/cart/Cart'
 
@@ -23,7 +22,8 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   
-  const actionLoading = useAppSelector(selectCartActionLoading)
+  // استیت برای نگهداری آیدی محصولی که دکمه آن کلیک شده است
+  const [updatingItemId, setUpdatingItemId] = useState<number | null>(null)
 
   const formatPrice = (price: number) => new Intl.NumberFormat('fa-IR').format(price)
 
@@ -32,17 +32,32 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
     router.push(path)
   }
 
-  const handleQuantityChange = (cartItemId: number, currentQuantity: number, change: number) => {
+  const handleQuantityChange = async (cartItemId: number, currentQuantity: number, change: number) => {
     const newQuantity = currentQuantity + change
     if (newQuantity < 1) return
-    dispatch(updateItemQuantity({ cartItemId, quantity: newQuantity }))
+    
+    setUpdatingItemId(cartItemId)
+    try {
+      await dispatch(updateItemQuantity({ cartItemId, quantity: newQuantity })).unwrap()
+    } catch (error) {
+      console.error('خطا در تغییر تعداد:', error)
+    } finally {
+      setUpdatingItemId(null)
+    }
   }
 
-  const handleDecreaseOrRemove = (cartItemId: number, currentQuantity: number) => {
-    if (currentQuantity > 1) {
-      dispatch(updateItemQuantity({ cartItemId, quantity: currentQuantity - 1 }))
-    } else {
-      dispatch(removeCartItem(cartItemId))
+  const handleDecreaseOrRemove = async (cartItemId: number, currentQuantity: number) => {
+    setUpdatingItemId(cartItemId)
+    try {
+      if (currentQuantity > 1) {
+        await dispatch(updateItemQuantity({ cartItemId, quantity: currentQuantity - 1 })).unwrap()
+      } else {
+        await dispatch(removeCartItem(cartItemId)).unwrap()
+      }
+    } catch (error) {
+      console.error('خطا در حذف/کاهش محصول:', error)
+    } finally {
+      setUpdatingItemId(null)
     }
   }
 
@@ -61,7 +76,8 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
         </button>
       </div>
 
-      {loading ? (
+      {/* نمایش اسپینر بزرگ فقط زمانی که سبد خریدی وجود ندارد */}
+      {loading && !cart ? (
         <div className={styles.loadingWrapper}>
           <CircularProgress size={30} />
         </div>
@@ -72,65 +88,67 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
       ) : (
         <>
           <div className={styles.itemsList}>
-            {cart.items.map((item, index) => (
-              <div key={`cart-item-${item.cartItemId}-${index}`} className={styles.cartItem}>
-                <div className={styles.imageContainer}>
-                  {item.product?.imageUrl ? (
-                    <Image
-                      src={item.product.imageUrl}
-                      alt={item.product.productName}
-                      width={60}
-                      height={60}
-                    />
-                  ) : (
-                    <div className={styles.noImage}>بدون عکس</div>
-                  )}
-                </div>
+            {cart.items.map((item, index) => {
+              // بررسی لودینگ فقط برای محصول فعلی
+              const isThisItemLoading = updatingItemId === item.cartItemId;
 
-                <div className={styles.itemDetails}>
-                  <div className={styles.productName}>
-                    {item.product?.productName || 'محصول نامشخص'}
+              return (
+                <div key={`cart-item-${item.cartItemId}-${index}`} className={styles.cartItem}>
+                  <div className={styles.imageContainer}>
+                    {item.product?.imageUrl ? (
+                      <Image
+                        src={item.product.imageUrl}
+                        alt={item.product.productName}
+                        width={60}
+                        height={60}
+                      />
+                    ) : (
+                      <div className={styles.noImage}>بدون عکس</div>
+                    )}
                   </div>
-                  <div className={styles.priceWrapper}>
-                    <span className={styles.price}>{formatPrice(item.unitPrice)}</span>
-                    <span className={styles.currency}>تومان</span>
-                  </div>
-                </div>
 
-                <div className={styles.quantityControls}>
-                  <div className={styles.quantityBox}>
-                    <button 
-                      className={styles.quantityBtn}
-                      onClick={() => handleQuantityChange(item.cartItemId, item.quantity, 1)}
-                      disabled={actionLoading}
-                    >
-                      <IconPlus size={14} />
-                    </button>
-                    
-                    <span className={styles.quantityValue}>
-                      {actionLoading ? (
-                        <CircularProgress size={12} />
-                      ) : (
-                        // 🟢 باگ تبدیل واحد پولی برای تعداد محصول اصلاح شد
-                        new Intl.NumberFormat('fa-IR').format(item.quantity)
-                      )}
-                    </span>
-                    
-                    <button 
-                      className={`${styles.quantityBtn} ${item.quantity === 1 ? styles.danger : ''}`}
-                      onClick={() => handleDecreaseOrRemove(item.cartItemId, item.quantity)}
-                      disabled={actionLoading}
-                    >
-                      {item.quantity > 1 ? <IconMinus size={14} /> : <IconTrash size={14} />}
-                    </button>
+                  <div className={styles.itemDetails}>
+                    <div className={styles.productName}>
+                      {item.product?.productName || 'محصول نامشخص'}
+                    </div>
+                    <div className={styles.priceWrapper}>
+                      <span className={styles.price}>{formatPrice(item.unitPrice)}</span>
+                      <span className={styles.currency}>تومان</span>
+                    </div>
                   </div>
-                  
-                  <div className={styles.itemTotalPrice}>
-                    {formatPrice(item.totalPrice)} تومان
+
+                  <div className={styles.quantityControls}>
+                    <div className={styles.quantityBox}>
+                      <button 
+                        className={styles.quantityBtn}
+                        onClick={() => handleQuantityChange(item.cartItemId, item.quantity, 1)}
+                        disabled={isThisItemLoading}
+                      >
+                        <IconPlus size={14} />
+                      </button>
+                      
+                      <span className={styles.quantityValue}>
+                        {isThisItemLoading ? (
+                          <CircularProgress size={12} />
+                        ) : (
+                          new Intl.NumberFormat('fa-IR').format(item.quantity)
+                        )}
+                      </span>
+                      
+                      <button 
+                        className={`${styles.quantityBtn} ${item.quantity === 1 ? styles.danger : ''}`}
+                        onClick={() => handleDecreaseOrRemove(item.cartItemId, item.quantity)}
+                        disabled={isThisItemLoading}
+                      >
+                        {item.quantity > 1 ? <IconMinus size={14} /> : <IconTrash size={14} />}
+                      </button>
+                    </div>
+                    
+                    
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className={styles.footer}>

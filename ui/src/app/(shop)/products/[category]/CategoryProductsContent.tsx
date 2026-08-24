@@ -3,19 +3,22 @@
 import {
   use,
   useState,
+  useEffect,
+  useRef,
 } from 'react';
 
 import Link from 'next/link';
-
+import { useSearchParams } from 'next/navigation';
 import { IconFilter } from '@tabler/icons-react';
 
 import ProductFilters from '@/components/product/ProductFilters/ProductFilters';
 import ProductGrid from '@/components/product/ProductGrid/ProductGrid';
 import ProductSort from '@/components/product/ProductSort/ProductSort';
-
 import { useProductListingController } from '@/features/product/hooks/useProductListingController';
-
 import styles from '../ProductsPage.module.scss';
+
+// 🟢 هوک Redux اضافه شد برای خواندن لیست ماشین‌ها
+import { useAppSelector } from '@/store/hooks';
 
 interface CategoryProductsContentProps {
   params: Promise<{
@@ -27,9 +30,12 @@ export default function CategoryProductsContent({
   params,
 }: CategoryProductsContentProps) {
   const { category } = use(params);
+  const searchParams = useSearchParams();
+  const initialized = useRef(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const [mobileFilterOpen, setMobileFilterOpen] =
-    useState(false);
+  // 🟢 دریافت لیست کامل ماشین‌ها از ریداکس
+  const vehicles = useAppSelector((state) => state.vehicle.trimDetails);
 
   const {
     products,
@@ -48,6 +54,41 @@ export default function CategoryProductsContent({
   } = useProductListingController({
     categorySlug: category,
   });
+
+  // 🟢 لاجیک هوشمند برای تبدیل اسم فارسی ماشین به ID و فعال کردن فیلتر
+  useEffect(() => {
+    if (initialized.current) return;
+
+    const makeIdStr = searchParams.get('makeId');
+    const modelIdStr = searchParams.get('modelId');
+    const makeName = searchParams.get('make');
+    const modelName = searchParams.get('model');
+
+    if (makeIdStr || modelIdStr) {
+      navigateToFilters({
+        makeId: makeIdStr ? Number(makeIdStr) : undefined,
+        modelId: modelIdStr ? Number(modelIdStr) : undefined,
+      });
+      initialized.current = true;
+    } else if (makeName || modelName) {
+      if (vehicles && vehicles.length > 0) {
+        const matchedVehicle = vehicles.find((v) => {
+          const vName = v.name || '';
+          return vName.includes(makeName || '') && vName.includes(modelName || '');
+        });
+
+        if (matchedVehicle) {
+          navigateToFilters({
+            makeId: matchedVehicle.makeId,
+            modelId: matchedVehicle.modelId,
+          });
+        }
+        initialized.current = true;
+      }
+    } else {
+      initialized.current = true;
+    }
+  }, [searchParams, navigateToFilters, vehicles]);
 
   return (
     <div className={styles.page}>

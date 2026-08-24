@@ -14,10 +14,9 @@ interface ProductCardProps {
   product: Product;
 }
 
-const formatAndRoundPrice = (rialPrice: number): number => {
-  if (!rialPrice || isNaN(rialPrice)) return 0;
-  const toman = rialPrice / 10;
-  return Math.ceil(toman / 10000) * 10000; 
+const formatPrice = (price: number): number => {
+  if (!price || isNaN(price)) return 0;
+  return price;
 };
 
 const getValidImageUrl = (rawUrl?: string) => {
@@ -81,20 +80,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
   };
 
-  const basePriceToman = formatAndRoundPrice(product.basePrice);
+  const basePriceFormatted = formatPrice(product.basePrice);
   const hasDiscount = product.productDiscount && product.productDiscount.isActive;
-  let finalPriceToman = basePriceToman;
+  let finalPriceFormatted = basePriceFormatted;
   let discountLabel = null;
 
   if (hasDiscount && product.productDiscount) {
     const { discountType, discountValue } = product.productDiscount;
     if (discountType) {
-      const calculatedFinalRial = product.basePrice - (product.basePrice * discountValue / 100);
-      finalPriceToman = formatAndRoundPrice(calculatedFinalRial);
+      const calculatedFinalPrice = product.basePrice - (product.basePrice * discountValue / 100);
+      finalPriceFormatted = formatPrice(calculatedFinalPrice);
       discountLabel = `${discountValue.toLocaleString('fa-IR')}٪`;
     } else {
-      const calculatedFinalRial = product.basePrice - discountValue;
-      finalPriceToman = formatAndRoundPrice(calculatedFinalRial > 0 ? calculatedFinalRial : 0);
+      const calculatedFinalPrice = product.basePrice - discountValue;
+      finalPriceFormatted = formatPrice(calculatedFinalPrice > 0 ? calculatedFinalPrice : 0);
     }
   }
 
@@ -136,14 +135,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {/* 🟢 ۱. قیمت در سمت راست */}
           <div className={styles.priceWrapper}>
             {!isOutOfStock && hasDiscount && (
-              <span className={styles.oldPrice}>{basePriceToman.toLocaleString('fa-IR')}</span>
+              <span className={styles.oldPrice}>{basePriceFormatted.toLocaleString('fa-IR')}</span>
             )}
             <span className={styles.priceValue}>
                {isOutOfStock ? (
                  <span className={styles.outOfStockText}>ناموجود</span>
                ) : (
                  <>
-                   {finalPriceToman.toLocaleString('fa-IR')} <span className={styles.currency}>تومان</span>
+                   {finalPriceFormatted.toLocaleString('fa-IR')} <span className={styles.currency}>تومان</span>
                  </>
                )}
             </span>

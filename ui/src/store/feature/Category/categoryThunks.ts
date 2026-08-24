@@ -97,6 +97,8 @@ const getErrorMessage = (
   return fallbackMessage;
 };
 
+// فقط این بخش از فایل categoryThunks.ts را تغییر دهید، بقیه فایل درست است:
+
 export const fetchCategories = createAsyncThunk<
   Category[],
   void,
@@ -108,7 +110,8 @@ export const fetchCategories = createAsyncThunk<
   'category/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await CategoryApi.getAll();
+      // 🟢 تغییر مهم: فراخوانی متد getMenu به جای getAll
+      const response = await CategoryApi.getMenu();
 
       if (response.data.isSuccess === false) {
         return rejectWithValue(
@@ -130,10 +133,6 @@ export const fetchCategories = createAsyncThunk<
     }
   },
   {
-    /*
-     * فقط اولین بار به‌صورت خودکار اجرا می‌شود.
-     * شکست Request نباید باعث Retry بی‌نهایت در Effectها شود.
-     */
     condition: (_, { getState }) => {
       const status =
         getState().category.fetchStatus ??

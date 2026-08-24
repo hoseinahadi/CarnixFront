@@ -10,7 +10,7 @@ export const fetchMyCart = createAsyncThunk(
     try {
       const response = await CartApi.getMyCart();
       if (response.data.isSuccess) {
-        return response.data.data ;
+        return response.data.data;
       }
       return rejectWithValue(response.data.message || 'خطا در دریافت سبد خرید');
     } catch (error: any) {
@@ -31,7 +31,7 @@ export const addToCart = createAsyncThunk(
     try {
       const response = await CartApi.addToCart(productId, quantity);
       if (response.data.isSuccess) {
-        dispatch(fetchMyCart());
+        await dispatch(fetchMyCart());
         return response.data;
       }
       return rejectWithValue(response.data.message || 'خطا در افزودن به سبد خرید');
@@ -53,7 +53,7 @@ export const updateItemQuantity = createAsyncThunk(
     try {
       const response = await CartApi.updateItemQuantity(cartItemId, quantity);
       if (response.data.isSuccess) {
-        dispatch(fetchMyCart());
+        await dispatch(fetchMyCart());
         return response.data;
       }
       return rejectWithValue(response.data.message || 'خطا در تغییر تعداد');
@@ -72,7 +72,7 @@ export const removeCartItem = createAsyncThunk(
     try {
       const response = await CartApi.removeItem(cartItemId);
       if (response.data.isSuccess) {
-        dispatch(fetchMyCart());
+        await dispatch(fetchMyCart());
         return response.data;
       }
       return rejectWithValue(response.data.message || 'خطا در حذف آیتم');
@@ -94,7 +94,7 @@ export const applyCoupon = createAsyncThunk(
     try {
       const response = await CartApi.applyCoupon(cartId, couponCode);
       if (response.data.isSuccess) {
-        dispatch(fetchMyCart());
+        await dispatch(fetchMyCart());
         return response.data;
       }
       return rejectWithValue(response.data.message || 'کد تخفیف نامعتبر است');
@@ -113,7 +113,7 @@ export const removeCoupon = createAsyncThunk(
     try {
       const response = await CartApi.removeCoupon(cartId);
       if (response.data.isSuccess) {
-        dispatch(fetchMyCart());
+        await dispatch(fetchMyCart());
         return response.data;
       }
       return rejectWithValue(response.data.message || 'خطا در حذف کوپن');
@@ -132,7 +132,7 @@ export const mergeGuestCart = createAsyncThunk(
     try {
       const response = await CartApi.mergeCart();
       if (response.data.isSuccess) {
-        dispatch(fetchMyCart());
+        await dispatch(fetchMyCart());
         return response.data;
       }
       return rejectWithValue(response.data.message || 'خطا در ادغام سبد خرید');
@@ -144,7 +144,7 @@ export const mergeGuestCart = createAsyncThunk(
   }
 );
 
-// ⭐ ثبت سفارش از سبد خرید
+// ثبت سفارش از سبد خرید
 export const placeOrderFromCart = createAsyncThunk(
   'cart/placeOrder',
   async (
@@ -168,8 +168,8 @@ export const placeOrderFromCart = createAsyncThunk(
       console.log('📥 Response:', response.data);
       
       if (response.data.isSuccess) {
-        dispatch(fetchMyCart());
-        return response.data.data ;
+        await dispatch(fetchMyCart());
+        return response.data.data;
       }
       
       return rejectWithValue(response.data.message || 'خطا در ثبت سفارش');

@@ -22,7 +22,7 @@ const extractSafeArray = (data: any): any[] => {
   return [];
 };
 
-// 🟢 تابع هوشمند برای اتصال آدرس سرور بک‌اند به عکس ماشین (حذف کلمه /api برای خواندن از wwwroot)
+// 🟢 تابع هوشمند برای اتصال آدرس سرور بک‌اند به عکس ماشین
 const getImageUrl = (url: string | null | undefined) => {
   if (!url) return '';
   if (url.startsWith('http')) return url; 
@@ -73,8 +73,10 @@ const VehiclesPage = () => {
     }
   }, [activeMake, dispatch])
 
-  const handleModelClick = (makeName: string, modelName: string) => {
-    router.push(`/products?make=${makeName}&model=${modelName}`)
+  // 🟢 تغییر مهم: دریافت ID به جای نام ماشین
+  const handleModelClick = (makeId: number | string, modelId: number | string) => {
+    // آدرس به جای حروف فارسی، حالا شامل آیدی‌هاست
+    router.push(`/products?makeId=${makeId}&modelId=${modelId}`)
   }
 
   return (
@@ -139,11 +141,11 @@ const VehiclesPage = () => {
                     <div
                       key={model.vehicleModelId || model.name}
                       className={styles.modelCard}
-                      onClick={() => handleModelClick(activeMake.name, model.name)}
+                      // 🟢 تغییر مهم: ارسال آیدی برند و آیدی مدل هنگام کلیک
+                      onClick={() => handleModelClick(activeMake.vehicleMakeId, model.vehicleModelId)}
                     >
                       <div className={styles.carImageBox}>
                         {model.imageUrl ? (
-                          // 🟢 نمایش عکس ماشین متصل شده از دیتابیس
                           <img 
                             src={getImageUrl(model.imageUrl)} 
                             alt={model.name} 

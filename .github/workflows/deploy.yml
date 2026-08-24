@@ -1,0 +1,38 @@
+name: Deploy CarnixFront (Next.js)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted 
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 📦 Install Packages
+        working-directory: ./ui # اجرا در پوشه ui
+        run: npm install
+
+      - name: 🏗️ Build Next.js App
+        working-directory: ./ui # اجرا در پوشه ui
+        run: npm run build
+
+      - name: 📂 Copy to Deployment Folder
+        # کپی کردن محتویات پوشه ui به سرور
+        run: |
+          if (!(Test-Path C:\Deploy\CarnixFront)) { New-Item -ItemType Directory -Force -Path C:\Deploy\CarnixFront }
+          Copy-Item -Path .\ui\* -Destination C:\Deploy\CarnixFront -Recurse -Force
+
+      - name: 🔄 Restart PM2 (If already running)
+        working-directory: C:\Deploy\CarnixFront
+        continue-on-error: true
+        run: pm2 restart carnix-front
+
+      - name: ▶️ Start PM2 (If first time)
+        working-directory: C:\Deploy\CarnixFront
+        if: failure() 
+        run: pm2 start npm --name "carnix-front" -- run start

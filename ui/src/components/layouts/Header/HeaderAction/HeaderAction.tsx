@@ -138,9 +138,9 @@ const HeaderAction = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   useEffect(() => {
-    if (isAuthenticated) {
+    
       dispatch(fetchMyCart())
-    }
+    
   }, [dispatch, isAuthenticated])
 
   useEffect(() => {

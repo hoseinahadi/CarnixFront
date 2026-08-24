@@ -7,9 +7,14 @@ import { OperationResult } from '@/models/common/OperationResult';
 const BASE_URL = '/Category';
 
 export const CategoryApi = {
-  // 🟢 تطبیق کامل با متد GetAll کنترلر شما (ارسال page و pageSize مطابق با MaxPageSize = 50)
-  getAll: async () => {
-    return await axiosClient.get<OperationResult<any>>(`${BASE_URL}?page=1&pageSize=50`);
+  // 🟢 متد جدید و مخصوص مگامنو (دریافت کل درخت دسته‌بندی‌ها)
+  getMenu: async () => {
+    return await axiosClient.get<OperationResult<any>>(`${BASE_URL}/menu`);
+  },
+
+  // متد صفحه‌بندی شده برای استفاده در پنل ادمین
+  getAll: async (page: number = 1, pageSize: number = 50) => {
+    return await axiosClient.get<OperationResult<any>>(`${BASE_URL}?page=${page}&pageSize=${pageSize}`);
   },
 
   getById: async (id: number) => {
