@@ -14,25 +14,25 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📦 Install Packages
-        working-directory: ./ui # اجرا در پوشه ui
+        working-directory: ./ui
         run: npm install
 
       - name: 🏗️ Build Next.js App
-        working-directory: ./ui # اجرا در پوشه ui
+        working-directory: ./ui
         run: npm run build
 
       - name: 📂 Copy to Deployment Folder
-        # کپی کردن محتویات پوشه ui به سرور
+        # این مرحله در صورت نبود پوشه دیپلوی آن را می‌سازد و کدهای پوشه ui را به آنجا منتقل می‌کند
         run: |
           if (!(Test-Path C:\Deploy\CarnixFront)) { New-Item -ItemType Directory -Force -Path C:\Deploy\CarnixFront }
           Copy-Item -Path .\ui\* -Destination C:\Deploy\CarnixFront -Recurse -Force
 
-      - name: 🔄 Restart PM2 (If already running)
+      - name: 🚀 Manage PM2 Service
         working-directory: C:\Deploy\CarnixFront
-        continue-on-error: true
-        run: pm2 restart carnix-front
-
-      - name: ▶️ Start PM2 (If first time)
-        working-directory: C:\Deploy\CarnixFront
-        if: failure() 
-        run: pm2 start npm --name "carnix-front" -- run start
+        # استفاده از npx برای رفع مشکل شناخته نشدن pm2
+        # اگر ری‌استارت خطا داد (یعنی سرویس از قبل نیست)، آن را برای اولین بار استارت می‌کند
+        run: |
+          npx pm2 restart carnix-front
+          if ($LASTEXITCODE -ne 0) {
+            npx pm2 start npm --name "carnix-front" -- run start
+          }
