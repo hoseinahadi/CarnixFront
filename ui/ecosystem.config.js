@@ -1,12 +1,13 @@
 module.exports = {
   apps: [
     {
-      name: "carnix-frontend",
-      script: "./server.js",
+      name: 'carnix-front',
+      script: './node_modules/next/dist/bin/next',
+      args: 'start',
       env: {
-        NODE_ENV: "production",
-        PORT: 3000
-      }
-    }
-  ]
+        PORT: 3000,
+        NODE_ENV: 'production',
+      },
+    },
+  ],
 };
