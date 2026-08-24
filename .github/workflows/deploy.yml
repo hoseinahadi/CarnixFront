@@ -29,7 +29,7 @@ jobs:
       - name: 🚀 Manage PM2 Service
         working-directory: C:\Deploy\CarnixFront
         run: |
-          $env:PM2_HOME = "C:\Users\Administrator\.pm2"
+          $env:PM2_HOME = "C:\Deploy\.pm2"
           npx pm2 restart carnix-front
           if ($LASTEXITCODE -ne 0) {
             npx pm2 start npm --name "carnix-front" -- run start
