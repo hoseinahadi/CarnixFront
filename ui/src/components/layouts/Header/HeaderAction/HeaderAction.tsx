@@ -175,9 +175,9 @@ const HeaderAction = () => {
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     if (!isAuthenticated) {
-      router.push('/login')
-      return
-    }
+  router.push('/login')
+  return
+}
     setIsUserMenuOpen(!isUserMenuOpen)
     setUserAnchorEl(event.currentTarget)
   }
