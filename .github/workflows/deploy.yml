@@ -28,21 +28,27 @@ jobs:
 
     steps:
 
-      # ==========================================
-      # Checkout
-      # ==========================================
+      # ==========================================================
+      # CHECKOUT
+      # ==========================================================
       - name: Checkout Repository
         uses: actions/checkout@v4
 
 
-      # ==========================================
-      # Install Packages
-      # ==========================================
+      # ==========================================================
+      # INSTALL PACKAGES
+      # ==========================================================
       - name: Install Packages
         working-directory: ./ui
         shell: powershell
         run: |
-          Write-Host "Installing npm packages..."
+
+          $ErrorActionPreference = "Stop"
+
+          Write-Host ""
+          Write-Host "=========================================="
+          Write-Host "Installing Frontend Packages"
+          Write-Host "=========================================="
 
           npm install
 
@@ -50,15 +56,26 @@ jobs:
               throw "npm install failed."
           }
 
+          $global:LASTEXITCODE = 0
 
-      # ==========================================
-      # Build Next.js
-      # ==========================================
+          Write-Host ""
+          Write-Host "Packages installed successfully."
+
+
+      # ==========================================================
+      # BUILD NEXT.JS
+      # ==========================================================
       - name: Build Next.js Application
         working-directory: ./ui
         shell: powershell
         run: |
-          Write-Host "Building Carnix frontend..."
+
+          $ErrorActionPreference = "Stop"
+
+          Write-Host ""
+          Write-Host "=========================================="
+          Write-Host "Building Carnix Frontend"
+          Write-Host "=========================================="
 
           npm run build
 
@@ -66,12 +83,15 @@ jobs:
               throw "Next.js build failed."
           }
 
+          $global:LASTEXITCODE = 0
+
+          Write-Host ""
           Write-Host "Next.js build completed successfully."
 
 
-      # ==========================================
-      # Stop PM2
-      # ==========================================
+      # ==========================================================
+      # STOP PM2
+      # ==========================================================
       - name: Stop Carnix Frontend
         id: stop_pm2
         shell: powershell
@@ -81,51 +101,118 @@ jobs:
 
           $env:PM2_HOME = "C:\Deploy\.pm2"
 
+          Write-Host ""
           Write-Host "=========================================="
           Write-Host "Stopping Carnix Frontend"
           Write-Host "=========================================="
 
-          npx pm2 stop carnix-front -s
+          Write-Host ""
+          Write-Host "PM2 Home:"
+          Write-Host $env:PM2_HOME
 
-          if ($LASTEXITCODE -ne 0) {
-              throw "Failed to stop carnix-front in PM2."
+
+          # ------------------------------------------------------
+          # Check whether carnix-front already exists
+          # ------------------------------------------------------
+          npx pm2 describe carnix-front *> $null
+
+          $describeExitCode = $LASTEXITCODE
+
+
+          if ($describeExitCode -eq 0) {
+
+              Write-Host ""
+              Write-Host "carnix-front exists in PM2."
+
+              Write-Host ""
+              Write-Host "Stopping carnix-front..."
+
+
+              npx pm2 stop carnix-front -s
+
+
+              if ($LASTEXITCODE -ne 0) {
+
+                  throw "Failed to stop carnix-front in PM2."
+
+              }
+
+
+              Write-Host ""
+              Write-Host "carnix-front stopped successfully."
+
+          }
+          else {
+
+              Write-Host ""
+              Write-Host "carnix-front is not currently registered in PM2."
+
+              Write-Host "Continuing deployment..."
+
           }
 
-          Write-Host "Waiting for Node.js to release files..."
+
+          # ------------------------------------------------------
+          # Clear native command exit code
+          # ------------------------------------------------------
+          $global:LASTEXITCODE = 0
+
+
+          # ------------------------------------------------------
+          # Give Windows time to release .node / SWC files
+          # ------------------------------------------------------
+          Write-Host ""
+          Write-Host "Waiting for Node.js to release application files..."
 
           Start-Sleep -Seconds 5
 
-          Write-Host "Carnix frontend stopped successfully."
+          Write-Host ""
+          Write-Host "Frontend is ready for deployment."
 
 
-      # ==========================================
-      # Deploy
-      # ==========================================
+      # ==========================================================
+      # DEPLOY FILES
+      # ==========================================================
       - name: Deploy Carnix Frontend
         shell: powershell
         run: |
 
           $ErrorActionPreference = "Stop"
 
-          $source = Join-Path $env:GITHUB_WORKSPACE "ui"
+
+          # ======================================================
+          # Configuration
+          # ======================================================
+
+          $source = Join-Path `
+            $env:GITHUB_WORKSPACE `
+            "ui"
 
           $target = "C:\Deploy\CarnixFront"
 
 
+          Write-Host ""
           Write-Host "=========================================="
           Write-Host "Carnix Frontend Deployment Started"
           Write-Host "=========================================="
 
+          Write-Host ""
           Write-Host "Source:"
           Write-Host $source
 
+          Write-Host ""
           Write-Host "Target:"
           Write-Host $target
 
 
-          # ----------------------------------------
+          # ======================================================
           # Validate Source
-          # ----------------------------------------
+          # ======================================================
+
+          Write-Host ""
+          Write-Host "Validating deployment source..."
+
+
           if (!(Test-Path $source)) {
 
               throw "Frontend source directory was not found: $source"
@@ -133,12 +220,29 @@ jobs:
           }
 
 
-          # ----------------------------------------
-          # Create Target Directory
-          # ----------------------------------------
+          $packageJson = Join-Path $source "package.json"
+
+
+          if (!(Test-Path $packageJson)) {
+
+              throw "package.json was not found in frontend source."
+
+          }
+
+
+          Write-Host ""
+          Write-Host "Frontend source validation passed."
+
+
+          # ======================================================
+          # Create Deployment Directory
+          # ======================================================
+
           if (!(Test-Path $target)) {
 
+              Write-Host ""
               Write-Host "Creating deployment directory..."
+
 
               New-Item `
                 -ItemType Directory `
@@ -148,11 +252,17 @@ jobs:
           }
 
 
-          # ----------------------------------------
-          # Deploy Files
-          # ----------------------------------------
+          # ======================================================
+          # Copy Application Files
+          # ======================================================
+
           Write-Host ""
-          Write-Host "Copying frontend files..."
+          Write-Host "=========================================="
+          Write-Host "Copying Frontend Files"
+          Write-Host "=========================================="
+
+          Write-Host ""
+
 
           robocopy `
             $source `
@@ -164,6 +274,19 @@ jobs:
             /XJ
 
 
+          # ======================================================
+          # Handle Robocopy Exit Code
+          #
+          # Robocopy:
+          #
+          # 0 = No changes
+          # 1 = Files copied
+          # 2 = Extra files detected
+          # 3 = Files copied + extra files detected
+          # 4-7 = Success / warnings
+          # 8+ = Actual failure
+          # ======================================================
+
           $robocopyExitCode = $LASTEXITCODE
 
 
@@ -171,10 +294,6 @@ jobs:
           Write-Host "Robocopy exit code: $robocopyExitCode"
 
 
-          # Robocopy:
-          #
-          # 0-7 = Successful / non-fatal
-          # 8+  = Failure
           if ($robocopyExitCode -ge 8) {
 
               throw "Frontend deployment failed. Robocopy exit code: $robocopyExitCode"
@@ -182,10 +301,36 @@ jobs:
           }
 
 
-          # ----------------------------------------
-          # Validate ecosystem.config.js
-          # ----------------------------------------
-          $ecosystemFile = Join-Path $target "ecosystem.config.js"
+          Write-Host ""
+          Write-Host "Robocopy completed successfully."
+
+
+          # ------------------------------------------------------
+          # IMPORTANT
+          #
+          # Robocopy exit codes 1-7 are successful but GitHub
+          # Actions may treat a non-zero LASTEXITCODE as failure.
+          # ------------------------------------------------------
+
+          $global:LASTEXITCODE = 0
+
+
+          # ======================================================
+          # Validate Required Deployment Files
+          # ======================================================
+
+          Write-Host ""
+          Write-Host "Validating deployed frontend..."
+
+
+          $ecosystemFile = Join-Path `
+            $target `
+            "ecosystem.config.js"
+
+
+          $deployedPackageJson = Join-Path `
+            $target `
+            "package.json"
 
 
           if (!(Test-Path $ecosystemFile)) {
@@ -195,21 +340,37 @@ jobs:
           }
 
 
+          if (!(Test-Path $deployedPackageJson)) {
+
+              throw "package.json was not found after deployment."
+
+          }
+
+
           Write-Host ""
-          Write-Host "Frontend files deployed successfully."
+          Write-Host "Required frontend files verified."
 
+
+          Write-Host ""
           Write-Host "=========================================="
-          Write-Host "File Deployment Completed"
+          Write-Host "Frontend Files Deployed Successfully"
           Write-Host "=========================================="
 
 
-      # ==========================================
-      # Start / Restart PM2
+          # ------------------------------------------------------
+          # Make absolutely sure the step exits successfully
+          # ------------------------------------------------------
+
+          $global:LASTEXITCODE = 0
+
+
+      # ==========================================================
+      # START / RESTART PM2
       #
-      # IMPORTANT:
-      # always() باعث می‌شود حتی اگر Copy خطا خورد،
-      # تلاش کنیم Frontend دوباره بالا بیاید.
-      # ==========================================
+      # always():
+      # If deployment fails after PM2 has been stopped, this step
+      # still tries to bring the existing frontend back online.
+      # ==========================================================
       - name: Start Carnix Frontend
         if: ${{ always() && steps.stop_pm2.outcome == 'success' }}
         working-directory: C:\Deploy\CarnixFront
@@ -221,22 +382,41 @@ jobs:
           $env:PM2_HOME = "C:\Deploy\.pm2"
 
 
+          Write-Host ""
           Write-Host "=========================================="
           Write-Host "Starting Carnix Frontend"
           Write-Host "=========================================="
 
+          Write-Host ""
+          Write-Host "Working Directory:"
+          Write-Host (Get-Location)
+
+          Write-Host ""
+          Write-Host "PM2 Home:"
+          Write-Host $env:PM2_HOME
+
+
+          # ======================================================
+          # Validate ecosystem.config.js
+          # ======================================================
 
           if (!(Test-Path ".\ecosystem.config.js")) {
 
-              throw "ecosystem.config.js does not exist."
+              throw "ecosystem.config.js does not exist in deployment directory."
 
           }
 
 
-          # ----------------------------------------
-          # Start or Restart PM2 App
-          # ----------------------------------------
-          npx pm2 startOrRestart ecosystem.config.js `
+          # ======================================================
+          # Start / Restart Application
+          # ======================================================
+
+          Write-Host ""
+          Write-Host "Starting/restarting carnix-front..."
+
+
+          npx pm2 startOrRestart `
+            ecosystem.config.js `
             --env production `
             --update-env
 
@@ -248,18 +428,46 @@ jobs:
           }
 
 
-          # ----------------------------------------
+          $global:LASTEXITCODE = 0
+
+
+          # ======================================================
           # Save PM2 Process List
-          # ----------------------------------------
+          # ======================================================
+
+          Write-Host ""
+          Write-Host "Saving PM2 process list..."
+
+
           npx pm2 save
 
 
-          if ($LASTEXITCODE -ne 0) {
+          $pm2SaveExitCode = $LASTEXITCODE
 
-              Write-Host "Warning: PM2 save returned a non-zero exit code."
+
+          if ($pm2SaveExitCode -ne 0) {
+
+              Write-Host ""
+              Write-Host "Warning: pm2 save returned exit code:"
+              Write-Host $pm2SaveExitCode
+
+          }
+          else {
+
+              Write-Host ""
+              Write-Host "PM2 process list saved."
 
           }
 
+
+          # pm2 save failure should not incorrectly fail
+          # the deployment after the app has started.
+          $global:LASTEXITCODE = 0
+
+
+          # ======================================================
+          # Wait For Application Startup
+          # ======================================================
 
           Write-Host ""
           Write-Host "Waiting for Carnix frontend to start..."
@@ -267,15 +475,44 @@ jobs:
           Start-Sleep -Seconds 5
 
 
+          # ======================================================
+          # Show PM2 Status
+          # ======================================================
+
           Write-Host ""
           Write-Host "PM2 Status:"
 
           npx pm2 status
 
 
-      # ==========================================
-      # Verify PM2
-      # ==========================================
+          if ($LASTEXITCODE -ne 0) {
+
+              throw "Unable to read PM2 status."
+
+          }
+
+
+          $global:LASTEXITCODE = 0
+
+
+          Write-Host ""
+          Write-Host "Carnix frontend start command completed."
+
+
+      # ==========================================================
+      # VERIFY FRONTEND
+      #
+      # DO NOT use:
+      #
+      # pm2 jlist | ConvertFrom-Json
+      #
+      # because on Windows PM2 environment can contain both:
+      #
+      # username
+      # USERNAME
+      #
+      # Windows PowerShell considers those duplicate keys.
+      # ==========================================================
       - name: Verify Carnix Frontend
         if: ${{ always() && steps.stop_pm2.outcome == 'success' }}
         shell: powershell
@@ -286,47 +523,167 @@ jobs:
           $env:PM2_HOME = "C:\Deploy\.pm2"
 
 
-          Write-Host "Verifying carnix-front process..."
+          Write-Host ""
+          Write-Host "=========================================="
+          Write-Host "Verifying Carnix Frontend"
+          Write-Host "=========================================="
+
+          Write-Host ""
+          Write-Host "Checking PM2 process:"
+          Write-Host "carnix-front"
 
 
-          $json = npx pm2 jlist
+          # ======================================================
+          # Get PID directly from PM2
+          # ======================================================
+
+          $pidOutput = npx pm2 pid carnix-front
 
 
           if ($LASTEXITCODE -ne 0) {
 
-              throw "Unable to read PM2 process list."
+              throw "Unable to query carnix-front from PM2."
 
           }
 
 
-          $processes = $json | ConvertFrom-Json
+          $global:LASTEXITCODE = 0
 
 
-          $carnix = $processes |
-            Where-Object {
-                $_.name -eq "carnix-front"
-            }
+          $pidText = ($pidOutput | Out-String).Trim()
 
 
-          if (!$carnix) {
+          Write-Host ""
+          Write-Host "PM2 PID output:"
+          Write-Host $pidText
 
-              throw "carnix-front was not found in PM2."
+
+          # ======================================================
+          # Find Valid PID
+          # ======================================================
+
+          $validPid = $null
+
+
+          foreach ($line in $pidOutput) {
+
+              $value = "$line".Trim()
+
+
+              if ($value -match '^\d+$') {
+
+                  $number = [int]$value
+
+
+                  if ($number -gt 0) {
+
+                      $validPid = $number
+
+                      break
+
+                  }
+
+              }
 
           }
 
 
-          if ($carnix.pm2_env.status -ne "online") {
+          # ======================================================
+          # Validate PID
+          # ======================================================
 
-              throw "carnix-front is not online. Current status: $($carnix.pm2_env.status)"
+          if (!$validPid) {
+
+              Write-Host ""
+              Write-Host "No valid PM2 PID was returned."
+
+              Write-Host ""
+              Write-Host "Current PM2 status:"
+
+
+              npx pm2 status
+
+
+              $global:LASTEXITCODE = 0
+
+
+              throw "carnix-front is not running."
 
           }
 
+
+          Write-Host ""
+          Write-Host "PM2 returned valid PID:"
+          Write-Host $validPid
+
+
+          # ======================================================
+          # Validate Windows Process
+          # ======================================================
+
+          $process = Get-Process `
+            -Id $validPid `
+            -ErrorAction SilentlyContinue
+
+
+          if (!$process) {
+
+              throw "PM2 returned PID $validPid but the Windows process does not exist."
+
+          }
+
+
+          Write-Host ""
+          Write-Host "Windows process exists."
+
+          Write-Host ""
+          Write-Host "Process Name:"
+          Write-Host $process.ProcessName
+
+          Write-Host ""
+          Write-Host "PID:"
+          Write-Host $validPid
+
+
+          # ======================================================
+          # Final PM2 Status
+          # ======================================================
+
+          Write-Host ""
+          Write-Host "=========================================="
+          Write-Host "Final PM2 Status"
+          Write-Host "=========================================="
+
+          Write-Host ""
+
+
+          npx pm2 status
+
+
+          if ($LASTEXITCODE -ne 0) {
+
+              throw "Unable to read final PM2 status."
+
+          }
+
+
+          $global:LASTEXITCODE = 0
+
+
+          # ======================================================
+          # Deployment Success
+          # ======================================================
 
           Write-Host ""
           Write-Host "=========================================="
           Write-Host "Carnix Frontend Deployment Successful"
           Write-Host "=========================================="
 
+          Write-Host ""
+          Write-Host "Frontend: ONLINE"
+
           Write-Host "PM2 Process: carnix-front"
-          Write-Host "Status: $($carnix.pm2_env.status)"
-          Write-Host "PID: $($carnix.pid)"
+
+          Write-Host "PID: $validPid"
+
+          Write-Host ""
