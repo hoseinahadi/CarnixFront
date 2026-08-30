@@ -129,6 +129,12 @@ const BestSellersSection = dynamic(
     loading: () => <SectionSkeleton type="cards" />,
   },
 );
+// Test
+// Test
+// Test
+// Test
+// Test
+// Test
 
 const NewestProductsSection = dynamic(
   () =>
