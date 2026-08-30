@@ -27,7 +27,7 @@ const getImageUrl = (url: string | null | undefined) => {
   if (!url) return '';
   if (url.startsWith('http')) return url; 
   
-  let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.carnix.ir'; 
+  let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'; 
   
   if (baseUrl.endsWith('/api')) {
     baseUrl = baseUrl.substring(0, baseUrl.length - 4);

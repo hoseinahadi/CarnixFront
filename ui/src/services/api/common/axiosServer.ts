@@ -8,7 +8,7 @@ import { cookies } from 'next/headers';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  'https://api.carnix.ir/api';
+  'http://localhost:8080/api';
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 

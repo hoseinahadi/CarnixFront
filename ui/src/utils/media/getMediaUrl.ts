@@ -5,7 +5,7 @@ const getBackendOrigin = (): string => {
   const configured =
     process.env.NEXT_PUBLIC_BACKEND_URL ??
     process.env.NEXT_PUBLIC_API_URL ??
-    'https://api.carnix.ir';
+    'http://localhost:8080';
 
   return stripApiSuffix(configured.trim());
 };
