@@ -5,6 +5,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks';
 import { Trash2, Minus, Plus } from 'lucide-react';
 import styles from './CartStep1.module.scss';
+import { calculateRoundedCartSubtotal, calculateTaxFreeCartTotal, formatPrice } from '@/utils/price';
 
 interface CartStep1Props {
   cart: any;
@@ -14,7 +15,7 @@ interface CartStep1Props {
 
 const toPersianNumber = (value: number | undefined | null): string => {
   if (value == null || isNaN(value)) return '۰';
-  return value.toLocaleString('fa-IR'); 
+  return value.toLocaleString('fa-IR');
 };
 
 const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) => {
@@ -65,7 +66,7 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
                   </button>
                   <div className={styles.priceRow}>
                     <span className={styles.price}>
-                      {toPersianNumber(item.price || item.unitPrice)} تومان
+                      {formatPrice(item.price || item.unitPrice)} تومان
                     </span>
                   </div>
                   <div className={styles.quantityControl}>
@@ -105,19 +106,13 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
             </div>
             <div className={styles.summaryRow}>
               <span>قیمت کالاها</span>
-              <span>{toPersianNumber(cart.subTotal || cart.totalAmount)} تومان</span>
+              <span>{formatPrice(calculateRoundedCartSubtotal(cart))} تومان</span>
             </div>
             <div className={styles.summaryRow}>
               <span>سود شما از خرید</span>
               <span className={styles.discountAmount}>
                 {/* 🟢 باگ منطقی اصلاح شد: فقط مقدار تخفیف نمایش داده شود */}
-                {toPersianNumber(cart.totalDiscount || 0)} تومان
-              </span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>مالیات</span>
-              <span className={styles.discountAmount}>
-                {toPersianNumber(cart.taxAmount || 0)} تومان
+                {formatPrice(cart.totalDiscount || 0)} تومان
               </span>
             </div>
             <div className={styles.summaryRow}>
@@ -129,7 +124,7 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
             </div>
             <div className={styles.summaryRowTotal}>
               <span>جمع مبلغ قابل پرداخت</span>
-              <span>{toPersianNumber(cart.grandTotal || cart.totalAmount)} تومان</span>
+              <span>{formatPrice(calculateTaxFreeCartTotal(cart))} تومان</span>
             </div>
           </div>
 

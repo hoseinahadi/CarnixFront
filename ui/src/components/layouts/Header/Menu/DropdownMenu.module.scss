@@ -1,7 +1,11 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .megaMenu {
+  direction: rtl;
+  text-align: right;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
   display: flex;
   align-items: flex-start;
   padding: $spacing-lg;
@@ -130,7 +134,7 @@
   padding: 4px 0;
 
   &:hover {
-    color: darken($color-primary, 10%);
+    color: color.adjust($color-primary, $lightness: -10%);
   }
 }
 
@@ -195,10 +199,10 @@
     min-width: 120px;
   }
   .subTitle {
-    font-size: 14px;
+    font-size: 16px;
   }
   .item {
-    font-size: 11px;
+    font-size: 16px;
   }
   .verticalDivider {
     margin: 0 $spacing-md;

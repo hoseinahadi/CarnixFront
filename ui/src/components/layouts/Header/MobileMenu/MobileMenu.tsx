@@ -10,6 +10,7 @@ import type { RootState } from '@/store';
 // ایمپورت اکشن‌ها
 import { getModelsByMakeId, getAllMakes } from '@/store/feature/vehicle/VehicleThunks';
 import { getAllBrands } from '@/store/feature/brand/BrandThunks';
+import { resolveVehicleMakeId, resolveVehicleModelId } from '@/utils/vehicleIds';
 // import { fetchCategories } from '@/store/feature/category/categoryThunks';
 
 // 🟢 تابع استخراج‌گر ایمن (دقیقاً مشابه صفحات دیگر)
@@ -77,8 +78,9 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
 
   // دریافت مدل‌های ماشین به محض کلیک روی یک برند خودرو
   useEffect(() => {
-    if (activeMake && activeMake.vehicleMakeId) {
-      dispatch(getModelsByMakeId(activeMake.vehicleMakeId));
+    const makeId = resolveVehicleMakeId(activeMake);
+    if (makeId) {
+      void dispatch(getModelsByMakeId(makeId));
     }
   }, [activeMake, dispatch]);
 
@@ -174,19 +176,28 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                   <p className={styles.noSubMsg}>در حال دریافت مدل‌ها...</p>
                 ) : models && models.length > 0 ? (
                   <>
-                    {models.map((model: any) => (
-                      <button
-                        key={model.vehicleModelId} // 🟢 کلید یکتا اصلاح شد
-                        onClick={() => handleNavigation(`/vehicles/${activeMake.name}/${model.name}`)}
-                        className={styles.mainCategoryItem} 
-                      >
-                        <span>{model.name}</span>
-                        <ChevronLeft size={18} className={styles.arrowIcon} />
-                      </button>
-                    ))}
+                    {models.map((model: any) => {
+                      const makeId = resolveVehicleMakeId(activeMake);
+                      const modelId = resolveVehicleModelId(model);
+
+                      if (!makeId || !modelId) return null;
+
+                      return (
+                        <button
+                          key={modelId}
+                          onClick={() =>
+                            handleNavigation(`/products?makeId=${makeId}&modelId=${modelId}`)
+                          }
+                          className={styles.mainCategoryItem}
+                        >
+                          <span>{model.name}</span>
+                          <ChevronLeft size={18} className={styles.arrowIcon} />
+                        </button>
+                      );
+                    })}
                     
                     <button 
-                      onClick={() => handleNavigation(`/vehicles/${activeMake.name}`)}
+                      onClick={() => handleNavigation('/vehicles')}
                       className={styles.viewAllBottomBtn}
                     >
                       <span>مشاهده همه مدل‌های {activeMake.name}</span>
@@ -265,7 +276,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
                   {brands.slice(0, 10).map((brand) => (
                     <button
                       key={brand.brandId}
-                      onClick={() => handleNavigation(`/brands/${brand.brandId}`)}
+                      onClick={() => handleNavigation(`/products?brandId=${brand.brandId}`)}
                       className={styles.simpleLink}
                     >
                       {brand.name}

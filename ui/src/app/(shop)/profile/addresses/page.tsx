@@ -106,7 +106,7 @@ export default function AddressesPage() {
   useModalManager(modalMode !== null)
 
   useEffect(() => {
-    dispatch(fetchAddresses())
+    dispatch(fetchAddresses(retryCount > 0 ? { force: true } : undefined))
   }, [dispatch, retryCount])
 
   const handleRetry = useCallback(() => setRetryCount(prev => prev + 1), [])
@@ -133,7 +133,6 @@ export default function AddressesPage() {
     setIsSettingDefault(addressId)
     try {
       await dispatch(setDefaultAddress(addressId)).unwrap()
-      dispatch(fetchAddresses())
     } catch (err) {
       console.error('Error setting default address:', err)
     } finally {

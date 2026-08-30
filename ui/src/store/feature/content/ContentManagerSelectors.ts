@@ -9,7 +9,7 @@ export const selectDisplayContent = (state: RootState) => state.contentManager.d
 export const selectLatestContents = (state: RootState) => state.contentManager.latestContents;
 
 // وضعیت لودینگ برای دریافت اطلاعات
-export const selectContentManagerLoading = (state: RootState) => state.contentManager.loading;
+export const selectContentManagerLoading = (state: RootState) => state.contentManager.latestLoading;
 
 // وضعیت لودینگ برای اکشن‌ها
 export const selectContentManagerActionLoading = (state: RootState) => state.contentManager.actionLoading;

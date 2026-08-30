@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables'; 
-@import '@/assets/styles/utils/mixins'; // در صورت نیاز
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *; 
+@use '@/assets/styles/utils/mixins' as *; // در صورت نیاز
 
 .container {
     display: flex;
@@ -222,7 +223,7 @@
         align-items: center;
 
         &:hover:not(:disabled) {
-            background-color: darken(#2563eb, 10%);
+            background-color: color.adjust(#2563eb, $lightness: -10%);
         }
 
         &:disabled {

@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .authPage {
   display: flex;
@@ -56,7 +57,7 @@
 
   .mobileHint {
     display: none;
-    font-size: 10px;
+    font-size: 16px;
     color: $color-text-muted;
     margin: 4px 0 0 0;
 
@@ -142,7 +143,7 @@
     @include transition-ease;
 
     &:hover {
-      background-color: darken(#1d4ed8, 5%);
+      background-color: color.adjust(#1d4ed8, $lightness: -5%);
     }
   }
 
@@ -150,7 +151,7 @@
     background: none;
     border: none;
     color: $color-text-muted;
-    font-size: 11px;
+    font-size: 16px;
     cursor: pointer;
     padding: $spacing-xs;
 
@@ -158,4 +159,23 @@
       color: $color-text-main;
     }
   }
+}
+.errorMessage {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba($color-danger, 0.25);
+  border-radius: $border-radius-md;
+  background: rgba($color-danger, 0.06);
+  color: $color-danger;
+  font-size: $font-size-base;
+  line-height: 1.8;
+  text-align: right;
+}
+
+.spinner {
+  animation: registerSpinner 0.8s linear infinite;
+}
+
+@keyframes registerSpinner {
+  to { transform: rotate(360deg); }
 }

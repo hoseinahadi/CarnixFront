@@ -217,6 +217,7 @@ export default React.memo(LeafletMapWrapper, (prev, next) => {
     prev.center.lat === next.center.lat &&
     prev.center.lng === next.center.lng &&
     prev.marker?.lat === next.marker?.lat &&
-    prev.marker?.lng === next.marker?.lng
+    prev.marker?.lng === next.marker?.lng &&
+    prev.onMapClick === next.onMapClick
   )
 })

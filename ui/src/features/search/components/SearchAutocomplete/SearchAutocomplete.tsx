@@ -8,7 +8,8 @@ import styles from './SearchAutocomplete.module.scss';
 import { Search, TrendingUp, ChevronLeft } from 'lucide-react';
 import { SearchSuggestion } from "@/models/search/SearchSuggestion";
 
-import { searchApi } from '@/features/search/api/routes'; 
+import { searchApi } from '@/features/search/api/routes';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export default function SearchAutocomplete() {
   const [query, setQuery] = useState('');
@@ -17,6 +18,7 @@ export default function SearchAutocomplete() {
   const [isLoading, setIsLoading] = useState(false);
 
   const debouncedQuery = useDebounce(query, 500);
+  const normalizedDebouncedQuery = debouncedQuery.trim();
   const inputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
@@ -36,11 +38,11 @@ export default function SearchAutocomplete() {
     const controller = new AbortController();
     let isMounted = true; 
 
-    if (debouncedQuery.length > 2) {
+    if (normalizedDebouncedQuery.length > 2) {
       setIsLoading(true);
       
       // 🟢 اصلاح شد: فراخوانی متد getSuggestions از داخل آبجکت searchApi
-      searchApi.getSuggestions(debouncedQuery, controller.signal)
+      searchApi.getSuggestions(normalizedDebouncedQuery, controller.signal)
         .then((data: any) => {
           if (isMounted) {
             setSuggestions(data || []);
@@ -56,27 +58,17 @@ export default function SearchAutocomplete() {
         
     } else {
       setSuggestions([]);
+      setIsLoading(false);
     }
 
     return () => {
       isMounted = false; 
-      controller.abort(); 
-      setIsLoading(false);
+      controller.abort();
     };
-  }, [debouncedQuery]);
+  }, [normalizedDebouncedQuery]);
 
-  // مدیریت اسکرول بادی
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+  // قفل شمارنده‌دار؛ cleanup یک overlay دیگر را باز نمی‌کند.
+  useBodyScrollLock(isOpen);
 
   const openDropdown = (e?: React.MouseEvent) => {
     e?.stopPropagation();

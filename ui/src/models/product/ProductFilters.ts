@@ -222,9 +222,15 @@ export const productFiltersFromSearchParams = (
   searchParams: SearchParamsReader,
   routeCategoryId?: number,
 ): ProductFilterParams => {
-  const makeId = parseOptionalNumber(searchParams.get('make'));
-  const modelId = parseOptionalNumber(searchParams.get('model'));
-  const trimId = parseOptionalNumber(searchParams.get('trim'));
+  const makeId = parseOptionalNumber(
+    searchParams.get('makeId') ?? searchParams.get('make'),
+  );
+  const modelId = parseOptionalNumber(
+    searchParams.get('modelId') ?? searchParams.get('model'),
+  );
+  const trimId = parseOptionalNumber(
+    searchParams.get('trimId') ?? searchParams.get('trim'),
+  );
 
   const vehicle = createVehicleFilter(
     makeId,
@@ -287,9 +293,9 @@ export const productFiltersToSearchParams = (
   appendNumber('brandId', filters.brandId);
   appendNumber('minPrice', filters.minPrice);
   appendNumber('maxPrice', filters.maxPrice);
-  appendNumber('make', filters.makeId);
-  appendNumber('model', filters.modelId);
-  appendNumber('trim', filters.trimId);
+  appendNumber('makeId', filters.makeId);
+  appendNumber('modelId', filters.modelId);
+  appendNumber('trimId', filters.trimId);
   appendNumber('supplierId', filters.supplierId);
 
   if (filters.sortBy && filters.sortBy !== 'newest') {

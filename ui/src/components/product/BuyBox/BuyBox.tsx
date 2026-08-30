@@ -30,6 +30,7 @@ import {
 } from '@/store/feature/product/productSelectors';
 
 import styles from './BuyBox.module.scss';
+import { formatPrice } from '@/utils/price';
 
 export default function BuyBox() {
   const dispatch = useAppDispatch();
@@ -192,9 +193,7 @@ export default function BuyBox() {
               />
             ) : (
               <>
-                {priceToDisplay.toLocaleString(
-                  'fa-IR',
-                )}
+                {formatPrice(priceToDisplay)}
                 <span
                   className={styles.currency}
                 >

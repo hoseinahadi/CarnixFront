@@ -18,6 +18,7 @@ import { logoutThunk } from '@/store/feature/auth/authThunks'
 import { selectUserFullName, selectProfile } from '@/store/feature/profile/profileSelectors'
 import styles from './ProfileSidebar.module.scss'
 import classNames from 'classnames'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
 const menuItems = [
   {
@@ -91,29 +92,25 @@ const ProfileSidebar = () => {
     setIsMobileMenuOpen(false)
   }, [pathname])
 
+  // قفل اسکرول از manager مشترک استفاده می‌کند تا overlayها همدیگر را باز نکنند.
+  useBodyScrollLock(isMobileMenuOpen || isLogoutModalOpen)
+
   // هندل کردن کلید Escape (برای منوی موبایل و مدال خروج)
   useEffect(() => {
+    if (!isMobileMenuOpen && !isLogoutModalOpen) return
+
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (isLogoutModalOpen) {
-          setIsLogoutModalOpen(false)
-        } else if (isMobileMenuOpen) {
-          setIsMobileMenuOpen(false)
-        }
+      if (e.key !== 'Escape') return
+
+      if (isLogoutModalOpen) {
+        setIsLogoutModalOpen(false)
+      } else {
+        setIsMobileMenuOpen(false)
       }
     }
-    
-    if (isMobileMenuOpen || isLogoutModalOpen) {
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
-    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
   }, [isMobileMenuOpen, isLogoutModalOpen])
 
   // تابع باز کردن مدال خروج

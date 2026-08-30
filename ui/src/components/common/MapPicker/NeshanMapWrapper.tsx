@@ -1,12 +1,8 @@
-// components/common/MapPicker/NeshanMapWrapper.tsx
 'use client'
 
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react'
 
-// ===============================
-// Types
-// ===============================
 interface MapLocation {
   lat: number
   lng: number
@@ -18,274 +14,284 @@ interface NeshanMapWrapperProps {
   onMapClick: (lat: number, lng: number) => void
 }
 
-// ===============================
-// Constants
-// ===============================
 const NESHAN_API_KEY = process.env.NEXT_PUBLIC_NESHAN_API_KEY || ''
 const NESHAN_SDK_URL = 'https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js'
 const NESHAN_CSS_URL = 'https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.css'
 
-// ===============================
-// NeshanMapWrapper Component
-// ===============================
+/*
+ * Promise در سطح ماژول باعث می‌شود اگر چند نمونه Map هم‌زمان mount شوند،
+ * SDK فقط یک بار دانلود شود. در صورت failure برای Retry بعدی reset می‌شود.
+ */
+let neshanSdkPromise: Promise<void> | null = null
+
+const ensureNeshanSdk = (): Promise<void> => {
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('Neshan SDK is browser-only'))
+  }
+
+  if ((window as any).L) {
+    return Promise.resolve()
+  }
+
+  if (neshanSdkPromise) {
+    return neshanSdkPromise
+  }
+
+  neshanSdkPromise = new Promise<void>((resolve, reject) => {
+    if (!document.querySelector(`link[href="${NESHAN_CSS_URL}"]`)) {
+      const linkEl = document.createElement('link')
+      linkEl.rel = 'stylesheet'
+      linkEl.href = NESHAN_CSS_URL
+      document.head.appendChild(linkEl)
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      `script[src="${NESHAN_SDK_URL}"]`,
+    )
+
+    const script = existingScript ?? document.createElement('script')
+
+    let settled = false
+    const finish = (callback: () => void) => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(timeoutId)
+      script.removeEventListener('load', handleLoad)
+      script.removeEventListener('error', handleError)
+      callback()
+    }
+
+    const handleLoad = () => {
+      finish(() => {
+        if ((window as any).L) resolve()
+        else reject(new Error('Neshan SDK loaded without Leaflet'))
+      })
+    }
+
+    const handleError = () => {
+      finish(() => {
+        if (!existingScript) script.remove()
+        reject(new Error('Failed to load Neshan SDK'))
+      })
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      finish(() => {
+        if (!existingScript) script.remove()
+        reject(new Error('Neshan SDK load timeout'))
+      })
+    }, 12_000)
+
+    script.addEventListener('load', handleLoad, { once: true })
+    script.addEventListener('error', handleError, { once: true })
+
+    if (!existingScript) {
+      script.src = NESHAN_SDK_URL
+      script.async = true
+      document.head.appendChild(script)
+    }
+  }).catch((error) => {
+    neshanSdkPromise = null
+    throw error
+  })
+
+  return neshanSdkPromise
+}
+
 const NeshanMapWrapper: React.FC<NeshanMapWrapperProps> = ({
   center,
   marker,
   onMapClick,
 }) => {
-  // ===============================
-  // Refs
-  // ===============================
   const mapRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const clickHandlerRef = useRef(onMapClick)
-  const isInitializedRef = useRef(false)
-  const sdkLoadedRef = useRef(false)
-  const retryCountRef = useRef(0)
-
-  // ===============================
-  // State
-  // ===============================
+  const centerRef = useRef(center)
+  const [retryNonce, setRetryNonce] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  // Keep click handler updated
   useEffect(() => {
     clickHandlerRef.current = onMapClick
   }, [onMapClick])
 
-  // ===============================
-  // Load Neshan SDK
-  // ===============================
-  const loadNeshanSDK = useCallback(async (): Promise<boolean> => {
-    if (sdkLoadedRef.current) return true
+  useEffect(() => {
+    centerRef.current = center
+  }, [center])
 
-    try {
-      // Load CSS
-      if (!document.querySelector(`link[href="${NESHAN_CSS_URL}"]`)) {
-        const linkEl = document.createElement('link')
-        linkEl.rel = 'stylesheet'
-        linkEl.href = NESHAN_CSS_URL
-        document.head.appendChild(linkEl)
-      }
+  /*
+   * Initialize فقط هنگام mount یا Retry اجرا می‌شود. center در dependency نیست؛
+   * بنابراین حرکت marker یا تغییر مرکز باعث destroy/recreate شدن کل Map نمی‌شود.
+   */
+  useEffect(() => {
+    let cancelled = false
+    let resizeObserver: ResizeObserver | null = null
 
-      // Load JS
-      if (!(window as any).L) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement('script')
-          script.src = NESHAN_SDK_URL
-          script.async = true
-
-          const timeoutId = setTimeout(() => {
-            script.remove()
-            reject(new Error('Neshan SDK load timeout'))
-          }, 12000)
-
-          script.onload = () => {
-            clearTimeout(timeoutId)
-            resolve()
-          }
-
-          script.onerror = () => {
-            clearTimeout(timeoutId)
-            script.remove()
-            reject(new Error('Failed to load Neshan SDK'))
-          }
-
-          document.head.appendChild(script)
-        })
-      }
-
-      sdkLoadedRef.current = true
-      return true
-    } catch (error: any) {
-      console.error('❌ Neshan SDK load error:', error)
-      setLoadError('خطا در بارگذاری کتابخانه نشان')
-      return false
-    }
-  }, [])
-
-  // ===============================
-  // Initialize Map (ONLY ONCE)
-  // ===============================
-  const initializeMap = useCallback(async () => {
-    if (!containerRef.current || isInitializedRef.current) return
-
-    const sdkLoaded = await loadNeshanSDK()
-    if (!sdkLoaded) {
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      const L = (window as any).L
-      if (!L) throw new Error('Leaflet not available')
-
-      const map = L.map(containerRef.current, {
-        center: [center.lat, center.lng],
-        zoom: 15,
-        zoomControl: true,
-        attributionControl: false,
-        scrollWheelZoom: true,
-        doubleClickZoom: true,
-        dragging: true,
-      })
-
-      // Add Neshan Tile Layer
-      L.tileLayer(
-        `https://api.neshan.org/v2/map/{z}/{x}/{y}?key=${NESHAN_API_KEY}`,
-        { maxZoom: 19, minZoom: 4 }
-      ).addTo(map)
-
-      // Click handler
-      map.on('click', (e: any) => {
-        clickHandlerRef.current(e.latlng.lat, e.latlng.lng)
-      })
-
-      // Resize handler
-      const resizeObserver = new ResizeObserver(() => {
-        map.invalidateSize()
-      })
-
-      if (containerRef.current) {
-        resizeObserver.observe(containerRef.current)
-      }
-
-      mapRef.current = map
-      isInitializedRef.current = true
-      setIsLoading(false)
+    const initialize = async () => {
+      setIsLoading(true)
       setLoadError(null)
 
-      return () => {
-        resizeObserver.disconnect()
+      try {
+        await ensureNeshanSdk()
+        if (cancelled || !containerRef.current) return
+
+        const L = (window as any).L
+        if (!L) throw new Error('Leaflet not available')
+
+        const initialCenter = centerRef.current
+        const map = L.map(containerRef.current, {
+          center: [initialCenter.lat, initialCenter.lng],
+          zoom: 15,
+          zoomControl: true,
+          attributionControl: false,
+          scrollWheelZoom: true,
+          doubleClickZoom: true,
+          dragging: true,
+        })
+
+        L.tileLayer(
+          `https://api.neshan.org/v2/map/{z}/{x}/{y}?key=${NESHAN_API_KEY}`,
+          { maxZoom: 19, minZoom: 4 },
+        ).addTo(map)
+
+        map.on('click', (event: any) => {
+          clickHandlerRef.current(event.latlng.lat, event.latlng.lng)
+        })
+
+        resizeObserver = new ResizeObserver(() => {
+          map.invalidateSize()
+        })
+        resizeObserver.observe(containerRef.current)
+
+        if (cancelled) {
+          resizeObserver.disconnect()
+          map.remove()
+          return
+        }
+
+        mapRef.current = map
+        setIsLoading(false)
+      } catch (error: unknown) {
+        if (cancelled) return
+        setLoadError(
+          error instanceof Error && error.message.includes('timeout')
+            ? 'زمان بارگذاری نقشه به پایان رسید. دوباره تلاش کنید.'
+            : 'خطا در بارگذاری نقشه نشان',
+        )
+        setIsLoading(false)
       }
-    } catch (error: any) {
-      console.error('❌ Neshan map init error:', error)
-      setLoadError(error.message || 'خطا در راه‌اندازی نقشه')
-      setIsLoading(false)
     }
-  }, [center.lat, center.lng, loadNeshanSDK])
 
-  // ===============================
-  // Effect: Initialize
-  // ===============================
-  useEffect(() => {
-    let cleanupFn: (() => void) | undefined
-
-    initializeMap().then((cleanup) => {
-      if (cleanup) cleanupFn = cleanup
-    })
+    void initialize()
 
     return () => {
-      if (cleanupFn) cleanupFn()
+      cancelled = true
+      resizeObserver?.disconnect()
+
+      if (markerRef.current && mapRef.current) {
+        try {
+          mapRef.current.removeLayer(markerRef.current)
+        } catch {
+          // map ممکن است در حال cleanup باشد.
+        }
+      }
+      markerRef.current = null
+
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
-        isInitializedRef.current = false
       }
     }
-  }, [initializeMap])
+  }, [retryNonce])
 
-  // ===============================
-  // Effect: Update Center
-  // ===============================
   useEffect(() => {
-    if (mapRef.current && isInitializedRef.current && center) {
-      const currentCenter = mapRef.current.getCenter()
-      if (
-        Math.abs(currentCenter.lat - center.lat) > 0.0001 ||
-        Math.abs(currentCenter.lng - center.lng) > 0.0001
-      ) {
-        mapRef.current.setView([center.lat, center.lng], mapRef.current.getZoom(), {
-          animate: true,
-          duration: 0.3,
-        })
-      }
+    if (!mapRef.current) return
+
+    const currentCenter = mapRef.current.getCenter()
+    if (
+      Math.abs(currentCenter.lat - center.lat) > 0.0001 ||
+      Math.abs(currentCenter.lng - center.lng) > 0.0001
+    ) {
+      mapRef.current.setView(
+        [center.lat, center.lng],
+        mapRef.current.getZoom(),
+        { animate: true, duration: 0.3 },
+      )
     }
   }, [center.lat, center.lng])
 
-  // ===============================
-  // Effect: Update Marker
-  // ===============================
   useEffect(() => {
-    if (!mapRef.current || !isInitializedRef.current) return
+    if (!mapRef.current) return
 
     try {
       const L = (window as any).L
+      if (!L) return
 
-      // Remove old marker
       if (markerRef.current) {
         mapRef.current.removeLayer(markerRef.current)
         markerRef.current = null
       }
 
-      // Add new marker
-      if (marker) {
-        const customIcon = L.divIcon({
-          className: 'neshan-custom-marker',
-          html: `
-            <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/></filter>
-              <path d="M18 0C8.06 0 0 8.06 0 18C0 31.5 18 48 18 48C18 48 36 31.5 36 18C36 8.06 27.94 0 18 0Z" fill="#e53935" filter="url(#shadow)"/>
-              <circle cx="18" cy="18" r="8" fill="white"/>
-              <circle cx="18" cy="18" r="4" fill="#e53935"/>
-            </svg>
-          `,
-          iconSize: [36, 48],
-          iconAnchor: [18, 48],
-          popupAnchor: [0, -48],
-        })
+      if (!marker) return
 
-        markerRef.current = L.marker([marker.lat, marker.lng], {
-          icon: customIcon,
-          draggable: true,
-          autoPan: true,
-        })
-          .addTo(mapRef.current)
-          .bindPopup('📍 موقعیت انتخاب شده')
-          .openPopup()
+      const customIcon = L.divIcon({
+        className: 'neshan-custom-marker',
+        html: `
+          <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/></filter>
+            <path d="M18 0C8.06 0 0 8.06 0 18C0 31.5 18 48 18 48C18 48 36 31.5 36 18C36 8.06 27.94 0 18 0Z" fill="#e53935" filter="url(#shadow)"/>
+            <circle cx="18" cy="18" r="8" fill="white"/>
+            <circle cx="18" cy="18" r="4" fill="#e53935"/>
+          </svg>
+        `,
+        iconSize: [36, 48],
+        iconAnchor: [18, 48],
+        popupAnchor: [0, -48],
+      })
 
-        markerRef.current.on('dragend', () => {
-          const position = markerRef.current?.getLatLng()
-          if (position) {
-            clickHandlerRef.current(position.lat, position.lng)
+      const nextMarker = L.marker([marker.lat, marker.lng], {
+        icon: customIcon,
+        draggable: true,
+        autoPan: true,
+      })
+        .addTo(mapRef.current)
+        .bindPopup('📍 موقعیت انتخاب شده')
+        .openPopup()
+
+      nextMarker.on('dragend', () => {
+        const position = nextMarker.getLatLng()
+        if (position) {
+          clickHandlerRef.current(position.lat, position.lng)
+        }
+      })
+
+      markerRef.current = nextMarker
+      mapRef.current.setView(
+        [marker.lat, marker.lng],
+        mapRef.current.getZoom(),
+        { animate: true, duration: 0.3 },
+      )
+
+      return () => {
+        if (markerRef.current === nextMarker && mapRef.current) {
+          try {
+            mapRef.current.removeLayer(nextMarker)
+          } catch {
+            // cleanup هم‌زمان map مشکلی ایجاد نکند.
           }
-        })
-
-        mapRef.current.setView([marker.lat, marker.lng], mapRef.current.getZoom(), {
-          animate: true,
-          duration: 0.3,
-        })
+          markerRef.current = null
+        }
       }
-    } catch (error) {
-      console.error('Error updating marker:', error)
+    } catch {
+      return
     }
-  }, [marker?.lat, marker?.lng])
+  }, [marker?.lat, marker?.lng, isLoading])
 
-  // ===============================
-  // Retry Handler
-  // ===============================
   const handleRetry = useCallback(() => {
-    setLoadError(null)
-    setIsLoading(true)
-    sdkLoadedRef.current = false
-    isInitializedRef.current = false
-    retryCountRef.current += 1
+    setRetryNonce((value) => value + 1)
+  }, [])
 
-    if (mapRef.current) {
-      mapRef.current.remove()
-      mapRef.current = null
-    }
-
-    setTimeout(() => {
-      initializeMap()
-    }, 200)
-  }, [initializeMap])
-
-  // ===============================
-  // Render: Error State
-  // ===============================
   if (loadError) {
     return (
       <div style={{
@@ -302,7 +308,7 @@ const NeshanMapWrapper: React.FC<NeshanMapWrapperProps> = ({
         textAlign: 'center',
       }}>
         <AlertTriangle size={48} style={{ color: '#f59e0b', opacity: 0.7 }} />
-        <p style={{ fontSize: '0.875rem', maxWidth: '280px', lineHeight: 1.6, margin: 0 }}>
+        <p style={{ fontSize: '1rem', maxWidth: '280px', lineHeight: 1.6, margin: 0 }}>
           {loadError}
         </p>
         <button
@@ -318,7 +324,7 @@ const NeshanMapWrapper: React.FC<NeshanMapWrapperProps> = ({
             borderRadius: '10px',
             cursor: 'pointer',
             fontFamily: 'inherit',
-            fontSize: '0.8125rem',
+            fontSize: '1rem',
             fontWeight: 600,
             transition: 'all 0.2s',
           }}
@@ -330,50 +336,46 @@ const NeshanMapWrapper: React.FC<NeshanMapWrapperProps> = ({
     )
   }
 
-  // ===============================
-  // Render: Loading State
-  // ===============================
-  if (isLoading) {
-    return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        minHeight: '200px',
-        background: '#f8fafc',
-        gap: '12px',
-        color: '#94a3b8',
-      }}>
-        <Loader2 size={32} style={{ animation: 'spin 0.8s linear infinite', color: '#1a73e8' }} />
-        <p style={{ fontSize: '0.8125rem', margin: 0 }}>در حال بارگذاری نقشه نشان...</p>
-      </div>
-    )
-  }
-
-  // ===============================
-  // Render: Map
-  // ===============================
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: '100%',
-        height: '100%',
-        cursor: 'crosshair',
-        zIndex: 1,
-      }}
-    />
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <div
+        ref={containerRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          cursor: 'crosshair',
+          zIndex: 1,
+          visibility: isLoading ? 'hidden' : 'visible',
+        }}
+      />
+
+      {isLoading && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '200px',
+          background: '#f8fafc',
+          gap: '12px',
+          color: '#94a3b8',
+        }}>
+          <Loader2 size={32} style={{ animation: 'spin 0.8s linear infinite', color: '#1a73e8' }} />
+          <p style={{ fontSize: '1rem', margin: 0 }}>در حال بارگذاری نقشه نشان...</p>
+        </div>
+      )}
+    </div>
   )
 }
 
-// Memoize
 export default React.memo(NeshanMapWrapper, (prev, next) => {
   return (
     prev.center.lat === next.center.lat &&
     prev.center.lng === next.center.lng &&
     prev.marker?.lat === next.marker?.lat &&
-    prev.marker?.lng === next.marker?.lng
+    prev.marker?.lng === next.marker?.lng &&
+    prev.onMapClick === next.onMapClick
   )
 })

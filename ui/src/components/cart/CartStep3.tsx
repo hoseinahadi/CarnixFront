@@ -6,8 +6,10 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectCartActionLoading } from '@/store/feature/cart/cartSelectors';
 import { selectAddresses } from '@/store/feature/address/AddressSelectors';
 import { placeOrderFromCart } from '@/store/feature/cart/cartThunks';
-import axiosClient from '@/services/api/common/axiosClient'; // 🟢 اضافه شدن Axios ایمن
+import axiosClient from '@/services/api/common/axiosClient';
+import { CheckoutReferenceApi } from '@/features/checkout/api/referenceDataApi';
 import styles from './CartStep3.module.scss';
+import { calculateRoundedCartDiscount, calculateRoundedCartSubtotal, formatPrice, roundPrice } from '@/utils/price';
 
 // ... (Interface ها مانند قبل باقی می‌مانند) ...
 interface PaymentMethod {
@@ -53,15 +55,16 @@ const CartStep3: React.FC<any> = ({
   const selectedAddress = addresses.find(a => a.userAddressId === selectedAddressId);
 
   const itemsCount = cart?.totalItemsCount || cart?.items?.length || 0;
-  const cartSubTotal = cart?.subTotal || 0;
-  const cartDiscountTotal = cart?.totalDiscount || 0;
-  const cartTaxTotal = cart?.taxAmount || 0;
-  
-  const couponDiscountAmount = couponInfo?.discountAmount || 0;
-  const totalBeforeCoupon = cartSubTotal - cartDiscountTotal + cartTaxTotal + shippingCost;
-  const finalAmount = totalBeforeCoupon - couponDiscountAmount;
+  const cartSubTotal = calculateRoundedCartSubtotal(cart);
+  const cartDiscountTotal = calculateRoundedCartDiscount(cart);
+  const roundedShippingCost = roundPrice(shippingCost || 0);
+  const couponDiscountAmount = roundPrice(couponInfo?.discountAmount || 0);
+  const finalAmount = Math.max(
+    0,
+    cartSubTotal - cartDiscountTotal + roundedShippingCost - couponDiscountAmount,
+  );
 
-  const formatCurrency = (amount: number) => amount.toLocaleString('fa-IR');
+  const formatCurrency = (amount: number) => formatPrice(amount);
 
   const getPaymentIcon = (methodType: string) => {
     switch (methodType) {
@@ -85,7 +88,7 @@ const CartStep3: React.FC<any> = ({
     const fetchPaymentMethods = async () => {
       try {
         // 🟢 استفاده از Axios بجای fetch برای ارسال اتوماتیک هدرها و توکن‌ها
-        const response = await axiosClient.get('/PaymentMethod/GetAll'); 
+        const response = await CheckoutReferenceApi.getPaymentMethods(); 
         const data = response.data;
         
         let methods: PaymentMethod[] = [];
@@ -208,7 +211,7 @@ const CartStep3: React.FC<any> = ({
                   {shippingMethodLabels[shippingMethod] || shippingMethod}
                 </span>
                 <span className={styles.shippingPrice}>
-                  {formatCurrency(shippingCost)} تومان
+                  {formatCurrency(roundedShippingCost)} تومان
                 </span>
               </div>
             </div>
@@ -308,7 +311,7 @@ const CartStep3: React.FC<any> = ({
             </div>
             <div className={styles.summaryRow}>
               <span>هزینه ارسال</span>
-              <span>{formatCurrency(shippingCost)} تومان</span>
+              <span>{formatCurrency(roundedShippingCost)} تومان</span>
             </div>
             {couponDiscountAmount > 0 && (
               <div className={styles.summaryRow}>

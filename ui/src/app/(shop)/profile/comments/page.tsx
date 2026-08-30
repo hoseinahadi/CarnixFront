@@ -1,7 +1,7 @@
 // components/ProductReviews/ProductReviews.tsx
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import styles from './ProductReviews.module.scss'
 import { 
   IconMessageCircle, 
@@ -30,10 +30,6 @@ export default function ProductReviews({ productId: propsProductId }: ProductRev
   const productFromRedux = useAppSelector(selectProductDetails)
   const productId = propsProductId || productFromRedux?.productId
 
-  console.log('🔵 ProductReviews mounted')
-  console.log('🔵 propsProductId:', propsProductId)
-  console.log('🔵 productFromRedux:', productFromRedux)
-  console.log('🔵 final productId:', productId)
 
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,30 +49,22 @@ export default function ProductReviews({ productId: propsProductId }: ProductRev
   const [editContent, setEditContent] = useState('')
   const [editRating, setEditRating] = useState(0)
 
-  // Load reviews when productId changes
-  useEffect(() => {
-    console.log('🔄 productId changed:', productId)
-    if (productId) {
-      loadReviews(1)
-    } else {
-      console.warn('⚠️ No productId available')
-      setLoading(false)
-    }
-  }, [productId])
+  const reviewRequestRef = useRef(0)
 
-  const loadReviews = async (page: number = 1) => {
+  const loadReviews = useCallback(async (page: number = 1) => {
     if (!productId) {
-      console.warn('⚠️ Cannot load reviews: No productId')
+      setLoading(false)
       return
     }
 
-    console.log(`📡 Loading reviews for product ${productId}, page ${page}`)
+    const requestId = ++reviewRequestRef.current
 
     try {
       setLoading(true)
       const response = await productReviewApi.getProductReviews(productId, page, 10)
-      
-      console.log('📡 API Response:', response.data)
+
+      // پاسخ صفحه قدیمی نباید نتایج صفحه جدیدتر را overwrite کند.
+      if (reviewRequestRef.current !== requestId) return
 
       if (response.data?.isSuccess) {
         const data = response.data.data
@@ -89,13 +77,28 @@ export default function ProductReviews({ productId: propsProductId }: ProductRev
         throw new Error(response.data?.message || 'خطا در دریافت نظرات')
       }
     } catch (error: any) {
-      console.error('❌ Error loading reviews:', error)
+      if (reviewRequestRef.current !== requestId) return
       toast.error(error.message || 'خطا در دریافت نظرات')
       setReviews([])
     } finally {
+      if (reviewRequestRef.current === requestId) {
+        setLoading(false)
+      }
+    }
+  }, [productId])
+
+  // Load reviews when productId changes
+  useEffect(() => {
+    if (productId) {
+      void loadReviews(1)
+    } else {
       setLoading(false)
     }
-  }
+
+    return () => {
+      reviewRequestRef.current += 1
+    }
+  }, [loadReviews, productId])
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -160,13 +163,34 @@ export default function ProductReviews({ productId: propsProductId }: ProductRev
 
   const handleDeleteReview = async (reviewId: number) => {
     if (!confirm('آیا از حذف این نظر اطمینان دارید؟')) return
-    
+
+    const deletedReview = reviews.find((review) => review.productReviewId === reviewId)
+
     try {
       const response = await productReviewApi.deleteReview(reviewId)
-      
+
       if (response.data?.isSuccess) {
         toast.success('نظر با موفقیت حذف شد')
-        await loadReviews(currentPage)
+
+        const nextTotalCount = Math.max(0, totalCount - 1)
+        const nextTotalPages = Math.ceil(nextTotalCount / 10)
+
+        if (reviews.length === 1 && currentPage > 1) {
+          await loadReviews(currentPage - 1)
+          return
+        }
+
+        setReviews((prev) => prev.filter((review) => review.productReviewId !== reviewId))
+        setTotalCount(nextTotalCount)
+        setTotalPages(nextTotalPages)
+
+        if (deletedReview && totalCount > 1) {
+          setAverageRating(
+            Math.max(0, ((averageRating * totalCount) - deletedReview.rating) / (totalCount - 1)),
+          )
+        } else if (nextTotalCount === 0) {
+          setAverageRating(0)
+        }
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'خطا در حذف نظر')
@@ -179,6 +203,8 @@ export default function ProductReviews({ productId: propsProductId }: ProductRev
       return
     }
 
+    const previousReview = reviews.find((review) => review.productReviewId === reviewId)
+
     try {
       const response = await productReviewApi.updateReview(reviewId, {
         content: editContent.trim(),
@@ -188,7 +214,19 @@ export default function ProductReviews({ productId: propsProductId }: ProductRev
       if (response.data?.isSuccess) {
         toast.success('نظر با موفقیت ویرایش شد')
         setEditingReviewId(null)
-        await loadReviews(currentPage)
+
+        const serverReview = response.data.data
+        setReviews((prev) => prev.map((review) =>
+          review.productReviewId === reviewId
+            ? (serverReview || { ...review, content: editContent.trim(), rating: editRating })
+            : review,
+        ))
+
+        if (previousReview && totalCount > 0 && editRating > 0) {
+          setAverageRating(
+            Math.max(0, ((averageRating * totalCount) - previousReview.rating + editRating) / totalCount),
+          )
+        }
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'خطا در ویرایش نظر')
@@ -197,7 +235,7 @@ export default function ProductReviews({ productId: propsProductId }: ProductRev
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return
-    loadReviews(page)
+    void loadReviews(page)
     document.querySelector(`.${styles.container}`)?.scrollIntoView({ 
       behavior: 'smooth', 
       block: 'start' 

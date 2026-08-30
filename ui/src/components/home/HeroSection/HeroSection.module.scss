@@ -1,6 +1,10 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
+
+// ============================================================
+// HERO CONTAINER
+// ============================================================
 
 .heroContainer {
   position: relative;
@@ -8,10 +12,14 @@
   height: 500px;
   margin-bottom: $spacing-xl;
   background-color: $color-background;
-  
-  // 🟢 مقصر اصلی پیدا شد! isolation: isolate باعث میشد z-index های داخل فرم، از این کادر بیرون نزنند. (حذف شد)
-  // به جای آن، به کل این سکشن یک z-index قوی می‌دهیم تا روی سکشن دسته‌بندی‌ها که پایینش هست قرار بگیرد
-  z-index: 90; 
+
+  /*
+   * isolation: isolate عمداً استفاده نشده.
+   *
+   * چون searchOverlay باید بتواند از محدوده Hero بیرون بزند
+   * و روی سکشن بعدی قرار بگیرد.
+   */
+  z-index: 90;
 
   @include respond-to('xl') {
     height: 550px;
@@ -34,115 +42,202 @@
   }
 }
 
+
+// ============================================================
+// SLIDER WRAPPER
+// ============================================================
+
 .sliderWrapper {
+  position: relative;
+
   width: 100%;
   height: 100%;
+
   overflow: hidden;
+
   border-radius: $border-radius-lg;
-  // 🟢 ایندکس پایین برای عکس‌های پس‌زمینه تا فرم سرچ روی آنها بیفتد
-  position: relative;
-  z-index: 1; 
+
+  /*
+   * اسلایدر پایین‌تر از Search Overlay قرار می‌گیرد.
+   */
+  z-index: 1;
 }
+
+
+// ============================================================
+// SWIPER ROOT
+// ============================================================
 
 .swiperRoot {
   width: 100%;
   height: 100%;
 
+
+  // ----------------------------------------------------------
+  // Pagination
+  // ----------------------------------------------------------
+
   :global(.swiper-pagination-bullet) {
     background-color: $color-white;
     opacity: 0.7;
+
     @include transition-ease;
   }
+
   :global(.swiper-pagination-bullet-active) {
-    background-color: $color-primary;
-    opacity: 1;
     width: 24px;
+
+    background-color: $color-primary;
     border-radius: $border-radius-sm;
+
+    opacity: 1;
+  }
+
+
+  // ----------------------------------------------------------
+  // Navigation Buttons
+  // ----------------------------------------------------------
+
+  /*
+   * نکته مهم:
+   *
+   * چون این فایل CSS Module است، Selectorهای Global نباید
+   * به‌تنهایی در Root فایل قرار بگیرند.
+   *
+   * قرار گرفتن آنها داخل .swiperRoot باعث می‌شود Selector
+   * حداقل یک Local Class داشته باشد و Next/Webpack دیگر خطای:
+   *
+   * "Selector is not pure"
+   *
+   * ندهد.
+   */
+
+  :global(.swiper-button-prev),
+  :global(.swiper-button-next) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    padding: 5px;
+
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+
+    border-radius: 50%;
+
+    color: $color-white;
+
+    z-index: 5;
+
+    @include respond-down('md') {
+      display: none !important;
+    }
+
+    &::after {
+      font-size: 16px;
+      font-weight: bold;
+    }
   }
 }
+
+
+// ============================================================
+// SLIDE IMAGE
+// ============================================================
 
 .slideImage {
   width: 100%;
   height: 100%;
+
   object-fit: cover;
   object-position: center;
 }
 
+
+// ============================================================
+// IMAGE OVERLAY
+// ============================================================
+
 .imageOverlay {
   @include cover-absolute;
+
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.1) 0%,
     rgba($color-primary-dark, 0.3) 100%
   );
+
   z-index: 1;
 }
 
-// دکمه‌های ناوبری Swiper
-:global(.swiper-button-prev),
-:global(.swiper-button-next) {
-  width: 36px;
-  height: 36px;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-  border-radius: 50%;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  padding: 5px;
 
-  @include respond-down('md') {
-    display: none !important;
-  }
+// ============================================================
+// SEARCH OVERLAY
+// ============================================================
 
-  &::after {
-    font-size: 10px;
-    font-weight: bold;
-  }
-}
-
-// باکس جستجوی شناور
 .searchOverlay {
   position: absolute;
+
   bottom: -40px;
   left: 50%;
+
   transform: translateX(-50%);
+
   width: 90%;
   max-width: $container-max-width;
-  
-  // 🟢 بالا بردن ایندکسِ کانتینرِ سرچ بار تا با قدرت روی همه‌چیز (حتی دسته‌بندی‌های پایین صفحه) شناور شود
-  z-index: 100; 
+
+  /*
+   * Search Overlay باید بالاتر از Slider و همچنین
+   * سکشن بعدی صفحه قرار بگیرد.
+   */
+  z-index: 100;
 
   @include respond-down('md') {
-    width: 100%;
-    max-width: 1320px;
     position: absolute;
+
     bottom: 0;
     left: 0;
-    transform: translateX(0);
+
+    width: 100%;
+    max-width: 1320px;
+
+    transform: none;
   }
 }
+
+
+// ============================================================
+// SEARCH BOX PLACEHOLDER
+// ============================================================
 
 .searchBoxPlaceholder {
   @include flex-center;
-  padding: $spacing-lg;
+
   min-height: 80px;
 
+  padding: $spacing-lg;
+
   @include respond-down('md') {
-    min-height: 60px;
-    padding: 0;
     position: absolute;
+
     width: 100%;
+    min-height: 60px;
+
     margin-top: 24px;
+    padding: 0;
   }
 
   @include respond-down('sm') {
-    min-height: 50px;
-    padding: $spacing-sm;
-    border-radius: $border-radius-sm;
     position: absolute;
+
     width: 100%;
+    min-height: 50px;
+
+    padding: $spacing-sm;
+
+    border-radius: $border-radius-sm;
   }
 }

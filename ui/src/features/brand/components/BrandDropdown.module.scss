@@ -1,7 +1,10 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .megaMenu {
+    direction: rtl;
+    text-align: right;
+    font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
     width: 100%;
     height: 30rem;
     padding: 1rem;

@@ -1,6 +1,6 @@
 // app/profile/orders/[id]/OrderDetail.module.scss
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 /* 🟢 اعمال یکپارچه فونت و RTL برای همه دستگاه‌ها */
 .container {
@@ -59,7 +59,7 @@
   background: none;
   border: none;
   color: #9ca3af;
-  font-size: 11px;
+  font-size: 16px;
   cursor: pointer;
 }
 
@@ -82,7 +82,7 @@
 }
 
 .breadcrumb {
-  font-size: 12px;
+  font-size: 16px;
   color: #9ca3af;
 }
 
@@ -96,7 +96,7 @@
   background: none;
   border: none;
   color: #9ca3af;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   &:hover { color: #ef4444; }
 }
@@ -107,7 +107,7 @@
   background: transparent;
   padding: 8px 24px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -143,7 +143,7 @@
   z-index: 2;
 
   span {
-    font-size: 11px;
+    font-size: 16px;
     font-weight: 600;
     color: #d1d5db; // طوسی خیلی روشن برای حالت غیرفعال
   }
@@ -237,13 +237,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 16px;
 
   .label { color: #6b7280; }
   .value { color: #1f2937; font-weight: 600; }
   
   @media (max-width: 576px) {
-    font-size: 11px;
+    font-size: 16px;
     flex-wrap: wrap; // برای اینکه اگر متن طولانی بود نشکند
   }
 }
@@ -293,7 +293,7 @@
 }
 
 .productName {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: #374151;
   line-height: 1.6;
@@ -303,7 +303,7 @@
     color: #6b7280;
     font-weight: 400;
     margin-right: 4px;
-    font-size: 12px;
+    font-size: 16px;
   }
 }
 
@@ -312,12 +312,12 @@
   align-items: center;
   gap: 4px;
   color: #6b7280;
-  font-size: 12px;
+  font-size: 16px;
   margin-bottom: 8px;
 }
 
 .productPrice {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: #1f2937;
 }
@@ -343,7 +343,7 @@
   th {
     background: #f9fafb;
     color: #6b7280;
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     padding: 16px 20px;
     border-bottom: 1px solid #e5e7eb;
@@ -386,18 +386,18 @@
 }
 
 .tdName {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #374151;
 }
 
 .tdQty {
-  font-size: 13px;
+  font-size: 16px;
   color: #6b7280;
 }
 
 .tdPrice {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #1f2937;
 }
@@ -430,7 +430,7 @@
   gap: 32px;
 
   .shipItem {
-    font-size: 13px;
+    font-size: 16px;
     display: flex;
     gap: 6px;
     .label { color: #6b7280; }
@@ -441,12 +441,12 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-    .shipItem { font-size: 12px; }
+    .shipItem { font-size: 16px; }
   }
 }
 
 .shippingRow {
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.8;
 
   .label { color: #6b7280; margin-bottom: 6px; display: block; }
@@ -458,7 +458,7 @@
   }
 
   @media (max-width: 768px) {
-    font-size: 12px;
+    font-size: 16px;
   }
 }
 
@@ -471,10 +471,10 @@
   padding-top: 16px;
   border-top: 1px dashed #e5e7eb; // خط جداکننده نقطه‌چین
 
-  .label { font-size: 13px; color: #6b7280; }
+  .label { font-size: 16px; color: #6b7280; }
 
   @media (max-width: 768px) {
-    .label { font-size: 12px; }
+    .label { font-size: 16px; }
   }
 }
 
@@ -484,7 +484,7 @@
   gap: 8px;
 
   .trackingNumber {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     color: #1f2937;
     letter-spacing: 1px;
@@ -529,7 +529,32 @@
 .modalHeader { display: flex; justify-content: space-between; margin-bottom: 16px; }
 .modalTitle { margin: 0; font-size: 16px; font-weight: bold; }
 .closeBtn { background: none; border: none; cursor: pointer; color: #ef4444; }
-.modalTextarea { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 16px; font-family: inherit; font-size: 12px; resize: vertical;}
+.modalTextarea { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 16px; font-family: inherit; font-size: 16px; resize: vertical;}
 .modalActions { display: flex; gap: 12px; }
 .modalCancelBtn { flex: 1; padding: 10px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; font-family: inherit;}
 .modalConfirmBtn { flex: 1; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: inherit;}
+.errorIcon {
+  color: #dc2626;
+}
+
+.btnBackOutline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.modalSubtitle {
+  margin: 0 0 12px;
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.8;
+}

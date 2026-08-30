@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .overlay {
   position: fixed;
@@ -170,7 +171,7 @@
     transition: color 0.2s;
 
     &:hover {
-      color: darken($color-primary, 10%);
+      color: color.adjust($color-primary, $lightness: -10%);
     }
   }
 }

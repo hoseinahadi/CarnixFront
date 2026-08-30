@@ -50,6 +50,8 @@ import {
   fetchMyCart,
 } from '@/store/feature/cart/cartThunks';
 
+import { sessionCleared } from '@/store/actions/sessionActions';
+
 const loadAuthenticatedUserData = async (
   dispatch: AppDispatch,
 ): Promise<void> => {
@@ -59,7 +61,7 @@ const loadAuthenticatedUserData = async (
    */
   try {
     await dispatch(
-      getMeThunk(),
+      getMeThunk({ force: true }),
     ).unwrap();
   } catch {
     // خطا در Slice ثبت می‌شود.
@@ -67,7 +69,7 @@ const loadAuthenticatedUserData = async (
 
   try {
     await dispatch(
-      fetchMyCart(),
+      fetchMyCart({ force: true }),
     ).unwrap();
   } catch {
     // خالی یا در دسترس نبودن سبد خرید مانع ورود کاربر نمی‌شود.
@@ -76,8 +78,9 @@ const loadAuthenticatedUserData = async (
 
 export const getMeThunk = createAsyncThunk<
   UserDetail,
-  void,
+  { force?: boolean } | undefined,
   {
+    state: { auth: { userDetail: UserDetail | null; meLoading: boolean } };
     rejectValue: string;
   }
 >(
@@ -110,6 +113,14 @@ export const getMeThunk = createAsyncThunk<
         ),
       );
     }
+  },
+  {
+    condition: (args, { getState }) => {
+      const { userDetail, meLoading } = getState().auth;
+      if (meLoading) return false;
+      if (args?.force) return true;
+      return !userDetail;
+    },
   },
 );
 
@@ -218,12 +229,13 @@ export const logoutThunk = createAsyncThunk<
   void,
   void,
   {
+    dispatch: AppDispatch;
     rejectValue: string;
   }
 >(
   'auth/logout',
 
-  async () => {
+  async (_, { dispatch }) => {
     try {
       await authApi.logout();
     } catch {
@@ -233,6 +245,8 @@ export const logoutThunk = createAsyncThunk<
        */
     } finally {
       clearAuthStorage();
+      // علاوه بر Storage/Cache، stateهای شخصی Redux نیز همان لحظه آزاد شوند.
+      dispatch(sessionCleared());
     }
   },
 );

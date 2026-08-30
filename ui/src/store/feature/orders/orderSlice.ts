@@ -18,6 +18,8 @@ interface OrderState {
   detailLoading: boolean;
   actionLoading: boolean;
   error: string | null;
+  lastListFetchKey: string | null;
+  lastListFetchedAt: number | null;
 }
 
 const initialState: OrderState = {
@@ -34,6 +36,8 @@ const initialState: OrderState = {
   detailLoading: false,
   actionLoading: false,
   error: null,
+  lastListFetchKey: null,
+  lastListFetchedAt: null,
 };
 
 const orderSlice = createSlice({
@@ -59,12 +63,15 @@ const orderSlice = createSlice({
       })
       .addCase(fetchMyOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload.orders;
+        const result = action.payload.result;
+        state.orders = result.orders;
+        state.lastListFetchKey = action.payload.fetchKey;
+        state.lastListFetchedAt = action.payload.fetchedAt;
         state.pagination = {
-          currentPage: action.payload.currentPage,
-          totalPages: action.payload.totalPages,
-          totalCount: action.payload.totalCount,
-          pageSize: action.payload.pageSize,
+          currentPage: result.currentPage,
+          totalPages: result.totalPages,
+          totalCount: result.totalCount,
+          pageSize: result.pageSize,
         };
       })
       .addCase(fetchMyOrders.rejected, (state, action) => {
@@ -100,6 +107,11 @@ const orderSlice = createSlice({
           state.orders[index].orderStatus = 'Cancelled';
           state.orders[index].orderStatusId = 8;
         }
+        if (state.selectedOrder?.orderId === action.payload) {
+          state.selectedOrder.orderStatus = 'Cancelled';
+          state.selectedOrder.orderStatusId = 8;
+        }
+        state.lastListFetchedAt = null;
       })
       .addCase(cancelOrder.rejected, (state, action) => {
         state.actionLoading = false;

@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 /* =========================================
    1. Media Queries (مدیا کوئری‌های ریسپانسیو)
    ========================================= */
@@ -92,7 +94,7 @@
     background: $thumb-color;
     border-radius: 10px;
     &:hover {
-      background: darken($thumb-color, 15%);
+      background: color.adjust($thumb-color, $lightness: -15%);
     }
   }
 }

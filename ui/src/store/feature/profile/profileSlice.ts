@@ -15,6 +15,7 @@ interface ProfileState {
   uploadingAvatar: boolean;
   error: string | null;
   successMessage: string | null;
+  lastFetchedAt: number | null;
 }
 
 const initialState: ProfileState = {
@@ -25,6 +26,7 @@ const initialState: ProfileState = {
   uploadingAvatar: false,
   error: null,
   successMessage: null,
+  lastFetchedAt: null,
 };
 
 const profileSlice = createSlice({
@@ -34,6 +36,7 @@ const profileSlice = createSlice({
     clearProfileMessages: (state) => {
       state.error = null;
       state.successMessage = null;
+      state.lastFetchedAt = null;
     },
     clearProfileState: (state) => {
       state.data = null;
@@ -50,7 +53,8 @@ const profileSlice = createSlice({
       })
       .addCase(fetchMyProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload;
+        state.data = action.payload.data;
+        state.lastFetchedAt = action.payload.fetchedAt;
       })
       .addCase(fetchMyProfile.rejected, (state, action) => {
         state.loading = false;
@@ -67,6 +71,7 @@ const profileSlice = createSlice({
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.updating = false;
         state.data = action.payload;
+        state.lastFetchedAt = Date.now();
         state.successMessage = 'پروفایل با موفقیت بروزرسانی شد.';
       })
       .addCase(updateProfile.rejected, (state, action) => {

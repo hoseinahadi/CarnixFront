@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .step1Container {
   display: grid;
@@ -234,7 +235,7 @@
     transition: all 0.3s;
 
     &:hover:not(:disabled) {
-      background-color: darken($color-primary, 10%);
+      background-color: color.adjust($color-primary, $lightness: -10%);
     }
 
     &:disabled {

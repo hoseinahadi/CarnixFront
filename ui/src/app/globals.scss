@@ -1,6 +1,6 @@
-@import '@/assets/styles/utils/variables'; 
-@import '@/assets/styles/utils/mixins';
-@import '../assets/styles/base/fonts';
+@use '@/assets/styles/utils/variables' as *; 
+@use '@/assets/styles/utils/mixins' as *;
+@use '../assets/styles/base/fonts' as *;
 
 /* ==========================================
    ۱. ریست اولیه
@@ -36,6 +36,73 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+
+
+/* ==========================================
+   تایپوگرافی و RTL سراسری
+   ========================================== */
+html,
+body {
+  direction: rtl;
+  text-align: right;
+  color-scheme: light;
+}
+
+body,
+button,
+input,
+textarea,
+select,
+option,
+optgroup {
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font-size: 1rem;
+}
+
+input,
+textarea,
+select,
+option,
+optgroup,
+[role='listbox'],
+[role='option'],
+[role='menu'],
+[role='menuitem'],
+[role='combobox'] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* MUI کامپوننت‌ها و پورتال‌هایشان خارج از درخت محلی رندر می‌شوند. */
+.MuiTypography-root,
+.MuiButtonBase-root,
+.MuiInputBase-root,
+.MuiFormLabel-root,
+.MuiMenuItem-root,
+.MuiList-root,
+.MuiAutocomplete-root,
+.MuiAutocomplete-option,
+.MuiSelect-select,
+.MuiPaper-root {
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif !important;
+}
+
+.MuiInputBase-root,
+.MuiFormLabel-root,
+.MuiMenuItem-root,
+.MuiAutocomplete-option,
+.MuiSelect-select {
+  font-size: 1rem !important;
+  direction: rtl;
+  text-align: right;
+}
+
 /* ==========================================
    ۳. فقط Swiper تنظیمات خاص داشته باشه
    ========================================== */
@@ -62,13 +129,6 @@ body {
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 /* ==========================================
@@ -101,11 +161,3 @@ a {
   background: $color-primary-dark;
 }
 
-/* ==========================================
-   ۸. دارک مود
-   ========================================== */
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}

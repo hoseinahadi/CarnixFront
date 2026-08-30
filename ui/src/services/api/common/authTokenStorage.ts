@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie';
 
 import type { UserDetail } from '@/models/user/UserDetail';
+import { invalidateRequestCache } from '@/services/api/common/requestCache';
 
 const ACCESS_TOKEN_KEY = 'token';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -65,6 +66,12 @@ export const saveAuthTokens = ({
 }: AuthTokens): void => {
   if (!canUseBrowserStorage()) {
     return;
+  }
+
+  // داده‌های cache شده کاربر قبلی نباید بین نشست‌ها نشت کنند.
+  const previousAccessToken = getAccessToken();
+  if (previousAccessToken !== accessToken) {
+    invalidateRequestCache();
   }
 
   localStorage.setItem(
@@ -136,6 +143,9 @@ export const clearAuthStorage = (): void => {
   if (!canUseBrowserStorage()) {
     return;
   }
+
+  // cacheهای شخصی مثل wishlist/profile/address بین کاربران باقی نمانند.
+  invalidateRequestCache();
 
   localStorage.removeItem(
     ACCESS_TOKEN_KEY,

@@ -1,10 +1,10 @@
 // src/assets/styles/globals.scss
 
 // ۱. اضافه کردن فونت‌ها
-@import 'base/fonts';
+@use 'base/fonts' as *;
 // ۲. ریست کردن استایل‌های پیش‌فرض مرورگر
 // ۳. استایل‌های پایه‌ای بادی (Body)
-@import 'utils/variables'; // فقط برای استفاده در همین فایل
+@use 'utils/variables' as *; // فقط برای استفاده در همین فایل
 
 body {
   font-family: $font-family-main;

@@ -14,6 +14,7 @@ interface ContentManagerState {
   displayContent: FullContentDisplayDto | null;
   latestContents: ContentSummaryDto[]; // === آرایه جدیدترین مقالات اضافه شد ===
   loading: boolean;
+  latestLoading: boolean;
   actionLoading: boolean; 
   error: string | null;
 }
@@ -22,6 +23,7 @@ const initialState: ContentManagerState = {
   displayContent: null,
   latestContents: [], // === مقدار اولیه اضافه شد ===
   loading: false,
+  latestLoading: false,
   actionLoading: false,
   error: null,
 };
@@ -56,15 +58,15 @@ const contentManagerSlice = createSlice({
     // === هندل کردن اکشن دریافت جدیدترین مقالات ===
     builder
       .addCase(getLatestContents.pending, (state) => {
-        state.loading = true;
+        state.latestLoading = true;
         state.error = null;
       })
       .addCase(getLatestContents.fulfilled, (state, action) => {
-        state.loading = false;
+        state.latestLoading = false;
         state.latestContents = action.payload; // دیتای دریافتی در استیت ذخیره می‌شود
       })
       .addCase(getLatestContents.rejected, (state, action) => {
-        state.loading = false;
+        state.latestLoading = false;
         state.error = action.payload as string;
       });
     // ===============================================

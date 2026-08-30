@@ -17,13 +17,6 @@ export default function ProductInfo({ onNavigateToTab }: ProductInfoProps) {
   // Debug
   useEffect(() => {
     if (product) {
-      console.log('🎯 Product Full Data:', {
-        keys: Object.keys(product),
-        featureValues: product.featureValues,
-        featureValuesLength: product.featureValues?.length,
-        brandName: product.brandName,
-        categoryName: product.categoryName
-      });
     }
   }, [product]);
 
@@ -50,8 +43,6 @@ export default function ProductInfo({ onNavigateToTab }: ProductInfoProps) {
   // ۴ ویژگی اول
   const topFeatures = filledFeatures.slice(0, 4);
 
-  console.log('📦 Filled Features:', filledFeatures.length);
-  console.log('📦 Top Features:', topFeatures);
 
   return (
     <div className={styles.productInfo}>

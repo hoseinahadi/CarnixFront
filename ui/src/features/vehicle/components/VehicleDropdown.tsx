@@ -10,6 +10,7 @@ import styles from './VehicleDropdown.module.scss'
 import classNames from 'classnames'
 import { Car } from 'lucide-react'
 import { VehicleMake } from '@/models/Vehicle/Vehicle'
+import { resolveVehicleMakeId, resolveVehicleModelId } from '@/utils/vehicleIds'
 
 type Props = {
   makes: VehicleMake[]
@@ -29,12 +30,19 @@ const VehicleDropdown = ({ makes }: Props) => {
     }
   }, [makes, activeMake])
   
-  // فراخوانی مدل‌ها از Redux هنگام هاور روی برند جدید
+  // Hover بین برندها سریع اتفاق می‌افتد؛ 150ms مکث از چند درخواست بیهوده جلوگیری می‌کند.
   useEffect(() => {
-    if (activeMake) {
-      dispatch(clearModels()) // پاک کردن قبلی‌ها
-      dispatch(getModelsByMakeId(activeMake.vehicleMakeId))
-    }
+    if (!activeMake) return
+
+    dispatch(clearModels())
+    const timerId = window.setTimeout(() => {
+      const makeId = resolveVehicleMakeId(activeMake)
+      if (makeId) {
+        void dispatch(getModelsByMakeId(makeId))
+      }
+    }, 150)
+
+    return () => window.clearTimeout(timerId)
   }, [activeMake, dispatch])
   
   return (
@@ -43,9 +51,9 @@ const VehicleDropdown = ({ makes }: Props) => {
       <div className={styles.main}>
         {makes.map(make => (
           <div
-            key={make.vehicleMakeId}
+            key={resolveVehicleMakeId(make) ?? make.name}
             className={classNames(styles.mainItem, {
-              [styles.active]: make.vehicleMakeId === activeMake?.vehicleMakeId
+              [styles.active]: resolveVehicleMakeId(make) === resolveVehicleMakeId(activeMake)
             })}
             onMouseEnter={() => setActiveMake(make)}
           >
@@ -63,7 +71,7 @@ const VehicleDropdown = ({ makes }: Props) => {
           <div className={styles.subWrapper}>
             <div className={styles.subHeader}>
               <div className={styles.subTitle}>ماشین های {activeMake.name}</div>
-              <Link href={`/vehicles/${activeMake.name}`} className={styles.viewAll}>
+              <Link href="/vehicles" className={styles.viewAll}>
                 مشاهده همه
               </Link>
             </div>
@@ -74,18 +82,27 @@ const VehicleDropdown = ({ makes }: Props) => {
               <div className={classNames(styles.stateContainer, styles.errorText)}>{error}</div>
             ) : (
               <div className={styles.modelGrid}>
-                {models.map(model => (
-                  <Link
-                    key={model.vehicleGenerationId || model.name} 
-                    href={`/vehicles/${activeMake.name}/${model.name}`}
-                    className={styles.modelCard}
-                  >
-                    <span className={styles.modelName}>{model.name}</span>
-                    <div className={styles.carImagePlaceholder}>
-                      <Car color="#ffffff" size={24} strokeWidth={1.5} />
-                    </div>
-                  </Link>
-                ))}
+                {models.map((model) => {
+                  const makeId = resolveVehicleMakeId(activeMake)
+                  const modelId = resolveVehicleModelId(model)
+
+                  if (!makeId || !modelId) {
+                    return null
+                  }
+
+                  return (
+                    <Link
+                      key={modelId}
+                      href={`/products?makeId=${makeId}&modelId=${modelId}`}
+                      className={styles.modelCard}
+                    >
+                      <span className={styles.modelName}>{model.name}</span>
+                      <div className={styles.carImagePlaceholder}>
+                        <Car color="#ffffff" size={24} strokeWidth={1.5} />
+                      </div>
+                    </Link>
+                  )
+                })}
                 {models.length === 0 && !loading && (
                   <div className={styles.stateContainer}>مدلی یافت نشد.</div>
                 )}

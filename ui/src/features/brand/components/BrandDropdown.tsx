@@ -37,7 +37,7 @@ const BrandDropdown = ({ brands }: Props) => {
         {activeBrands.map(brand => (
           <Link
             key={brand.brandId}
-            href={`/brand/${brand.brandId}`}
+            href={`/products?brandId=${brand.brandId}`}
             className={styles.brandCard}
           >
             {/* باکس آیکون/لوگو با پس‌زمینه آبی */}

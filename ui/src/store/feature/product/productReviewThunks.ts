@@ -3,6 +3,8 @@ import axios from 'axios';
 
 import {
   productReviewApi,
+  invalidateProductReviewCache,
+  invalidateMyReviewCache,
   type CreateReviewRequest,
   type PaginatedReviewsResponse,
   type Review,
@@ -313,6 +315,9 @@ export const deleteReview = createAsyncThunk<
         );
       }
 
+      invalidateProductReviewCache(productId);
+      invalidateMyReviewCache();
+
       await dispatch(
         fetchProductReviews({
           productId,
@@ -366,6 +371,9 @@ export const updateReview = createAsyncThunk<
             'خطا در ویرایش نظر',
         );
       }
+
+      invalidateProductReviewCache(productId);
+      invalidateMyReviewCache();
 
       await dispatch(
         fetchProductReviews({

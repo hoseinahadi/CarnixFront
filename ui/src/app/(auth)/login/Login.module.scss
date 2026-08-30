@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables'; 
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *; 
+@use '@/assets/styles/utils/mixins' as *;
 
 /* بک‌گراند اختصاصی صفحه لاگین (مشابه عکس) */
 .loginPage {
@@ -123,14 +124,14 @@
   @include transition-ease;
 
   &:hover {
-    background-color: darken(#1d4ed8, 5%);
+    background-color: color.adjust(#1d4ed8, $lightness: -5%);
   }
 }
 
 /* ─── Footer ─── */
 .termsFooter {
   text-align: center;
-  font-size: 10px;
+  font-size: 16px;
   color: $color-text-muted;
   margin-top: $spacing-md;
 
@@ -143,4 +144,23 @@
       text-decoration: underline;
     }
   }
+}
+.errorMessage {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba($color-danger, 0.25);
+  border-radius: $border-radius-md;
+  background: rgba($color-danger, 0.06);
+  color: $color-danger;
+  font-size: $font-size-base;
+  line-height: 1.8;
+  text-align: right;
+}
+
+.spinner {
+  animation: authSpinner 0.8s linear infinite;
+}
+
+@keyframes authSpinner {
+  to { transform: rotate(360deg); }
 }

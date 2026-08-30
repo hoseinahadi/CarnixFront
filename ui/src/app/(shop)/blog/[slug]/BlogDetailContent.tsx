@@ -21,28 +21,35 @@ export default function BlogDetailContent({ params }: PageProps) {
 
   // دریافت اطلاعات مقاله از API بر اساس Slug
   useEffect(() => {
+    let active = true;
+
     const fetchArticle = async () => {
       try {
         setLoading(true);
         setError(null);
         const decodedSlug = decodeURIComponent(slug);
         const response = await ContentManagerApi.getContentForDisplay(decodedSlug);
-        
+        if (!active) return;
+
         if (response.data.isSuccess && response.data.data) {
           setArticle(response.data.data);
         } else {
           setError(response.data.message || 'مقاله مورد نظر پیدا نشد.');
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || 'ارتباط با سرور برقرار نشد.');
+        if (active) {
+          setError(err.response?.data?.message || 'ارتباط با سرور برقرار نشد.');
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
-    if (slug) {
-      fetchArticle();
-    }
+    if (slug) void fetchArticle();
+
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   // وضعیت لودینگ (Skeleton Loading)

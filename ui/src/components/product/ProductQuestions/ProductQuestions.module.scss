@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .questionsContainer {
   @include flex-column;
@@ -51,7 +51,7 @@
   }
 
   .hint {
-    font-size: 11px;
+    font-size: 16px;
     color: $color-text-muted;
   }
 
@@ -108,7 +108,7 @@
     }
 
     .date {
-      font-size: 11px;
+      font-size: 16px;
       color: $color-text-muted;
     }
   }
@@ -151,7 +151,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: 16px;
     font-weight: $font-weight-medium;
   }
 

@@ -1,6 +1,7 @@
+@use 'sass:color';
 // components/product/ProductFilters/PriceRangeSlider/PriceRangeSlider.module.scss
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .container {
   padding: $spacing-sm 0;
@@ -79,6 +80,9 @@
   transition: background 0.2s;
 
   &:hover {
-    background: darken(#2563eb, 10%); // یا $color-primary-dark
+    background: color.adjust(#2563eb, $lightness: -10%); // یا $color-primary-dark
   }
+}
+.sliderMax {
+  z-index: 3;
 }

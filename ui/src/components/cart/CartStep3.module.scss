@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .step3Container {
   display: grid;
@@ -214,7 +215,7 @@
     }
 
     &:hover:not(:disabled) {
-      background-color: darken($color-primary, 10%);
+      background-color: color.adjust($color-primary, $lightness: -10%);
     }
   }
 
@@ -400,7 +401,7 @@
   .installmentInfo {
     margin-top: $spacing-md;
     padding: $spacing-md;
-    background-color: lighten($color-primary, 45%);
+    background-color: color.adjust($color-primary, $lightness: 45%);
     border-radius: $border-radius-md;
     border: 1px solid $color-primary-light;
 
@@ -427,8 +428,8 @@
     display: flex;
     align-items: center;
     gap: $spacing-sm;
-    background-color: lighten($color-danger, 45%);
-    border: 1px solid lighten($color-danger, 30%);
+    background-color: color.adjust($color-danger, $lightness: 45%);
+    border: 1px solid color.adjust($color-danger, $lightness: 30%);
     color: $color-danger;
     padding: $spacing-md;
     border-radius: $border-radius-md;
@@ -485,8 +486,19 @@
       gap: $spacing-sm;
 
       &:hover {
-        background-color: darken($color-primary, 10%);
+        background-color: color.adjust($color-primary, $lightness: -10%);
       }
     }
   }
+}
+.mainSection {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.loading {
+  padding: $spacing-lg;
+  text-align: center;
+  color: $color-text-muted;
+  font-size: $font-size-base;
 }

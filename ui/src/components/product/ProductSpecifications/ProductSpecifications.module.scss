@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .specContainer {
   @include flex-column;
@@ -91,4 +91,15 @@
   .emptyIcon {
     color: $color-gray-300;
   }
+}
+.hint {
+  margin: $spacing-md 0;
+  color: $color-text-muted;
+  font-size: $font-size-base;
+  line-height: 1.8;
+}
+
+.specSection {
+  width: 100%;
+  margin-bottom: $spacing-lg;
 }

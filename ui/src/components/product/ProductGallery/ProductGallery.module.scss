@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .galleryContainer {
   @include flex-column;
@@ -100,4 +100,11 @@
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+.spinner {
+  animation: gallerySpinner 0.8s linear infinite;
+}
+
+@keyframes gallerySpinner {
+  to { transform: rotate(360deg); }
 }

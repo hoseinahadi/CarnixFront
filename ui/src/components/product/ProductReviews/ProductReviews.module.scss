@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .reviewsContainer {
   font-family: 'IRANYEKAN';
@@ -216,7 +216,7 @@
   align-items: center;
   
   .reviewDate {
-    font-size: 11px;
+    font-size: 16px;
     color: $color-text-muted;
   }
 
@@ -228,7 +228,7 @@
     border: 1px solid $color-border-light;
     border-radius: $border-radius-full;
     padding: 4px 12px;
-    font-size: 11px;
+    font-size: 16px;
     color: $color-text-muted;
     cursor: pointer;
     @include transition-ease;
@@ -303,7 +303,7 @@
   }
 
   span {
-    font-size: 10px;
+    font-size: 16px;
   }
 }
 
@@ -344,4 +344,11 @@
       color: $color-white;
     }
   }
+}
+.reviewRating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
 }

@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .pageContainer {
   max-width: $container-max-width;
@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   gap: 8px; // فاصله بین آیتم‌ها
-  font-size: 14px;
+  font-size: 16px;
   color: #64748b; // رنگ پیش‌فرض متن خاکستری
       margin-top: 10px;
   .breadcrumbLink {
@@ -49,7 +49,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  font-size: 11px;
+  font-size: 16px;
   color: $color-text-muted;
   margin-bottom: $spacing-lg;
   direction: rtl;
@@ -138,7 +138,7 @@
       }
       p {
         margin: 0;
-        font-size: 11px;
+        font-size: 16px;
         color: $color-text-muted;
       }
     }
@@ -269,14 +269,14 @@
 
 .debug {
   color: #999;
-  font-size: 12px;
+  font-size: 16px;
   margin-top: 8px;
   direction: ltr;
 }
 
 .debugInfo {
   color: #999;
-  font-size: 12px;
+  font-size: 16px;
   margin-top: 8px;
   direction: ltr;
 }
@@ -285,4 +285,15 @@
   text-align: center;
   padding: 40px 20px;
   color: #666;
+}
+.tabsWrapper {
+  width: 100%;
+  margin-top: $spacing-xl;
+}
+
+.descriptionTab {
+  width: 100%;
+  color: $color-text-main;
+  font-size: $font-size-base;
+  line-height: 2;
 }

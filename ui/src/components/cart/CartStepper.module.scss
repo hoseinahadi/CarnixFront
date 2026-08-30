@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .stepperContainer {
   display: flex;
@@ -75,4 +75,13 @@
   &.connectorCompleted {
     background-color: $color-primary;
   }
+}
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  font-size: $font-size-base;
+  font-weight: $font-weight-bold;
 }

@@ -1,6 +1,6 @@
 // components/product/ProductSort/ProductSort.module.scss
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .sortContainer {
   position: relative;

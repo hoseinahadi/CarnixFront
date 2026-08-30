@@ -19,6 +19,10 @@ export interface VehicleMake extends BaseEntity {
 
 // --- Model (مدل) ---
 export interface VehicleModel extends BaseEntity {
+  /** شناسه استاندارد مدل در بعضی DTOهای بک‌اند */
+  vehicleModelId?: number;
+  /** نام جایگزین شناسه که بعضی endpointها برمی‌گردانند */
+  modelId?: number;
   makeId: number;
   vehicleGenerationId: number;
   bodyType: string;

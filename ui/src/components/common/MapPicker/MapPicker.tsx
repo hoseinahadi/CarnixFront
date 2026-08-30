@@ -64,14 +64,21 @@ const NOMINATIM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse'
 // ===============================
 // Helper Functions
 // ===============================
-const fetchWithTimeout = async (url: string, timeout = 5000) => {
+const fetchWithTimeout = async (
+  url: string,
+  timeout = 5000,
+  init: RequestInit = {},
+) => {
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  const abortFromParent = () => controller.abort()
+  init.signal?.addEventListener('abort', abortFromParent, { once: true })
+  const timeoutId = window.setTimeout(() => controller.abort(), timeout)
+
   try {
-    const response = await fetch(url, { signal: controller.signal })
-    return response
+    return await fetch(url, { ...init, signal: controller.signal })
   } finally {
-    clearTimeout(timeoutId)
+    window.clearTimeout(timeoutId)
+    init.signal?.removeEventListener('abort', abortFromParent)
   }
 }
 
@@ -94,6 +101,7 @@ const MapPicker: React.FC<MapPickerProps> = memo(({
   const isMountedRef = useRef(true)
   const onLocationSelectRef = useRef(onLocationSelect)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const reverseAbortControllerRef = useRef<AbortController | null>(null)
 
   // Keep callback ref updated without triggering re-renders
   useEffect(() => {
@@ -120,11 +128,13 @@ const MapPicker: React.FC<MapPickerProps> = memo(({
   // Cleanup on unmount
   // ===============================
   useEffect(() => {
+    // React StrictMode در development effect را setup/cleanup/setup می‌کند.
+    isMountedRef.current = true
+
     return () => {
       isMountedRef.current = false
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
+      abortControllerRef.current?.abort()
+      reverseAbortControllerRef.current?.abort()
     }
   }, [])
 
@@ -147,14 +157,12 @@ const MapPicker: React.FC<MapPickerProps> = memo(({
       try {
         const response = await fetchWithTimeout(OSM_TILE_URL, 4000)
         if (!cancelled && response.ok) {
-          console.log('✅ OpenStreetMap connected')
           setMapProvider('leaflet')
           return
         }
         throw new Error('OSM not available')
       } catch {
         if (!cancelled) {
-          console.warn('⚠️ OSM unavailable, trying Neshan')
           const apiKey = process.env.NEXT_PUBLIC_NESHAN_API_KEY
           if (apiKey && apiKey !== 'YOUR_API_KEY') {
             setMapProvider('neshan')
@@ -233,36 +241,63 @@ const MapPicker: React.FC<MapPickerProps> = memo(({
   // Reverse Geocode (Coordinates → Address)
   // ===============================
   const reverseGeocode = useCallback(async (lat: number, lng: number) => {
+    reverseAbortControllerRef.current?.abort()
+    const controller = new AbortController()
+    reverseAbortControllerRef.current = controller
+
     try {
       const response = await fetchWithTimeout(
-        `${NOMINATIM_REVERSE_URL}?format=json&lat=${lat}&lon=${lng}&accept-language=fa`
+        `${NOMINATIM_REVERSE_URL}?format=json&lat=${lat}&lon=${lng}&accept-language=fa`,
+        5000,
+        { signal: controller.signal },
       )
+
       if (response.ok) {
         const data = await response.json()
-        if (isMountedRef.current && data.display_name) {
+        if (
+          isMountedRef.current &&
+          reverseAbortControllerRef.current === controller &&
+          data.display_name
+        ) {
           setSearchQuery(data.display_name)
         }
+        return
       }
-    } catch {
-      // Fallback to Neshan
+
+      throw new Error('Reverse geocode unavailable')
+    } catch (error: unknown) {
+      if (controller.signal.aborted) return
+
       if (mapProvider === 'neshan') {
         const apiKey = process.env.NEXT_PUBLIC_NESHAN_API_KEY
         if (apiKey) {
           try {
             const response = await fetchWithTimeout(
               `https://api.neshan.org/v2/reverse?lat=${lat}&lng=${lng}`,
-              4000
+              4000,
+              {
+                signal: controller.signal,
+                headers: { 'Api-Key': apiKey },
+              },
             )
             if (response.ok) {
               const data = await response.json()
-              if (isMountedRef.current && data.formatted_address) {
+              if (
+                isMountedRef.current &&
+                reverseAbortControllerRef.current === controller &&
+                data.formatted_address
+              ) {
                 setSearchQuery(data.formatted_address)
               }
             }
           } catch {
-            // Silent fail
+            // شکست reverse geocode مانع انتخاب مختصات نمی‌شود.
           }
         }
+      }
+    } finally {
+      if (reverseAbortControllerRef.current === controller) {
+        reverseAbortControllerRef.current = null
       }
     }
   }, [mapProvider])
@@ -270,78 +305,26 @@ const MapPicker: React.FC<MapPickerProps> = memo(({
   // ===============================
   // Search Address (Nominatim)
   // ===============================
-  const searchAddress = useCallback(async (query: string) => {
-    if (query.length < 3) {
-      setSearchResults([])
-      setShowSearchResults(false)
-      return
-    }
-
-    // Cancel previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-    abortControllerRef.current = new AbortController()
-
-    setIsSearching(true)
-
-    try {
-      const params = new URLSearchParams({
-        format: 'json',
-        q: query,
-        limit: '5',
-        countrycodes: 'ir',
-        'accept-language': 'fa',
-      })
-
-      const response = await fetch(`${NOMINATIM_SEARCH_URL}?${params}`, {
-        signal: abortControllerRef.current.signal,
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        if (isMountedRef.current && Array.isArray(data)) {
-          const results: AddressSuggestion[] = data.map((item: any) => ({
-            address: item.display_name,
-            location: {
-              lat: parseFloat(item.lat),
-              lng: parseFloat(item.lon),
-            },
-          }))
-          setSearchResults(results)
-          setShowSearchResults(results.length > 0)
-        }
-      }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        // Fallback to Neshan search
-        if (mapProvider === 'neshan') {
-          await searchWithNeshan(query)
-        }
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setIsSearching(false)
-      }
-    }
-  }, [mapProvider])
-
-  // ===============================
-  // Search with Neshan (Fallback)
-  // ===============================
-  const searchWithNeshan = async (query: string) => {
+  const searchWithNeshan = useCallback(async (
+    query: string,
+    signal: AbortSignal,
+  ) => {
     const apiKey = process.env.NEXT_PUBLIC_NESHAN_API_KEY
-    if (!apiKey || apiKey === 'YOUR_API_KEY') return
+    if (!apiKey || apiKey === 'YOUR_API_KEY' || signal.aborted) return
 
     try {
       const response = await fetchWithTimeout(
         `https://api.neshan.org/v1/search?term=${encodeURIComponent(query)}&lat=${DEFAULT_CENTER.lat}&lng=${DEFAULT_CENTER.lng}`,
-        5000
+        5000,
+        {
+          signal,
+          headers: { 'Api-Key': apiKey },
+        },
       )
 
-      if (response.ok) {
+      if (response.ok && !signal.aborted) {
         const data = await response.json()
-        if (isMountedRef.current && data.items) {
+        if (isMountedRef.current && Array.isArray(data.items)) {
           const results: AddressSuggestion[] = data.items.map((item: any) => ({
             address: item.title || item.address || '',
             location: {
@@ -354,12 +337,72 @@ const MapPicker: React.FC<MapPickerProps> = memo(({
         }
       }
     } catch {
-      if (isMountedRef.current) {
+      if (!signal.aborted && isMountedRef.current) {
         setSearchResults([])
         setShowSearchResults(false)
       }
     }
-  }
+  }, [])
+
+  const searchAddress = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      abortControllerRef.current?.abort()
+      setSearchResults([])
+      setShowSearchResults(false)
+      setIsSearching(false)
+      return
+    }
+
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    setIsSearching(true)
+
+    try {
+      const params = new URLSearchParams({
+        format: 'json',
+        q: query,
+        limit: '5',
+        countrycodes: 'ir',
+        'accept-language': 'fa',
+      })
+
+      const response = await fetch(`${NOMINATIM_SEARCH_URL}?${params}`, {
+        signal: controller.signal,
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const data = await response.json()
+      if (
+        isMountedRef.current &&
+        abortControllerRef.current === controller &&
+        Array.isArray(data)
+      ) {
+        const results: AddressSuggestion[] = data.map((item: any) => ({
+          address: item.display_name,
+          location: {
+            lat: Number.parseFloat(item.lat),
+            lng: Number.parseFloat(item.lon),
+          },
+        }))
+        setSearchResults(results)
+        setShowSearchResults(results.length > 0)
+      }
+    } catch (error: unknown) {
+      if (!controller.signal.aborted && mapProvider === 'neshan') {
+        await searchWithNeshan(query, controller.signal)
+      }
+    } finally {
+      // Request قدیمی نباید spinner درخواست جدیدتر را خاموش کند.
+      if (isMountedRef.current && abortControllerRef.current === controller) {
+        setIsSearching(false)
+        abortControllerRef.current = null
+      }
+    }
+  }, [mapProvider, searchWithNeshan])
 
   // ===============================
   // Select Address from Search Results

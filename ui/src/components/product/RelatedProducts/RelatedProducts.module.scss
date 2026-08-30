@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .recommendationsContainer {
   display: flex;
@@ -138,7 +138,7 @@
   justify-content: flex-end; // راست چین
   gap: 6px;
   color: $color-text-muted;
-  font-size: 11px;
+  font-size: 16px;
   margin-bottom: $spacing-md;
 
   svg {
@@ -183,7 +183,7 @@
   }
 
   .currency {
-    font-size: 10px;
+    font-size: 16px;
     color: $color-text-muted;
   }
 

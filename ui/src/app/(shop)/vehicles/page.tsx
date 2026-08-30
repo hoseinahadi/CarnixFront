@@ -9,6 +9,7 @@ import { selectMakes, selectModels, selectVehicleLoading } from '@/store/feature
 import { clearModels } from '@/store/feature/vehicle/VehicleSlice'
 import styles from './VehiclesPage.module.scss'
 import classNames from 'classnames'
+import { resolveVehicleMakeId, resolveVehicleModelId } from '@/utils/vehicleIds'
 
 // 🟢 تابع استخراج‌گر ایمن برای مدل‌ها
 const extractSafeArray = (data: any): any[] => {
@@ -67,15 +68,21 @@ const VehiclesPage = () => {
   }, [makes, activeMake])
 
   useEffect(() => {
-    if (activeMake && activeMake.vehicleMakeId) {
+    const makeId = resolveVehicleMakeId(activeMake)
+    if (makeId) {
       dispatch(clearModels())
-      dispatch(getModelsByMakeId(activeMake.vehicleMakeId))
+      void dispatch(getModelsByMakeId(makeId))
     }
   }, [activeMake, dispatch])
 
   // 🟢 تغییر مهم: دریافت ID به جای نام ماشین
-  const handleModelClick = (makeId: number | string, modelId: number | string) => {
-    // آدرس به جای حروف فارسی، حالا شامل آیدی‌هاست
+  const handleModelClick = (make: unknown, model: unknown) => {
+    const makeId = resolveVehicleMakeId(make)
+    const modelId = resolveVehicleModelId(model)
+
+    // هیچ‌وقت URL ناقص مثل modelId=undefined ساخته نشود.
+    if (!makeId || !modelId) return
+
     router.push(`/products?makeId=${makeId}&modelId=${modelId}`)
   }
 
@@ -104,9 +111,9 @@ const VehiclesPage = () => {
           <div className={styles.sidebarList}>
             {makes.map(make => (
               <div
-                key={make.vehicleMakeId}
+                key={resolveVehicleMakeId(make) ?? make.name}
                 className={classNames(styles.sidebarItem, {
-                  [styles.active]: make.vehicleMakeId === activeMake?.vehicleMakeId
+                  [styles.active]: resolveVehicleMakeId(make) === resolveVehicleMakeId(activeMake)
                 })}
                 onClick={() => setActiveMake(make)}
               >
@@ -139,10 +146,9 @@ const VehiclesPage = () => {
                 <div className={styles.modelsGrid}>
                   {models.map(model => (
                     <div
-                      key={model.vehicleModelId || model.name}
+                      key={resolveVehicleModelId(model) ?? model.name}
                       className={styles.modelCard}
-                      // 🟢 تغییر مهم: ارسال آیدی برند و آیدی مدل هنگام کلیک
-                      onClick={() => handleModelClick(activeMake.vehicleMakeId, model.vehicleModelId)}
+                      onClick={() => handleModelClick(activeMake, model)}
                     >
                       <div className={styles.carImageBox}>
                         {model.imageUrl ? (

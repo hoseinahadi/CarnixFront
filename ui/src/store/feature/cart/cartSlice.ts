@@ -1,15 +1,13 @@
-// store/feature/cart/cartSlice.ts
-
 import { createSlice } from '@reduxjs/toolkit';
-import { CartState } from '@/models/cart/CartState';
-import { 
-  fetchMyCart, 
-  addToCart, 
-  updateItemQuantity, 
-  removeCartItem, 
-  applyCoupon, 
+import type { CartState } from '@/models/cart/CartState';
+import {
+  fetchMyCart,
+  addToCart,
+  updateItemQuantity,
+  removeCartItem,
+  applyCoupon,
   removeCoupon,
-  placeOrderFromCart
+  placeOrderFromCart,
 } from './cartThunks';
 import { logoutThunk } from '@/store/feature/auth/authThunks';
 
@@ -17,7 +15,10 @@ const initialState: CartState = {
   cart: null,
   loading: false,
   actionLoading: false,
+  actionPendingCount: 0,
   error: null,
+  fetchStatus: 'idle',
+  lastFetchedAt: null,
 };
 
 const cartSlice = createSlice({
@@ -27,67 +28,80 @@ const cartSlice = createSlice({
     clearCartError: (state) => {
       state.error = null;
     },
-    resetCartState: (state) => {
-      state.cart = null;
-      state.error = null;
-    }
+    resetCartState: () => initialState,
+    invalidateCartCache: (state) => {
+      state.lastFetchedAt = null;
+      if (state.fetchStatus !== 'loading') state.fetchStatus = 'idle';
+    },
   },
   extraReducers: (builder) => {
-    // ─── Fetch My Cart ───
     builder
       .addCase(fetchMyCart.pending, (state) => {
+        state.fetchStatus = 'loading';
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchMyCart.fulfilled, (state, action) => {
+        state.fetchStatus = 'succeeded';
         state.loading = false;
-        state.cart = action.payload;
+        state.cart = action.payload.cart;
+        state.lastFetchedAt = action.payload.fetchedAt;
       })
       .addCase(fetchMyCart.rejected, (state, action) => {
+        state.fetchStatus = 'failed';
         state.loading = false;
         state.error = action.payload as string;
       });
 
-    // ─── Actions (Add, Update, Remove, Coupon) ───
-    const actionThunks = [addToCart, updateItemQuantity, removeCartItem, applyCoupon, removeCoupon];
-    
+    const actionThunks = [
+      addToCart,
+      updateItemQuantity,
+      removeCartItem,
+      applyCoupon,
+      removeCoupon,
+    ];
+
     actionThunks.forEach((thunk) => {
       builder
         .addCase(thunk.pending, (state) => {
+          state.actionPendingCount += 1;
           state.actionLoading = true;
           state.error = null;
         })
         .addCase(thunk.fulfilled, (state) => {
-          state.actionLoading = false;
+          state.actionPendingCount = Math.max(0, state.actionPendingCount - 1);
+          state.actionLoading = state.actionPendingCount > 0;
         })
         .addCase(thunk.rejected, (state, action) => {
-          state.actionLoading = false;
+          state.actionPendingCount = Math.max(0, state.actionPendingCount - 1);
+          state.actionLoading = state.actionPendingCount > 0;
           state.error = action.payload as string;
         });
     });
 
-    // ⭐ Place Order From Cart
     builder
       .addCase(placeOrderFromCart.pending, (state) => {
+        state.actionPendingCount += 1;
         state.actionLoading = true;
         state.error = null;
       })
       .addCase(placeOrderFromCart.fulfilled, (state) => {
-        state.actionLoading = false;
-        // cart بعد از fetchMyCart که داخل thunk صدا زده شده، خالی میشه
+        state.actionPendingCount = Math.max(0, state.actionPendingCount - 1);
+        state.actionLoading = state.actionPendingCount > 0;
       })
       .addCase(placeOrderFromCart.rejected, (state, action) => {
-        state.actionLoading = false;
+        state.actionPendingCount = Math.max(0, state.actionPendingCount - 1);
+        state.actionLoading = state.actionPendingCount > 0;
         state.error = action.payload as string;
       });
 
-    // ⭐ پاکسازی cart بعد از logout
-    builder.addCase(logoutThunk.fulfilled, (state) => {
-      state.cart = null;
-      state.error = null;
-    });
+    builder.addCase(logoutThunk.fulfilled, () => initialState);
   },
 });
 
-export const { clearCartError, resetCartState } = cartSlice.actions;
+export const {
+  clearCartError,
+  resetCartState,
+  invalidateCartCache,
+} = cartSlice.actions;
 export default cartSlice.reducer;

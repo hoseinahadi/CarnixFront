@@ -19,34 +19,52 @@ const getErrorMessage = (error: any): string => {
 // ============================
 // دریافت همه آدرس‌ها (سازگار با PagedResult)
 // ============================
-export const fetchAddresses = createAsyncThunk<AddressResponseDto[], void>(
+const ADDRESS_CACHE_TTL_MS = 60_000;
+
+type AddressFetchArgs = { force?: boolean } | undefined;
+
+type AddressRootState = {
+  address: {
+    fetchStatus?: 'idle' | 'loading' | 'succeeded' | 'failed';
+    lastFetchedAt?: number | null;
+  };
+};
+
+export const fetchAddresses = createAsyncThunk<
+  { addresses: AddressResponseDto[]; fetchedAt: number },
+  AddressFetchArgs,
+  { state: AddressRootState; rejectValue: string }
+>(
   'address/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
       const response = await AddressApi.getAll();
-      console.log('📦 [AddressThunk] FULL API RESPONSE:', response.data);
 
       if (response.data?.isSuccess) {
         const resData: any = response.data.data;
-        
-        // اگر مستقیماً آرایه بود
-        if (Array.isArray(resData)) {
-          return resData;
-        } 
-        // اگر داخل ساختار PagedResult بود (با items یا Items)
-        else if (resData?.items && Array.isArray(resData.items)) {
-          return resData.items;
-        } else if (resData?.Items && Array.isArray(resData.Items)) {
-          return resData.Items;
-        }
-        
-        return [];
+        let addresses: AddressResponseDto[] = [];
+
+        if (Array.isArray(resData)) addresses = resData;
+        else if (resData?.items && Array.isArray(resData.items)) addresses = resData.items;
+        else if (resData?.Items && Array.isArray(resData.Items)) addresses = resData.Items;
+
+        return { addresses, fetchedAt: Date.now() };
       }
+
       return rejectWithValue(response.data?.message || 'خطا در دریافت آدرس‌ها');
     } catch (error: any) {
       return rejectWithValue(getErrorMessage(error));
     }
-  }
+  },
+  {
+    condition: (args, { getState }) => {
+      const state = getState().address;
+      if (state.fetchStatus === 'loading') return false;
+      if (args?.force) return true;
+      if (!state.lastFetchedAt) return true;
+      return Date.now() - state.lastFetchedAt >= ADDRESS_CACHE_TTL_MS;
+    },
+  },
 );
 
 // ============================

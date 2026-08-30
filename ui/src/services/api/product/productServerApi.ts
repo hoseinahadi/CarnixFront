@@ -33,9 +33,12 @@ export const getProductBySlugServer = cache(
       return null;
     }
 
-    const response = await axiosServer.get<ProductOperationResult>(
-      `/Product/${encodeURIComponent(normalizedSlug)}`,
-    );
+    const isNumericId = /^\d+$/.test(normalizedSlug);
+    const endpoint = isNumericId
+      ? `/Product/${normalizedSlug}/details`
+      : `/Product/${encodeURIComponent(normalizedSlug)}`;
+
+    const response = await axiosServer.get<ProductOperationResult>(endpoint);
 
     if (response.status >= 400) {
       return null;

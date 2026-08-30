@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables'; 
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *; 
+@use '@/assets/styles/utils/mixins' as *;
 
 .card {
   display: flex;
@@ -70,7 +71,7 @@
     color: #64748b;
     padding: 4px 10px;
     border-radius: 6px;
-    font-size: 0.7rem;
+    font-size: 1rem;
     font-weight: 700;
     z-index: 2;
   }
@@ -81,7 +82,7 @@
   margin: 12px 0 8px 0; 
   font-weight: 500;
   color: #334155;
-  font-size: 13px; 
+  font-size: 16px; 
   line-height: 20px;
   height: 40px; 
   min-height: 40px;
@@ -94,7 +95,7 @@
   font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif !important;
 
   @include respond-to('md') {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 24px;
     height: 48px; 
     min-height: 48px;
@@ -125,14 +126,14 @@
   .priceValue {
     font-weight: 800;
     color: #1e3a8a; 
-    font-size: 0.95rem; 
+    font-size: 1rem; 
 
     @include respond-to('md') {
       font-size: 1.1rem;
     }
 
     .currency {
-      font-size: 0.7rem; 
+      font-size: 1rem; 
       font-weight: 500;
       color: #94a3b8; 
       margin-right: 4px;
@@ -142,7 +143,7 @@
   .outOfStockText {
     font-weight: 800;
     color: #1e3a8a;
-    font-size: 0.95rem;
+    font-size: 1rem;
     
     @include respond-to('md') {
       font-size: 1.05rem;
@@ -173,7 +174,7 @@
   }
 
   &:hover:not(.disabledBtn) {
-    background-color: darken(#2563eb, 8%);
+    background-color: color.adjust(#2563eb, $lightness: -8%);
   }
 
   &.disabledBtn {
@@ -227,13 +228,13 @@
   .quantityNumber {
     @include flex-center;
     width: 24px;
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #334155;
     
     @include respond-to('md') {
       width: 28px;
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
   }
 }
@@ -254,13 +255,13 @@
   color: $color-white;
   padding: 2px 6px;
   border-radius: 6px;
-  font-size: 0.7rem;
+  font-size: 1rem;
   font-weight: 700;
   z-index: 2;
 }
 
 .oldPrice {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #94a3b8;
   text-decoration: line-through;
   margin-bottom: 2px;

@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .sliderContainer {
   width: 100%;
@@ -241,10 +241,10 @@
   }
 
   @include respond-down('md') {
-    font-size: 12px;
+    font-size: 16px;
   }
 
   @include respond-down('sm') {
-    font-size: 11px;
+    font-size: 16px;
   }
 }

@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .productInfo {
   @include flex-column;
@@ -109,4 +109,15 @@
   .skeletonTitle { height: 28px; width: 100%; }
   .skeletonCode { height: 16px; width: 40%; }
   .skeletonGrid { height: 100px; width: 85%; }
+}
+.featureLabel {
+  color: $color-text-muted;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+}
+
+.featureValue {
+  color: $color-text-main;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
 }

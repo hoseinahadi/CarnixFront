@@ -9,6 +9,7 @@ import { useAppDispatch } from '@/store/hooks'
 import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks'
 import styles from './CartDropdown.module.scss'
 import { Cart } from '@/models/cart/Cart'
+import { calculateTaxFreeCartTotal, formatPrice } from '@/utils/price'
 
 interface CartDropdownProps {
   cart: Cart | null
@@ -25,7 +26,6 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
   // استیت برای نگهداری آیدی محصولی که دکمه آن کلیک شده است
   const [updatingItemId, setUpdatingItemId] = useState<number | null>(null)
 
-  const formatPrice = (price: number) => new Intl.NumberFormat('fa-IR').format(price)
 
   const handleNavigate = (path: string) => {
     onClose()
@@ -61,7 +61,7 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
     }
   }
 
-  const currentTotal = cart?.grandTotal || 0;
+  const currentTotal = calculateTaxFreeCartTotal(cart);
   const remainingForFreeShipping = Math.max(FREE_SHIPPING_THRESHOLD - currentTotal, 0);
   const progressPercentage = Math.min((currentTotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
 
@@ -172,7 +172,7 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
 
             <div className={styles.grandTotal}>
               <span>جمع کل سبد خرید:</span>
-              <strong>{formatPrice(cart.grandTotal)} تومان</strong>
+              <strong>{formatPrice(currentTotal)} تومان</strong>
             </div>
 
             <div className={styles.actionButtons}>

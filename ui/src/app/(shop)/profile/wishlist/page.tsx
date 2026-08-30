@@ -1,13 +1,14 @@
-// src/app/profile/wishlist/page.tsx
 'use client'
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import styles from './WishlistPage.module.scss'
 import { IconHeart, IconTrash, IconCar } from '@tabler/icons-react'
+
+import styles from './WishlistPage.module.scss'
 import { wishlistApi } from '@/features/wishlist/api/wishlistApi'
 import BackToSidebar from '@/components/profile/BackToSidebar/BackToSidebar'
+import { formatPrice } from '@/utils/price'
 
 interface WishlistProduct {
   productId: number;
@@ -18,72 +19,110 @@ interface WishlistProduct {
 }
 
 interface WishlistItem {
-  userWishlistId: number;
+  userWishlistId?: number;
   productId: number;
-  product: WishlistProduct;
+  product?: WishlistProduct;
+  name?: string;
+  basePrice?: number;
+  imageUrl?: string;
+  vehicleModel?: string;
 }
+
+const extractWishlistItems = (response: unknown): WishlistItem[] => {
+  const payload = (response as { data?: unknown })?.data;
+
+  if (Array.isArray(payload)) return payload as WishlistItem[];
+  if (!payload || typeof payload !== 'object') return [];
+
+  const root = payload as Record<string, unknown>;
+  const directCandidates = [root.data, root.items];
+
+  for (const candidate of directCandidates) {
+    if (Array.isArray(candidate)) return candidate as WishlistItem[];
+
+    if (candidate && typeof candidate === 'object') {
+      const nested = candidate as Record<string, unknown>;
+      if (Array.isArray(nested.items)) return nested.items as WishlistItem[];
+      if (Array.isArray(nested.Items)) return nested.Items as WishlistItem[];
+    }
+  }
+
+  return [];
+};
+
+const getErrorMessage = (error: unknown): string => {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const response = (error as {
+      response?: { data?: { message?: string } };
+    }).response;
+    if (response?.data?.message) return response.data.message;
+  }
+
+  return 'ارتباط با سرور برقرار نشد یا خطا در دریافت اطلاعات رخ داد.';
+};
 
 export default function WishlistPage() {
   const router = useRouter()
   const [items, setItems] = useState<WishlistItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [removingIds, setRemovingIds] = useState<Set<number>>(() => new Set())
 
   useEffect(() => {
-    fetchWishlist()
+    let active = true;
+
+    const loadWishlist = async () => {
+      try {
+        setIsLoading(true)
+        setError('')
+        const response = await wishlistApi.getMyWishlist()
+        if (active) setItems(extractWishlistItems(response))
+      } catch (err: unknown) {
+        if (active) setError(getErrorMessage(err))
+      } finally {
+        if (active) setIsLoading(false)
+      }
+    }
+
+    void loadWishlist()
+
+    return () => {
+      active = false
+    }
   }, [])
 
-  const fetchWishlist = async () => {
-    try {
-      setIsLoading(true)
-      setError('')
-      const response = await wishlistApi.getMyWishlist()
-      
-      // 🔍 لاگ‌های عیب‌یابی دقیق برای بررسی ساختار پاسخ
-      console.log('📦 [Wishlist Debug] Full Axios Response Object:', response)
-      console.log('📦 [Wishlist Debug] response.data:', response?.data)
-
-      const responseData = response?.data
-
-      let rawList: any = []
-
-      // حالت‌های مختلف ساختار پاسخ در دات‌نت و پکیجینگ‌های مختلف
-      if (Array.isArray(responseData)) {
-        rawList = responseData
-      } else if (Array.isArray(responseData?.data)) {
-        rawList = responseData.data
-      } else if (Array.isArray(responseData?.data?.items)) {
-        rawList = responseData.data.items
-      } else if (Array.isArray(responseData?.data?.Items)) {
-        rawList = responseData.data.Items
-      } else if (Array.isArray(responseData?.items)) {
-        rawList = responseData.items
-      }
-
-      console.log('🎯 [Wishlist Debug] Extracted Array Items:', rawList)
-      setItems(rawList)
-
-    } catch (err: any) {
-      console.error('❌ [Wishlist Debug] Catch Error:', err)
-      setError(err?.response?.data?.message || 'ارتباط با سرور برقرار نشد یا خطا در دریافت اطلاعات رخ داد.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleRemoveItem = async (productId: number) => {
-    try {
-      setItems(prev => prev.filter(item => item.productId !== productId))
-      await wishlistApi.removeFromWishlist(productId)
-    } catch (err) {
-      console.error('❌ [Wishlist] Error removing item:', err)
-      fetchWishlist()
-    }
-  }
+    if (removingIds.has(productId)) return
 
-  const formatPrice = (price: number) => {
-    if (!price) return '۰'
-    return new Intl.NumberFormat('fa-IR').format(price)
+    const removedIndex = items.findIndex((item) => item.productId === productId)
+    const removedItem = removedIndex >= 0 ? items[removedIndex] : undefined
+
+    setError('')
+    setRemovingIds((current) => new Set(current).add(productId))
+    setItems((current) => current.filter((item) => item.productId !== productId))
+
+    try {
+      await wishlistApi.removeFromWishlist(productId)
+    } catch (err: unknown) {
+      // فقط همان آیتمی که حذفش شکست خورده برگردد؛ rollback یک حذف نباید
+      // نتیجه حذف موفق هم‌زمانِ محصول دیگری را بازنویسی کند.
+      if (removedItem) {
+        setItems((current) => {
+          if (current.some((item) => item.productId === productId)) return current
+
+          const next = [...current]
+          next.splice(Math.min(removedIndex, next.length), 0, removedItem)
+          return next
+        })
+      }
+      setError(getErrorMessage(err))
+    } finally {
+      setRemovingIds((current) => {
+        const next = new Set(current)
+        next.delete(productId)
+        return next
+      })
+    }
   }
 
   if (isLoading) {
@@ -128,13 +167,15 @@ export default function WishlistPage() {
         </div>
       ) : (
         <div className={styles.grid}>
-          {items.map((item, index) => {
-            const product = item?.product || item; // پشتیبانی از حالت مپ‌نشده یا مپ‌شده
+          {items.map((item) => {
+            const product = item.product ?? item
+            const productId = product.productId ?? item.productId
+            const isRemoving = removingIds.has(productId)
 
             return (
-              <div key={item.userWishlistId || index} className={styles.productCard}>
+              <div key={item.userWishlistId ?? `product-${productId}`} className={styles.productCard}>
                 <div className={styles.imageWrapper}>
-                  {product?.imageUrl ? (
+                  {product.imageUrl ? (
                     <Image
                       src={product.imageUrl}
                       alt={product.name || 'محصول'}
@@ -148,23 +189,24 @@ export default function WishlistPage() {
                 </div>
 
                 <div className={styles.cardContent}>
-                  <h3 className={styles.productTitle} title={product?.name}>
-                    {product?.name || 'بدون نام'}
+                  <h3 className={styles.productTitle} title={product.name}>
+                    {product.name || 'بدون نام'}
                   </h3>
-                  
+
                   <div className={styles.carModelRow}>
                     <IconCar size={16} className={styles.carIcon} />
-                    <span>{product?.vehicleModel || 'عمومی'}</span>
+                    <span>{product.vehicleModel || 'عمومی'}</span>
                   </div>
 
                   <div className={styles.priceRow}>
                     <span className={styles.price}>
-                      {formatPrice(product?.basePrice)} <span>تومان</span>
+                      {formatPrice(product.basePrice)} <span>تومان</span>
                     </span>
-                    <button 
-                      className={styles.removeBtn} 
-                      onClick={() => handleRemoveItem(product?.productId || item.productId)}
+                    <button
+                      className={styles.removeBtn}
+                      onClick={() => void handleRemoveItem(productId)}
                       aria-label="حذف از علاقه‌مندی‌ها"
+                      disabled={isRemoving}
                     >
                       <IconTrash size={18} stroke={1.5} />
                     </button>

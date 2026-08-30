@@ -1,7 +1,10 @@
-@import '../../../../assets/styles/utils/variables';
-@import '../../../../assets/styles/utils/mixins';
+@use '../../../../assets/styles/utils/variables' as *;
+@use '../../../../assets/styles/utils/mixins' as *;
 
 .cartDropdownContainer {
+  direction: rtl;
+  text-align: right;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
   width: 380px;
   background-color: $color-white;
   border-radius: $border-radius-lg;
@@ -77,7 +80,7 @@
     }
 
     .noImage {
-      font-size: 10px;
+      font-size: 16px;
       color: $color-text-muted;
     }
   }
@@ -309,4 +312,8 @@
 .loadingWrapper {
   @include flex-center;
   padding: $spacing-xxxl $spacing-md;
+}
+.danger {
+  color: $color-danger !important;
+  border-color: rgba($color-danger, 0.3) !important;
 }

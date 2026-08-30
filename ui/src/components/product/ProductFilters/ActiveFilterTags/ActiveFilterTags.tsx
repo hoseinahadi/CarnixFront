@@ -1,4 +1,5 @@
 import type { Category } from '@/models/category/Category';
+import type { Brand } from '@/models/brand/Brand';
 
 import type {
   ProductFilterParams,
@@ -8,23 +9,22 @@ import type {
 import { IconX } from '@tabler/icons-react';
 
 import styles from './ActiveFilterTags.module.scss';
+import { formatPrice } from '@/utils/price';
+import { findCategoryById } from '@/utils/categoryTree';
 
 interface ActiveFilterTagsProps {
   filters: ProductFilterParams;
   categories: Category[];
   vehicles: VehicleFilterOption[];
+  brands: Brand[];
   onRemove: (key: string) => void;
 }
-
-const formatPrice = (price: number): string =>
-  new Intl.NumberFormat('fa-IR').format(
-    Math.round(price),
-  );
 
 const ActiveFilterTags = ({
   filters,
   categories,
   vehicles,
+  brands,
   onRemove,
 }: ActiveFilterTagsProps) => {
   const tags: Array<{
@@ -33,10 +33,9 @@ const ActiveFilterTags = ({
   }> = [];
 
   if (filters.categoryId) {
-    const category = categories.find(
-      (item) =>
-        Number(item.categoryId) ===
-        Number(filters.categoryId),
+    const category = findCategoryById(
+      categories,
+      filters.categoryId,
     );
 
     tags.push({
@@ -48,9 +47,13 @@ const ActiveFilterTags = ({
   }
 
   if (filters.brandId) {
+    const brand = brands.find(
+      (item) => Number(item.brandId) === Number(filters.brandId),
+    );
+
     tags.push({
       key: 'brandId',
-      label: `برند ${filters.brandId}`,
+      label: brand?.name || 'برند انتخاب‌شده',
     });
   }
 

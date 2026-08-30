@@ -52,7 +52,7 @@ const DropdownMenu = ({ categories, isLoading }: Props) => {
     return (
       <div className={styles.megaMenu} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem' }}>
         <Loader2 className="animate-spin" size={24} style={{ color: '#2563eb', marginLeft: '10px' }} />
-        <span style={{ color: '#6b7280', fontSize: '14px' }}>در حال بارگذاری دسته‌بندی‌ها...</span>
+        <span style={{ color: '#6b7280', fontSize: '16px' }}>در حال بارگذاری دسته‌بندی‌ها...</span>
       </div>
     )
   }

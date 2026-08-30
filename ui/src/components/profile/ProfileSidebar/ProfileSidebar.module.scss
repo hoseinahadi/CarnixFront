@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 /* ─── Desktop Sidebar ─── */
 .sidebar {
@@ -348,7 +349,7 @@
   border: none;
 
   &:hover {
-    background: darken($color-danger, 8%);
+    background: color.adjust($color-danger, $lightness: -8%);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba($color-danger, 0.2);
   }

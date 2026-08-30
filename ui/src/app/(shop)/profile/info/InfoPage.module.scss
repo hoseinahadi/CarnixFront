@@ -1,4 +1,4 @@
-@import '@/assets/styles/utils/variables';
+@use '@/assets/styles/utils/variables' as *;
 
 .page {
   display: flex;

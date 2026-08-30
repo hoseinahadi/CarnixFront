@@ -31,7 +31,7 @@ import {
 } from '@floating-ui/react'
 
 import { fetchMyCart } from '@/store/feature/cart/cartThunks'
-import { logoutThunk } from '@/store/feature/auth/authThunks'
+import { getMeThunk, logoutThunk } from '@/store/feature/auth/authThunks'
 import CartDropdown from '@/features/cart/components/CartDropdown/CartDropdown'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 
@@ -94,7 +94,7 @@ const FloatingDropdown = ({
     <FloatingPortal root={document.body}>
       <div
         ref={refs.setFloating}
-        style={{ ...floatingStyles, zIndex: 1100 }} // تضمین قرارگیری روی سایر عناصر
+        style={{ ...floatingStyles, zIndex: 20000 }} // بالاتر از هدر، مگامنو و نتایج جستجو
         className={styles.dropdown}
         {...getFloatingProps()}
       >
@@ -127,24 +127,28 @@ const HeaderAction = () => {
   const { cart, loading: cartLoading } = useAppSelector(
     (state) => state.cart
   )
-  const { isAuthenticated, userDetail } = useAppSelector(
-    (state) => state.auth
-  )
+  const {
+    token,
+    isAuthenticated,
+    initialized: authInitialized,
+    userDetail,
+    meLoading,
+  } = useAppSelector((state) => state.auth)
 
   const [cartAnchorEl, setCartAnchorEl] =
     useState<HTMLButtonElement | null>(null)
   const [userAnchorEl, setUserAnchorEl] =
     useState<HTMLButtonElement | null>(null)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const requestedMeTokenRef = useRef<string | null>(null)
 
   useEffect(() => {
-    
-      dispatch(fetchMyCart())
-    
-  }, [dispatch, isAuthenticated])
+    if (!authInitialized) return
+    void dispatch(fetchMyCart())
+  }, [dispatch, authInitialized, isAuthenticated])
 
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!authInitialized || !isAuthenticated) return
     
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -157,13 +161,27 @@ const HeaderAction = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [dispatch, isAuthenticated])
+  }, [dispatch, authInitialized, isAuthenticated])
 
   useEffect(() => {
-    if (isAuthenticated && !userDetail?.phoneNumber && !userDetail?.email) {
-      console.log('User info might need refresh')
+    if (!token) {
+      requestedMeTokenRef.current = null
+      return
     }
-  }, [isAuthenticated, userDetail])
+
+    // ممکن است Token از storage بازیابی شده باشد اما snapshot کاربر وجود نداشته باشد.
+    // برای هر token فقط یک درخواست خودکار می‌زنیم تا شکست getMe وارد retry-loop نشود.
+    if (
+      authInitialized &&
+      isAuthenticated &&
+      !userDetail &&
+      !meLoading &&
+      requestedMeTokenRef.current !== token
+    ) {
+      requestedMeTokenRef.current = token
+      void dispatch(getMeThunk())
+    }
+  }, [dispatch, token, authInitialized, isAuthenticated, userDetail, meLoading])
 
   const closeAll = () => {
     setCartAnchorEl(null)
@@ -174,12 +192,26 @@ const HeaderAction = () => {
   const handleUserClick = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    // با باز شدن حساب کاربری، dropdown سبد خرید بسته شود.
+    setCartAnchorEl(null)
+
     if (!isAuthenticated) {
-  router.push('/login')
-  return
-}
-    setIsUserMenuOpen(!isUserMenuOpen)
+      setIsUserMenuOpen(false)
+      setUserAnchorEl(null)
+      router.push('/login')
+      return
+    }
+
+    // حتی اگر userDetail هنوز از Backend نرسیده باشد، منو باید باز شود.
     setUserAnchorEl(event.currentTarget)
+    setIsUserMenuOpen((previous) => !previous)
+
+    if (!userDetail && !meLoading) {
+      void dispatch(getMeThunk())
+    }
   }
 
   const handleLogout = async () => {
@@ -200,14 +232,14 @@ const HeaderAction = () => {
   const getUserDisplayInfo = () => {
     if (userDetail?.phoneNumber) return userDetail.phoneNumber
     if (userDetail?.email) return userDetail.email
-    return 'اطلاعات تماس ثبت نشده'
+    return meLoading ? 'در حال دریافت اطلاعات...' : 'اطلاعات تماس ثبت نشده'
   }
 
   const getUserDisplayName = () => {
     if (userDetail?.firstName || userDetail?.lastName) {
       return `${userDetail.firstName || ''} ${userDetail.lastName || ''}`.trim()
     }
-    return 'کاربر عزیز'
+    return meLoading ? 'در حال بارگذاری...' : 'کاربر عزیز'
   }
 
   return (
@@ -215,7 +247,11 @@ const HeaderAction = () => {
       {/* ------------------------------- Cart -------------------------------- */}
       <IconButton
         aria-label="cart"
-        onClick={(e) => setCartAnchorEl(e.currentTarget)}
+        onClick={(e) => {
+          setIsUserMenuOpen(false)
+          setUserAnchorEl(null)
+          setCartAnchorEl(e.currentTarget)
+        }}
         className={styles.iconButton}
       >
         <Badge badgeContent={cart?.totalItemsCount || 0} color="primary">
@@ -235,14 +271,17 @@ const HeaderAction = () => {
 
       {/* ------------------------------ User --------------------------------- */}
       <IconButton
-        aria-label="user profile"
+        aria-label={isAuthenticated ? 'حساب کاربری' : 'ورود به حساب'}
+        aria-haspopup={isAuthenticated ? 'menu' : undefined}
+        aria-expanded={isAuthenticated ? isUserMenuOpen : undefined}
         onClick={handleUserClick}
         className={styles.iconButton}
+        type="button"
       >
         <IconUser size={24} stroke={1.5} />
       </IconButton>
 
-      {isAuthenticated && userDetail && isUserMenuOpen && userAnchorEl && (
+      {isAuthenticated && isUserMenuOpen && userAnchorEl && (
         <FloatingDropdown anchorEl={userAnchorEl} onClose={closeAll}>
           <div className={styles.popoverContentSmall}>
             

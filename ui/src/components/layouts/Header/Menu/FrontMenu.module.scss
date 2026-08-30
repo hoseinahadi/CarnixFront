@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .container {
   display: flex;
@@ -94,7 +94,7 @@
   }
   
   .triggerText {
-    font-size: 15px;
+    font-size: 16px;
   }
   
   .megaMenu {

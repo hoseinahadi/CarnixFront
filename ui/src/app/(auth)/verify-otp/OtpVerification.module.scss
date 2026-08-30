@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 /* استایل‌های پایه دقیقاً مشابه صفحه لاگین است */
 .authPage {
@@ -61,14 +62,14 @@
   align-items: center;
   justify-content: center;
   gap: $spacing-sm;
-  font-size: 11px;
+  font-size: 16px;
   color: $color-text-main;
 
   .editBtn {
     background: none;
     border: none;
     color: #1d4ed8;
-    font-size: 10px;
+    font-size: 16px;
     cursor: pointer;
     padding: 0;
 
@@ -114,7 +115,7 @@
 
   .timer {
     text-align: center;
-    font-size: 12px;
+    font-size: 16px;
     color: $color-text-muted;
     margin: $spacing-xs 0;
 
@@ -144,14 +145,14 @@
     }
 
     &:hover:not(:disabled) {
-      background-color: darken(#1d4ed8, 5%);
+      background-color: color.adjust(#1d4ed8, $lightness: -5%);
     }
   }
 }
 
 .footer {
   text-align: center;
-  font-size: 9px;
+  font-size: 16px;
   color: $color-text-muted;
   margin-top: $spacing-md;
 
@@ -159,4 +160,23 @@
     color: #1d4ed8;
     text-decoration: none;
   }
+}
+.errorMessage {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba($color-danger, 0.25);
+  border-radius: $border-radius-md;
+  background: rgba($color-danger, 0.06);
+  color: $color-danger;
+  font-size: $font-size-base;
+  line-height: 1.8;
+  text-align: right;
+}
+
+.spinner {
+  animation: otpSpinner 0.8s linear infinite;
+}
+
+@keyframes otpSpinner {
+  to { transform: rotate(360deg); }
 }

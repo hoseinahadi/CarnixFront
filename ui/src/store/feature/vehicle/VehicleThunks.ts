@@ -133,6 +133,41 @@ const readString = (
   return undefined;
 };
 
+const normalizeVehicleModel = (
+  value: unknown,
+  fallbackMakeId: number,
+): VehicleModel | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const vehicleModelId = readNumber(
+    value,
+    ['vehicleModelId', 'modelId', 'id'],
+  );
+
+  if (vehicleModelId === undefined) {
+    return null;
+  }
+
+  const makeId =
+    readNumber(value, ['makeId', 'vehicleMakeId']) ??
+    fallbackMakeId;
+
+  const name =
+    readString(value, ['name', 'modelName', 'vehicleModelName']) ??
+    `مدل ${vehicleModelId}`;
+
+  return {
+    ...(value as unknown as VehicleModel),
+    id: vehicleModelId,
+    vehicleModelId,
+    modelId: vehicleModelId,
+    makeId,
+    name,
+  };
+};
+
 const normalizeVehicleFilterOption = (
   value: unknown,
   index: number,
@@ -252,7 +287,9 @@ export const getModelsByMakeId = createAsyncThunk<
       const response = await VehicleApi.getModelsByMakeId(makeId);
 
       if (response.data.isSuccess) {
-        return response.data.data;
+        return extractArray(response.data.data)
+          .map((model) => normalizeVehicleModel(model, makeId))
+          .filter((model): model is VehicleModel => Boolean(model));
       }
 
       return rejectWithValue(

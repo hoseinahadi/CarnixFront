@@ -1,6 +1,7 @@
+@use 'sass:color';
 // components/common/SupportFab/SupportFab.module.scss
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .fabContainer {
   position: fixed;
@@ -160,7 +161,7 @@
     box-shadow: 0 4px 12px rgba($color-text-main, 0.3);
 
     &:hover {
-      background: darken($color-text-main, 10%);
+      background: color.adjust($color-text-main, $lightness: -10%);
       transform: rotate(90deg) scale(1.05);
     }
   }

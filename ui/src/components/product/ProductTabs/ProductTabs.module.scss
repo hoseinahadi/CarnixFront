@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .tabsContainer {
   font-family: 'IRANYEKAN';
@@ -46,7 +46,7 @@
 
   @include respond-down('sm') {
     padding: $spacing-xs $spacing-sm;
-    font-size: 11px;
+    font-size: 16px;
   }
 
   &:hover {

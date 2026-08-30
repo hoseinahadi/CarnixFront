@@ -1,7 +1,10 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .megaMenu {
+  direction: rtl;
+  text-align: right;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
   display: flex;
   width: 100%; /* کمی عریض‌تر برای جا شدن 3 ستون کارت */
   max-width: 95vw;
@@ -119,7 +122,8 @@
   background-color: #f4f5f7; // رنگ پس زمینه خاکستری روشن مشابه عکس
   border-radius: $border-radius-md;
   text-decoration: none;
-  direction: ltr;
+  gap: $spacing-md;
+  direction: rtl;
   @include transition-ease();
 
   &:hover {
@@ -135,7 +139,7 @@
   color: $color-text-main;
   text-align: right;
   flex: 1;
-  margin-right: $spacing-md;
+  margin: 0;
 }
 
 // جایگاه عکس/آیکون ماشین (آیکون سفید در پس‌زمینه آبی)

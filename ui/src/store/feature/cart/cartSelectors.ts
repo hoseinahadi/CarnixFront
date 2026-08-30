@@ -1,4 +1,5 @@
 import type { RootState } from '@/store';
+import { calculateTaxFreeCartTotal } from '@/utils/price';
 
 // 🟢 تعریف یک رفرنس ثابت برای جلوگیری از رندر مجدد (Re-render) بی‌نهایت
 const EMPTY_ARRAY: any[] = [];
@@ -14,8 +15,8 @@ export const selectTotalCartItemsCount = (state: RootState) =>
   state.cart.cart?.totalItemsCount || 0;
 
 // 🟢 باگ منطقی اصلاح شد: (قبلا taxAmount بود که اشتباه است)
-export const selectCartTotalAmount = (state: RootState) => 
-  state.cart.cart?.grandTotal || state.cart.cart?.totalItemsCount || 0;
+export const selectCartTotalAmount = (state: RootState) =>
+  calculateTaxFreeCartTotal(state.cart.cart);
 
 // 🟢 جلوگیری از رندرهای اضافی با اختصاص رفرنس ثابت
 export const selectCartItems = (state: RootState) => 

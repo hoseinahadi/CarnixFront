@@ -2,6 +2,7 @@
 
 import axiosClient from '@/services/api/common/axiosClient';
 import { OperationResult } from '@/models/common/OperationResult';
+import { getCachedRequest } from '@/services/api/common/requestCache';
 
 export interface CreateFullContentDto {
   title: string;
@@ -44,6 +45,8 @@ export interface ContentSummaryDto {
   imageUrl: string;
 }
 
+const CONTENT_CACHE_TTL_MS = 2 * 60_000;
+
 export const ContentManagerApi = {
   createFullContent: async (data: CreateFullContentDto) =>
     await axiosClient.post<OperationResult<number>>(
@@ -62,19 +65,32 @@ export const ContentManagerApi = {
       `/ContentManager/${id}/publish`
     ),
 
-  getContentForDisplay: async (slug: string) =>
-    await axiosClient.get<OperationResult<FullContentDisplayDto>>(
-      `/ContentManager/display/${slug}`
+  getContentForDisplay: (slug: string) =>
+    getCachedRequest(
+      `content:display:${slug}`,
+      () => axiosClient.get<OperationResult<FullContentDisplayDto>>(
+        `/ContentManager/display/${encodeURIComponent(slug)}`
+      ),
+      CONTENT_CACHE_TTL_MS,
     ),
 
-  getLatestContents: async (count: number = 3) =>
-    await axiosClient.get<OperationResult<ContentSummaryDto[]>>(
-      `/ContentManager/latest?count=${count}`
+  getLatestContents: (count: number = 3) =>
+    getCachedRequest(
+      `content:latest:${count}`,
+      () => axiosClient.get<OperationResult<ContentSummaryDto[]>>(
+        '/ContentManager/latest',
+        { params: { count } },
+      ),
+      CONTENT_CACHE_TTL_MS,
     ),
 
   // === متد جدید برای دریافت کلیه مقالات جهت ساخت صفحات استاتیک ===
-  getAllContents: async () =>
-    await axiosClient.get<OperationResult<ContentSummaryDto[]>>(
-      '/ContentManager/all' // یا هر اندپوینتی که در بک‌اند ASP.NET برای لیست کل مقالات داری
+  getAllContents: () =>
+    getCachedRequest(
+      'content:all',
+      () => axiosClient.get<OperationResult<ContentSummaryDto[]>>(
+        '/ContentManager/all'
+      ),
+      CONTENT_CACHE_TTL_MS,
     ),
 };

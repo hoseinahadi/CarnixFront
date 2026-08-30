@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { IconFilter } from '@tabler/icons-react';
 
 import ProductFilters from '@/components/product/ProductFilters/ProductFilters';
@@ -10,19 +9,10 @@ import ProductGrid from '@/components/product/ProductGrid/ProductGrid';
 import ProductSort from '@/components/product/ProductSort/ProductSort';
 import { useProductListingController } from '@/features/product/hooks/useProductListingController';
 
-// 🟢 هوک Redux اضافه شد برای خواندن لیست ماشین‌ها
-import { useAppSelector } from '@/store/hooks';
-
 import styles from './ProductsPage.module.scss';
 
 export default function ProductsContent() {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-  const searchParams = useSearchParams();
-  const initialized = useRef(false);
-
-  // 🟢 دریافت لیست کامل ماشین‌ها از ریداکس
-  const vehicles = useAppSelector((state) => state.vehicle.trimDetails);
-
   const {
     products,
     totalCount,
@@ -35,47 +25,6 @@ export default function ProductsContent() {
     changeSort,
   } = useProductListingController();
 
-  // 🟢 لاجیک هوشمند برای تبدیل اسم فارسی ماشین به ID و فعال کردن فیلتر
-  useEffect(() => {
-    if (initialized.current) return;
-
-    const makeIdStr = searchParams.get('makeId');
-    const modelIdStr = searchParams.get('modelId');
-    const makeName = searchParams.get('make');
-    const modelName = searchParams.get('model');
-
-    // حالت اول: اگر ID مستقیم در آدرس بود (عددی)
-    if (makeIdStr || modelIdStr) {
-      navigateToFilters({
-        makeId: makeIdStr ? Number(makeIdStr) : undefined,
-        modelId: modelIdStr ? Number(modelIdStr) : undefined,
-      });
-      initialized.current = true;
-    } 
-    // حالت دوم: اگر اسم فارسی ماشین و مدل در آدرس بود (مثل ?make=ایران خودرو&model=دنا)
-    else if (makeName || modelName) {
-      // باید صبر کنیم تا ماشین‌ها از سرور لود شوند
-      if (vehicles && vehicles.length > 0) {
-        // جستجوی ماشینی که نام برند و مدل را در اسم خود داشته باشد
-        const matchedVehicle = vehicles.find((v) => {
-          const vName = v.name || '';
-          return vName.includes(makeName || '') && vName.includes(modelName || '');
-        });
-
-        // اگر ماشین پیدا شد، با آیدی آن فیلتر را اعمال می‌کنیم
-        if (matchedVehicle) {
-          navigateToFilters({
-            makeId: matchedVehicle.makeId,
-            modelId: matchedVehicle.modelId,
-          });
-        }
-        initialized.current = true;
-      }
-    } else {
-      // اگر کلاً هیچ فیلتری در آدرس نبود
-      initialized.current = true;
-    }
-  }, [searchParams, navigateToFilters, vehicles]);
 
   return (
     <div className={styles.page}>

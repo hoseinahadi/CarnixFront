@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ShieldCheck, Tag, Search, X } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { getAllBrands } from '@/store/feature/brand/BrandThunks'
@@ -39,7 +39,6 @@ const getImageUrl = (url: string | null | undefined) => {
 
 const BrandsPage = () => {
   const dispatch = useAppDispatch()
-  const router = useRouter()
   
   const rawBrands = useAppSelector(selectBrands)
   const loading = useAppSelector(
@@ -115,10 +114,11 @@ const BrandsPage = () => {
       ) : (
         <div className={styles.gridContainer}>
           {activeBrands.map((brand: any) => (
-            <div
+            <Link
               key={brand.brandId}
               className={styles.brandCard}
-              onClick={() => router.push(`/brand/${brand.brandId}`)}
+              href={`/products?brandId=${encodeURIComponent(String(brand.brandId))}`}
+              aria-label={`مشاهده محصولات برند ${brand.name}`}
             >
               <div className={styles.iconBox}>
                 {brand.logoUrl ? (
@@ -136,7 +136,7 @@ const BrandsPage = () => {
                   <span className={styles.brandCountry}>برند تایید شده</span>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
           
           {activeBrands.length === 0 && !loading && (

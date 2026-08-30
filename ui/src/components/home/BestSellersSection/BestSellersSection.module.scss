@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .section {
   width: 100%;
@@ -29,7 +30,7 @@
 }
 
 .viewAll {
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #2563eb;
   text-decoration: none;
   font-weight: 600;
@@ -39,7 +40,7 @@
   white-space: nowrap;
 
   &:hover {
-    color: darken(#2563eb, 15%);
+    color: color.adjust(#2563eb, $lightness: -15%);
   }
   
   svg {

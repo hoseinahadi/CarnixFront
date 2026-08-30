@@ -1,5 +1,9 @@
 import type { OperationResult } from '@/models/common/OperationResult';
 import axiosClient from '@/services/api/common/axiosClient';
+import {
+  getCachedRequest,
+  invalidateRequestCache,
+} from '@/services/api/common/requestCache';
 
 export interface CreateReviewRequest {
   productId: number;
@@ -43,6 +47,22 @@ export interface PaginatedReviewsResponse {
   totalPages: number;
 }
 
+const PUBLIC_REVIEWS_TTL_MS = 60_000;
+const MY_REVIEWS_TTL_MS = 30_000;
+
+const productReviewPrefix = (productId: number): string =>
+  `reviews:product:${productId}:`;
+
+export const invalidateProductReviewCache = (productId?: number): void => {
+  invalidateRequestCache(
+    productId == null ? 'reviews:product:' : productReviewPrefix(productId),
+  );
+};
+
+export const invalidateMyReviewCache = (): void => {
+  invalidateRequestCache('reviews:me:');
+};
+
 function validateReview(data: CreateReviewRequest): void {
   if (!data.productId) {
     throw new Error('شناسه محصول الزامی است.');
@@ -63,14 +83,16 @@ export const productReviewApi = {
     page: number = 1,
     pageSize: number = 10,
   ) =>
-    axiosClient.get<OperationResult<PaginatedReviewsResponse>>(
-      `/ProductReview/product/${productId}`,
-      {
-        params: {
-          page,
-          pageSize,
-        },
-      },
+    getCachedRequest(
+      `${productReviewPrefix(productId)}${page}:${pageSize}`,
+      () =>
+        axiosClient.get<OperationResult<PaginatedReviewsResponse>>(
+          `/ProductReview/product/${productId}`,
+          {
+            params: { page, pageSize },
+          },
+        ),
+      PUBLIC_REVIEWS_TTL_MS,
     ),
 
   getUserReviews: (
@@ -78,39 +100,48 @@ export const productReviewApi = {
     page: number = 1,
     pageSize: number = 10,
   ) =>
-    axiosClient.get<OperationResult<PaginatedReviewsResponse>>(
-      `/ProductReview/user/${userId}`,
-      {
-        params: {
-          page,
-          pageSize,
-        },
-      },
+    getCachedRequest(
+      `reviews:user:${userId}:${page}:${pageSize}`,
+      () =>
+        axiosClient.get<OperationResult<PaginatedReviewsResponse>>(
+          `/ProductReview/user/${userId}`,
+          {
+            params: { page, pageSize },
+          },
+        ),
+      MY_REVIEWS_TTL_MS,
     ),
 
   getMyReviews: (
     page: number = 1,
     pageSize: number = 10,
   ) =>
-    axiosClient.get<OperationResult<PaginatedReviewsResponse>>(
-      '/ProductReview/user/me',
-      {
-        params: {
-          page,
-          pageSize,
-        },
-      },
+    getCachedRequest(
+      `reviews:me:list:${page}:${pageSize}`,
+      () =>
+        axiosClient.get<OperationResult<PaginatedReviewsResponse>>(
+          '/ProductReview/user/me',
+          {
+            params: { page, pageSize },
+          },
+        ),
+      MY_REVIEWS_TTL_MS,
     ),
 
   getMyReviewStats: () =>
-    axiosClient.get<OperationResult<ReviewStats>>(
-      '/ProductReview/user/me/stats',
+    getCachedRequest(
+      'reviews:me:stats',
+      () =>
+        axiosClient.get<OperationResult<ReviewStats>>(
+          '/ProductReview/user/me/stats',
+        ),
+      MY_REVIEWS_TTL_MS,
     ),
 
-  createReview: (data: CreateReviewRequest) => {
+  createReview: async (data: CreateReviewRequest) => {
     validateReview(data);
 
-    return axiosClient.post<OperationResult<Review>>(
+    const response = await axiosClient.post<OperationResult<Review>>(
       '/ProductReview/create',
       {
         productId: data.productId,
@@ -119,26 +150,43 @@ export const productReviewApi = {
         rating: data.rating,
       },
     );
+
+    invalidateProductReviewCache(data.productId);
+    invalidateMyReviewCache();
+    return response;
   },
 
-  markHelpful: (reviewId: number) =>
-    axiosClient.post<OperationResult<null>>(
+  markHelpful: async (reviewId: number) => {
+    const response = await axiosClient.post<OperationResult<null>>(
       `/ProductReview/${reviewId}/helpful`,
-    ),
+    );
 
-  deleteReview: (reviewId: number) =>
-    axiosClient.delete<OperationResult<null>>(
+    // محصول دقیق از reviewId در API مشخص نیست؛ prefix عمومی امن‌تر است.
+    invalidateProductReviewCache();
+    return response;
+  },
+
+  deleteReview: async (reviewId: number) => {
+    const response = await axiosClient.delete<OperationResult<null>>(
       `/ProductReview/${reviewId}`,
-    ),
+    );
+    invalidateMyReviewCache();
+    invalidateProductReviewCache();
+    return response;
+  },
 
-  updateReview: (
+  updateReview: async (
     reviewId: number,
     data: Partial<CreateReviewRequest>,
-  ) =>
-    axiosClient.put<OperationResult<Review>>(
+  ) => {
+    const response = await axiosClient.put<OperationResult<Review>>(
       `/ProductReview/${reviewId}`,
       data,
-    ),
+    );
+    invalidateMyReviewCache();
+    invalidateProductReviewCache();
+    return response;
+  },
 
   reportReview: (
     reviewId: number,

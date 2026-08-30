@@ -1,6 +1,9 @@
 @use '../../../../assets/styles/utils/variables' as *;
 
 .heroSearchWrapper {
+  direction: rtl;
+  text-align: right;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
   // 🟢 حل مشکل افتادن دراپ دان زیر بقیه المان‌ها
   z-index: 100; // این عدد باید از Swiper بالاتر باشد
   width: 100%;
@@ -33,7 +36,7 @@
   @media (max-width: 767px) {
     display: block;
     text-align: center;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: bold;
     color: #4b5563;
     margin: 0 0 0.5rem 0;
@@ -64,7 +67,7 @@
   border: none;
   border-radius: $border-radius-md;
   padding: 0.75rem 2rem;
-  font-size: 15px;
+  font-size: 16px;
   font-family: inherit;
   cursor: pointer;
   display: flex;
@@ -115,12 +118,12 @@
 
   .placeholderText {
     color: #4b5563;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .selectedText {
     color: #1f2937;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
   }
 
@@ -165,7 +168,7 @@
     border: none;
     outline: none;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 16px;
     background: transparent;
   }
 }
@@ -186,7 +189,7 @@
 
   .optionItem {
     padding: 0.75rem 1rem;
-    font-size: 14px;
+    font-size: 16px;
     color: #374151;
     cursor: pointer;
 
@@ -205,6 +208,15 @@
     padding: 1.5rem 1rem;
     text-align: center;
     color: #9ca3af;
-    font-size: 14px;
+    font-size: 16px;
   }
+}
+.active {
+  border-color: $color-primary !important;
+  box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+}
+
+.searchIcon {
+  color: $color-gray-400;
+  flex-shrink: 0;
 }

@@ -1,89 +1,60 @@
 'use client';
 
-import {
-  type ReactNode,
-  useEffect,
-  useRef,
-} from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
-import {
-  usePathname,
-  useRouter,
-} from 'next/navigation';
-
-import { useAppDispatch } from '@/store/hooks';
-import { useAppSelector } from '@/store/hooks';
-
-import {
-  getMeThunk,
-} from '@/store/feature/auth/authThunks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { getMeThunk } from '@/store/feature/auth/authThunks';
 
 interface AuthGuardProps {
   children: ReactNode;
 }
 
-export default function AuthGuard({
-  children,
-}: AuthGuardProps) {
+export default function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
 
-  const hasRequestedUserRef =
-    useRef(false);
-
   const {
     token,
-    loading,
+    initialized,
+    meLoading,
     userDetail,
-  } = useAppSelector(
-    (state) => state.auth,
-  );
+  } = useAppSelector((state) => state.auth);
+
+  // از retry-loop روی خطای getMe جلوگیری می‌کند. برای هر token فقط یک
+  // درخواست خودکار در طول عمر این Guard انجام می‌شود.
+  const requestedMeTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
-    hasRequestedUserRef.current = false;
-  }, [token]);
+    if (!token) {
+      requestedMeTokenRef.current = null;
+      return;
+    }
 
-  useEffect(() => {
     if (
-      !token ||
+      !initialized ||
       userDetail ||
-      loading ||
-      hasRequestedUserRef.current
+      meLoading ||
+      requestedMeTokenRef.current === token
     ) {
       return;
     }
 
-    hasRequestedUserRef.current = true;
+    requestedMeTokenRef.current = token;
     void dispatch(getMeThunk());
-  }, [
-    token,
-    userDetail,
-    loading,
-    dispatch,
-  ]);
+  }, [initialized, token, userDetail, meLoading, dispatch]);
 
   useEffect(() => {
-    if (token || loading) {
+    if (!initialized || token) {
       return;
     }
 
-    const callbackUrl =
-      encodeURIComponent(
-        pathname || '/profile',
-      );
+    const callbackUrl = encodeURIComponent(pathname || '/profile');
+    router.replace(`/login?callbackUrl=${callbackUrl}`);
+  }, [initialized, token, pathname, router]);
 
-    router.replace(
-      `/login?callbackUrl=${callbackUrl}`,
-    );
-  }, [
-    token,
-    loading,
-    pathname,
-    router,
-  ]);
-
-  if (loading && !userDetail) {
+  if (!initialized || (token && meLoading && !userDetail)) {
     return (
       <div
         style={{
@@ -101,20 +72,14 @@ export default function AuthGuard({
             borderRadius: '50%',
             width: '40px',
             height: '40px',
-            animation:
-              'auth-guard-spin 1s linear infinite',
+            animation: 'auth-guard-spin 1s linear infinite',
           }}
         />
 
         <style>{`
           @keyframes auth-guard-spin {
-            from {
-              transform: rotate(0deg);
-            }
-
-            to {
-              transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
           }
         `}</style>
       </div>

@@ -10,7 +10,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store'; 
 // اضافه کردن سلکتور و تانک‌های مربوط به آپدیت و حذف
 import { addToCart, updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks'; 
-import { selectCartActionLoading, selectCart } from '@/store/feature/cart/cartSelectors'; 
+import { selectCartActionLoading, selectCart } from '@/store/feature/cart/cartSelectors';
+import { formatPrice, roundPrice } from '@/utils/price';
 
 const ProductOverViewModal = (props: any) => {
     const { isOpen, modalClose, product } = props;
@@ -30,7 +31,16 @@ const ProductOverViewModal = (props: any) => {
     const isInCart = !!cartItem;
 
     const hasDiscount = product.productDiscount && product.productDiscount.isActive;
-    let finalPrice = product.basePrice; 
+    let finalPrice = product.basePrice;
+
+    if (hasDiscount && product.productDiscount) {
+        const { discountType, discountValue } = product.productDiscount;
+        finalPrice = discountType
+            ? product.basePrice - (product.basePrice * discountValue / 100)
+            : Math.max(0, product.basePrice - discountValue);
+    }
+
+    finalPrice = roundPrice(finalPrice);
 
     // ---- هندلرهای مربوط به حالت لوکال (محصول در سبد نیست) ----
     const handleLocalIncrease = () => setLocalQuantity(prev => prev + 1);
@@ -87,11 +97,11 @@ const ProductOverViewModal = (props: any) => {
                         <div className={styles.priceWrapper}>
                             {hasDiscount && (
                                 <span className={styles.oldPrice}>
-                                    {product.basePrice.toLocaleString('fa-IR')}
+                                    {formatPrice(product.basePrice)}
                                 </span>
                             )}
                             <span className={styles.priceValue}>
-                                {finalPrice.toLocaleString('fa-IR')} <span className={styles.currency}>تومان</span>
+                                {formatPrice(finalPrice)} <span className={styles.currency}>تومان</span>
                             </span>
                         </div>
 
@@ -125,7 +135,7 @@ const ProductOverViewModal = (props: any) => {
                                 <div className={styles.inCartHeader}>
                                     <span>در سبد خرید شما:</span>
                                     <span className={styles.totalPriceCart}>
-                                        {(cartItem.quantity * cartItem.unitPrice).toLocaleString('fa-IR')} تومان
+                                        {formatPrice(roundPrice(cartItem.unitPrice) * cartItem.quantity)} تومان
                                     </span>
                                 </div>
                                 <div className={styles.cartQuantityControl}>

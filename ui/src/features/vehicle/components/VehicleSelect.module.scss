@@ -3,18 +3,24 @@
 .container {
   position: relative;
   width: 100%;
+  direction: rtl;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
 }
 
 .selectButton {
+  direction: rtl;
+  text-align: right;
+  font-family: inherit;
   width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 48px;
   padding: 12px 16px;
   background: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   color: #333;
   cursor: pointer;
   transition: all 0.2s;
@@ -42,7 +48,7 @@
 
 .selectText {
   flex: 1;
-  text-align: left;
+  text-align: right;
   
   &.placeholder {
     color: #999;
@@ -61,6 +67,9 @@
 
 // Dropdown
 .dropdown {
+  direction: rtl;
+  text-align: right;
+  font-family: inherit;
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
@@ -93,10 +102,11 @@
 }
 
 .backButton {
+  font-family: inherit;
   background: none;
   border: none;
   color: #1976d2;
-  font-size: 13px;
+  font-size: 16px;
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
@@ -108,7 +118,7 @@
 }
 
 .title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #333;
 }
@@ -128,10 +138,13 @@
 }
 
 .searchInput {
+  direction: rtl;
+  text-align: right;
+  font-family: inherit;
   flex: 1;
   border: none;
   outline: none;
-  font-size: 13px;
+  font-size: 16px;
   color: #333;
   padding: 4px 0;
 
@@ -160,6 +173,8 @@
 }
 
 .listItem {
+  direction: rtl;
+  font-family: inherit;
   width: 100%;
   display: flex;
   align-items: center;
@@ -170,7 +185,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s;
-  text-align: left;
+  text-align: right;
 
   &:hover {
     background: #f5f8ff;
@@ -207,20 +222,20 @@
 
 .itemName {
   display: block;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: #333;
 }
 
 .itemSub {
   display: block;
-  font-size: 12px;
+  font-size: 16px;
   color: #999;
   margin-top: 2px;
 }
 
 .badge {
-  font-size: 11px;
+  font-size: 16px;
   padding: 2px 8px;
   background: #f0f0f0;
   border-radius: 12px;
@@ -242,7 +257,7 @@
   gap: 8px;
   padding: 32px 16px;
   color: #999;
-  font-size: 14px;
+  font-size: 16px;
 
   &.error {
     color: #d32f2f;
@@ -259,13 +274,14 @@
 }
 
 .retryButton {
+  font-family: inherit;
   background: none;
   border: 1px solid #d32f2f;
   color: #d32f2f;
   padding: 4px 16px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 16px;
   margin-top: 4px;
 
   &:hover {
@@ -282,6 +298,6 @@
   padding: 8px 16px;
   background: #f8f9ff;
   border-top: 1px solid #f0f0f0;
-  font-size: 12px;
+  font-size: 16px;
   color: #666;
 }

@@ -33,6 +33,7 @@ import { fetchRelatedProducts } from '@/store/feature/product/productRelatedThun
 import { fetchProductBundles } from '@/store/feature/product/productThunks';
 
 import styles from './RelatedProducts.module.scss';
+import { formatPrice } from '@/utils/price';
 
 interface RelatedProductsProps {
   productId: number;
@@ -398,9 +399,7 @@ export default function RelatedProducts({
             item.price > 0 ? (
               <>
                 <span className={styles.price}>
-                  {item.price.toLocaleString(
-                    'fa-IR',
-                  )}
+                  {formatPrice(item.price)}
                 </span>
                 <span
                   className={styles.currency}

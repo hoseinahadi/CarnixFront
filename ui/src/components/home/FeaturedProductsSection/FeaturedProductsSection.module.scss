@@ -1,5 +1,6 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use 'sass:color';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .featuredSection {
   background-color: white;
@@ -62,12 +63,12 @@
   align-items: center;
   gap: 4px;
   color: #2563eb;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
 
   &:hover {
-    color: darken(#2563eb, 15%);
+    color: color.adjust(#2563eb, $lightness: -15%);
   }
 
   svg {
@@ -103,7 +104,7 @@
   background: transparent;
   color: #64748b;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 600;
 
   &:hover {
@@ -117,7 +118,7 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 
     &:hover {
-      background: darken(#2563eb, 8%);
+      background: color.adjust(#2563eb, $lightness: -8%);
     }
   }
 }

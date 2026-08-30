@@ -8,16 +8,14 @@ import { addToCart, updateItemQuantity, removeCartItem } from '@/store/feature/c
 import { selectCart, selectCartActionLoading } from '@/store/feature/cart/cartSelectors'; 
 import { Plus, Minus, Trash2, Loader2, ShoppingCart } from 'lucide-react';
 import styles from './ProductCard.module.scss';
-import ProductOverViewModal from '../ProductOverViewModal/ProductOverViewModal'; 
+import ProductOverViewModal from '../ProductOverViewModal/ProductOverViewModal';
+import { roundPrice } from '@/utils/price';
 
 interface ProductCardProps {
   product: Product;
 }
 
-const formatPrice = (price: number): number => {
-  if (!price || isNaN(price)) return 0;
-  return price;
-};
+const formatPrice = (price: number): number => roundPrice(price);
 
 const getValidImageUrl = (rawUrl?: string) => {
   if (process.env.NODE_ENV === 'development') {

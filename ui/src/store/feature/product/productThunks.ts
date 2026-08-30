@@ -2,6 +2,34 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ProductFilters } from '@/models/product/ProductFilters';
 import { ProductApi } from '@/services/api/product/productApi';
 
+interface ProductHomeThunkState {
+  product: {
+    bestSellers: unknown;
+    bestSellersLoading: boolean;
+    featuredProducts: unknown;
+    featuredLoading: boolean;
+    discountedProducts: unknown;
+    discountedLoading: boolean;
+    newestProducts: unknown;
+    newestLoading: boolean;
+  };
+}
+
+const getCollectionSize = (value: unknown): number => {
+  if (Array.isArray(value)) return value.length;
+  if (!value || typeof value !== 'object') return 0;
+  const record = value as Record<string, unknown>;
+  const candidates = [record.mainResults, record.data, record.items];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate.length;
+    if (candidate && typeof candidate === 'object' && Array.isArray((candidate as any).items)) {
+      return (candidate as any).items.length;
+    }
+  }
+  return 0;
+};
+
+
 export const getAllProducts = createAsyncThunk(
   'product/getAll',
   async (filters: ProductFilters | undefined, { rejectWithValue }) => {
@@ -21,81 +49,113 @@ interface GetBestSellersArgs {
   pageNumber?: number;
   pageSize?: number;
   includeAll?: boolean;
+  force?: boolean;
 }
 
-export const getBestSellingProducts = createAsyncThunk(
+export const getBestSellingProducts = createAsyncThunk<
+  any,
+  GetBestSellersArgs,
+  { state: ProductHomeThunkState; rejectValue: string }
+>(
   'product/getBestSellers',
-  async (args: GetBestSellersArgs, { rejectWithValue }) => {
+  async (args, { rejectWithValue }) => {
     try {
-      // 🟢 includeAll به صورت پیش‌فرض true قرار گرفت
       const { pageNumber = 1, pageSize = 5, includeAll = true } = args;
       const response = await ProductApi.getBestSellers(pageNumber, pageSize, includeAll);
       if (response.data.isSuccess) {
         return (response.data as any).data || (response.data as any).mainResults || response.data;
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'خطا در دریافت پرفروش‌ترین‌ها');
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'خطا در دریافت پرفروش‌ترین‌ها');
     }
-  }
+  },
+  {
+    condition: (args, { getState }) => {
+      const state = getState().product;
+      if (state.bestSellersLoading) return false;
+      if (args.force) return true;
+      return getCollectionSize(state.bestSellers) < (args.pageSize ?? 5);
+    },
+  },
 );
 
 interface GetPagedArgs {
   pageNumber?: number;
   pageSize?: number;
+  force?: boolean;
 }
 
-export const getNewestProductsPaged = createAsyncThunk(
+export const getNewestProductsPaged = createAsyncThunk<any, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
   'product/getNewestPaged',
-  async (args: GetPagedArgs, { rejectWithValue }) => {
+  async (args, { rejectWithValue }) => {
     try {
       const { pageNumber = 1, pageSize = 5 } = args;
-      const response = await ProductApi.getFiltered({
-        sortBy: 'newest',
-        page: pageNumber,
-        pageSize: pageSize
-      });
-      
+      const response = await ProductApi.getFiltered({ sortBy: 'newest', page: pageNumber, pageSize });
       if (response.data.isSuccess) {
         return (response.data as any).data || (response.data as any).mainResults || response.data;
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'خطا در دریافت جدیدترین محصولات');
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'خطا در دریافت جدیدترین محصولات');
     }
-  }
+  },
+  {
+    condition: (args, { getState }) => {
+      const state = getState().product;
+      if (state.newestLoading) return false;
+      if (args.force) return true;
+      return getCollectionSize(state.newestProducts) < (args.pageSize ?? 5);
+    },
+  },
 );
 
-export const getFeaturedProductsPaged = createAsyncThunk(
+export const getFeaturedProductsPaged = createAsyncThunk<any, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
   'product/getFeaturedPaged',
-  async (args: GetPagedArgs, { rejectWithValue }) => {
+  async (args, { rejectWithValue }) => {
     try {
       const { pageNumber = 1, pageSize = 5 } = args;
       const response = await ProductApi.getFeaturedPaged(pageNumber, pageSize);
       if (response.data.isSuccess) {
         return (response.data as any).data || (response.data as any).mainResults || response.data;
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'خطا در دریافت محصولات ویژه');
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'خطا در دریافت محصولات ویژه');
     }
-  }
+  },
+  {
+    condition: (args, { getState }) => {
+      const state = getState().product;
+      if (state.featuredLoading) return false;
+      if (args.force) return true;
+      return getCollectionSize(state.featuredProducts) < (args.pageSize ?? 5);
+    },
+  },
 );
 
-export const getDiscountedProductsPaged = createAsyncThunk(
+export const getDiscountedProductsPaged = createAsyncThunk<any, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
   'product/getDiscountedPaged',
-  async (args: GetPagedArgs, { rejectWithValue }) => {
+  async (args, { rejectWithValue }) => {
     try {
       const { pageNumber = 1, pageSize = 5 } = args;
       const response = await ProductApi.getDiscountedPaged(pageNumber, pageSize);
       if (response.data.isSuccess) {
         return (response.data as any).data || (response.data as any).mainResults || response.data;
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'خطا در دریافت محصولات تخفیف‌دار');
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'خطا در دریافت محصولات تخفیف‌دار');
     }
-  }
+  },
+  {
+    condition: (args, { getState }) => {
+      const state = getState().product;
+      if (state.discountedLoading) return false;
+      if (args.force) return true;
+      return getCollectionSize(state.discountedProducts) < (args.pageSize ?? 5);
+    },
+  },
 );
 
 export const getProductDetails = createAsyncThunk(
@@ -121,15 +181,11 @@ export const getProductBySlug = createAsyncThunk(
       const response = await ProductApi.getBySlug(slug);
       
       // ✅ این را اضافه کنید
-      console.log('🔴 Full API Response:', JSON.stringify(response.data, null, 2));
       
       if (response.data.isSuccess) {
         const data = (response.data as any).data || (response.data as any).mainResults || response.data;
         
         // ✅ این را اضافه کنید  
-        console.log('🔴 Product Data Keys:', Object.keys(data));
-        console.log('🔴 Feature Values:', data.featureValues);
-        console.log('🔴 Has FeatureValues?', 'featureValues' in data);
         
         return data;
       }

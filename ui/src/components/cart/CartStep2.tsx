@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectAddresses, selectAddressActionLoading} from '@/store/feature/address/AddressSelectors';
+import { selectAddresses, selectAddressLoading } from '@/store/feature/address/AddressSelectors';
 import { fetchAddresses } from '@/store/feature/address/AddressThunks';
 import { 
   Plus, 
@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import styles from './CartStep2.module.scss';
 import AddressModal from '../address/AddressModal';
-import axiosClient from '@/services/api/common/axiosClient';
+import { CheckoutReferenceApi } from '@/features/checkout/api/referenceDataApi';
+import { calculateRoundedCartDiscount, calculateRoundedCartSubtotal, calculateTaxFreeCartTotal, formatPrice, roundPrice } from '@/utils/price';
 
 interface CartStep2Props {
   cart: any;
@@ -38,11 +39,11 @@ interface ShippingMethod {
 const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
   const dispatch = useAppDispatch();
   const addresses = useAppSelector(selectAddresses);
-  const addressesLoading = useAppSelector(selectAddressActionLoading);
+  const addressesLoading = useAppSelector(selectAddressLoading);
 
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [selectedShippingCode, setSelectedShippingCode] = useState<string>('STANDARD');
-  const [selectedShippingCost, setSelectedShippingCost] = useState<number>(220000);
+  const [selectedShippingCost, setSelectedShippingCost] = useState<number>(roundPrice(220000));
   
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [shippingLoading, setShippingLoading] = useState(true);
@@ -60,8 +61,9 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
   });
 
   const itemsCount = cart?.totalItemsCount || cart?.items?.length || 0;
-  const cartSubTotal = cart?.subTotal || 0;
-  const cartTax = cart?.taxAmount || 0;
+  const cartSubTotal = calculateRoundedCartSubtotal(cart);
+  const cartDiscount = calculateRoundedCartDiscount(cart);
+  const taxFreeCartTotal = calculateTaxFreeCartTotal(cart);
 
   useEffect(() => {
     dispatch(fetchAddresses());
@@ -85,9 +87,8 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
     setShippingError(null);
     
     try {
-      const response = await axiosClient.get('/ShippingMethod/GetAll');
+      const response = await CheckoutReferenceApi.getShippingMethods();
       
-      console.log('📦 API Response:', response.data);
       
       let methods: ShippingMethod[] = [];
       
@@ -111,7 +112,6 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
         methods = response.data.mainResults;
       }
       
-      console.log('📦 Extracted Methods:', methods);
       
       if (methods.length > 0) {
         // فیلتر روش‌های فعال
@@ -121,13 +121,11 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
           setShippingMethods(activeMethods);
           // انتخاب اولین روش به عنوان پیش‌فرض
           setSelectedShippingCode(activeMethods[0].code);
-          setSelectedShippingCost(activeMethods[0].baseCost);
-          console.log('✅ Active Methods:', activeMethods);
+          setSelectedShippingCost(roundPrice(activeMethods[0].baseCost));
         } else {
           setShippingMethods(getDefaultMethods());
         }
       } else {
-        console.log('⚠️ No methods found, using defaults');
         setShippingMethods(getDefaultMethods());
       }
     } catch (error: any) {
@@ -147,7 +145,7 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
         name: 'پست پیشتاز',
         code: 'STANDARD',
         description: 'ارسال استاندارد با پست',
-        baseCost: 220000,
+        baseCost: roundPrice(220000),
         estimatedDeliveryDays: 5,
         isActive: true,
         maxWeightKg: null,
@@ -158,7 +156,7 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
         name: 'تیپاکس',
         code: 'TIPAX',
         description: 'ارسال سریع با تیپاکس',
-        baseCost: 300000,
+        baseCost: roundPrice(300000),
         estimatedDeliveryDays: 3,
         isActive: true,
         maxWeightKg: null,
@@ -195,7 +193,7 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
     if (!isShippingAvailable(method)) return;
     
     setSelectedShippingCode(method.code);
-    setSelectedShippingCost(method.baseCost);
+    setSelectedShippingCost(roundPrice(method.baseCost));
   };
 
   const handleSubmit = () => {
@@ -221,12 +219,9 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
       mode: 'create',
       initialData: undefined,
     });
-    dispatch(fetchAddresses());
   };
 
-  const formatCurrency = (amount: number): string => {
-    return amount.toLocaleString('fa-IR');
-  };
+  const formatCurrency = (amount: number): string => formatPrice(amount);
 
   const getDeliveryDaysText = (days: number): string => {
     if (days === 0) return 'همان روز';
@@ -423,10 +418,10 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
               <span>قیمت کالاها</span>
               <span>{formatCurrency(cartSubTotal)} تومان</span>
             </div>
-            {cartTax > 0 && (
+            {cartDiscount > 0 && (
               <div className={styles.summaryRow}>
-                <span>مالیات</span>
-                <span>{formatCurrency(cartTax)} تومان</span>
+                <span>تخفیف کالاها</span>
+                <span>-{formatCurrency(cartDiscount)} تومان</span>
               </div>
             )}
             <div className={styles.summaryRow}>
@@ -441,7 +436,7 @@ const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
             <div className={styles.summaryDivider} />
             <div className={styles.summaryRowTotal}>
               <span>جمع کل</span>
-              <span>{formatCurrency(cartSubTotal + cartTax + selectedShippingCost)} تومان</span>
+              <span>{formatCurrency(taxFreeCartTotal + selectedShippingCost)} تومان</span>
             </div>
           </div>
 

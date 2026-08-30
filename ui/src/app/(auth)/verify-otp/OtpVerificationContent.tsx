@@ -71,21 +71,18 @@ export default function OtpVerificationContent() {
   }, [phoneNumber, router]);
 
   useEffect(() => {
-    const intervalId = window.setInterval(
-      () => {
-        setTimer((previousTimer) =>
-          previousTimer > 0
-            ? previousTimer - 1
-            : 0,
-        );
-      },
-      1_000,
-    );
+    if (timer <= 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setTimer((previousTimer) => Math.max(0, previousTimer - 1));
+    }, 1_000);
 
     return () => {
-      window.clearInterval(intervalId);
+      window.clearTimeout(timeoutId);
     };
-  }, []);
+  }, [timer]);
 
   const handleChange = (
     index: number,

@@ -20,11 +20,9 @@ interface ProductSpecificationsProps {
 }
 
 export default function ProductSpecifications({ specifications }: ProductSpecificationsProps) {
-  console.log('🔧 ProductSpecifications received:', specifications?.length, 'specs');
   
   const { productSpecs, categorySpecs, hasAnyValue } = useMemo(() => {
     if (!specifications || specifications.length === 0) {
-      console.log('⚠️ No specifications provided');
       return { productSpecs: [], categorySpecs: [], hasAnyValue: false }
     }
 
@@ -38,7 +36,6 @@ export default function ProductSpecifications({ specifications }: ProductSpecifi
       const value = spec.optionName || spec.valueString || spec.valueNumeric
       const isValid = value !== undefined && value !== null && value !== '' && value !== '-'
       
-      console.log(`📋 Spec: ${spec.featureName} = ${value} (valid: ${isValid}, source: ${spec.source})`);
       
       if (isValid) {
         hasValue = true
@@ -59,7 +56,6 @@ export default function ProductSpecifications({ specifications }: ProductSpecifi
       }
     })
 
-    console.log(`✅ Valid specs - Product: ${product.length}, Category: ${category.length}`);
 
     return {
       productSpecs: product,

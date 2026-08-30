@@ -8,6 +8,7 @@ import { selectSelectedOrder, selectOrderDetailLoading } from '@/store/feature/o
 import { clearSelectedOrder } from '@/store/feature/orders/orderSlice';
 import styles from './OrderSuccess.module.scss';
 import { IconCircleCheck, IconArrowRight, IconShoppingBag } from '@tabler/icons-react';
+import { calculateTaxFreeOrderTotal, formatPrice } from '@/utils/price';
 
 interface ComponentProps {
   params: Promise<{ id: string }>;
@@ -86,7 +87,7 @@ export default function OrderSuccessContent({ params }: ComponentProps) {
             <div className={styles.infoRow}>
               <span className={styles.label}>مبلغ کل:</span>
               <span className={styles.price}>
-                {new Intl.NumberFormat('fa-IR').format(order.grandTotal || 0)} تومان
+                {formatPrice(calculateTaxFreeOrderTotal(order))} تومان
               </span>
             </div>
             <div className={styles.infoRow}>

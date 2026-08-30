@@ -1,6 +1,6 @@
 // app/wholesale/WholesalePage.module.scss
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .page {
   min-height: 100vh;

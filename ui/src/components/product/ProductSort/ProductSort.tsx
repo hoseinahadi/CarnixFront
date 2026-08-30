@@ -25,6 +25,7 @@ import {
 import { useAppSelector } from '@/store/hooks';
 
 import styles from './ProductSort.module.scss';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 interface ProductSortProps {
   onSortChange: (sortBy: SortOption) => void;
@@ -153,21 +154,7 @@ const ProductSort = ({
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen || !isMobile) {
-      return;
-    }
-
-    const previousOverflow =
-      document.body.style.overflow;
-
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow =
-        previousOverflow;
-    };
-  }, [isOpen, isMobile]);
+  useBodyScrollLock(isOpen && isMobile);
 
   return (
     <div

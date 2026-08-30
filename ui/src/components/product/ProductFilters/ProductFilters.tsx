@@ -10,6 +10,7 @@ import { IconX } from '@tabler/icons-react';
 
 import { fetchCategories } from '@/store/feature/Category/categoryThunks';
 import { getAllTrimDetails } from '@/store/feature/vehicle/VehicleThunks';
+import { getAllBrands } from '@/store/feature/brand/BrandThunks';
 
 import {
   selectActiveFilters,
@@ -80,6 +81,14 @@ const ProductFilters = ({
     (state) => state.vehicle.error,
   );
 
+  const brands = useAppSelector(
+    (state) => state.brand.brands,
+  );
+
+  const brandStatus = useAppSelector(
+    (state) => state.brand.listStatus,
+  );
+
   const [categorySearch, setCategorySearch] =
     useState('');
 
@@ -110,6 +119,17 @@ const ProductFilters = ({
       void dispatch(getAllTrimDetails());
     }
   }, [dispatch, vehicleStatus]);
+
+  useEffect(() => {
+    // برای نمایش نام واقعی برند فعال (و نه «برند 7») داده مرجع را یک‌بار می‌گیریم.
+    if (activeFilters.brandId && brandStatus === 'idle') {
+      void dispatch(getAllBrands());
+    }
+  }, [
+    activeFilters.brandId,
+    brandStatus,
+    dispatch,
+  ]);
 
   const filteredCategories = useMemo(() => {
     const searchTerm = categorySearch.trim();
@@ -312,6 +332,7 @@ const ProductFilters = ({
           filters={activeFilters}
           categories={categories}
           vehicles={vehicles}
+          brands={brands}
           onRemove={handleRemoveFilter}
         />
       )}
@@ -332,7 +353,7 @@ const ProductFilters = ({
                 padding: '10px',
                 color: '#b42318',
                 textAlign: 'center',
-                fontSize: '13px',
+                fontSize: '16px',
               }}
             >
               دریافت دسته‌بندی‌ها ناموفق بود.
@@ -344,7 +365,7 @@ const ProductFilters = ({
                 padding: '10px',
                 color: '#777',
                 textAlign: 'center',
-                fontSize: '13px',
+                fontSize: '16px',
               }}
             >
               در حال دریافت دسته‌بندی‌ها...
@@ -407,7 +428,7 @@ const ProductFilters = ({
                 padding: '10px',
                 color: '#b42318',
                 textAlign: 'center',
-                fontSize: '13px',
+                fontSize: '16px',
               }}
             >
               {vehicleError || 'دریافت خودروها ناموفق بود.'}
@@ -419,7 +440,7 @@ const ProductFilters = ({
                 padding: '10px',
                 color: '#777',
                 textAlign: 'center',
-                fontSize: '13px',
+                fontSize: '16px',
               }}
             >
               در حال دریافت خودروها...
@@ -430,7 +451,7 @@ const ProductFilters = ({
                 padding: '10px',
                 color: '#999',
                 textAlign: 'center',
-                fontSize: '13px',
+                fontSize: '16px',
               }}
             >
               خودرویی برای نمایش وجود ندارد.

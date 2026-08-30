@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .container {
   width: 100%;
@@ -49,7 +49,7 @@
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -92,7 +92,7 @@
   background: none;
   border: none;
   color: #1a56db;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 600;
   font-family: inherit;
   padding: 0;
@@ -153,7 +153,7 @@
 }
 
 .fullAddressText {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #4b5563;
   line-height: 1.8;
   margin: 0 0 20px 0;
@@ -177,7 +177,7 @@
   align-items: center;
   gap: 8px;
   color: #4b5563;
-  font-size: 0.85rem;
+  font-size: 1rem;
 
   svg { color: #9ca3af; flex-shrink: 0; }
 }
@@ -244,7 +244,7 @@
   height: 100%;
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   color: #64748b;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
   gap: 4px;
 
@@ -259,7 +259,7 @@
   color: #1a56db;
   border-radius: 8px;
   padding: 10px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -293,7 +293,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #059669;
   background: #ecfdf5;
@@ -341,7 +341,7 @@
   text-align: center;
   
   h3 { margin: 16px 0 8px; color: #1f2937; }
-  p { margin: 0 0 24px; color: #6b7280; font-size: 0.95rem; line-height: 1.6; }
+  p { margin: 0 0 24px; color: #6b7280; font-size: 1rem; line-height: 1.6; }
 }
 
 .errorState { color: #ef4444; }
@@ -354,4 +354,59 @@
   display: flex; align-items: center; gap: 8px;
   background: #1a56db; color: white; border: none; padding: 12px 24px;
   border-radius: 8px; font-weight: bold; cursor: pointer; font-family: inherit;
+}
+.addButton,
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #1a56db;
+  background: #1a56db;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+.retryButton {
+  margin-top: 8px;
+}
+
+.defaultCard {
+  border-color: rgba(5, 150, 105, 0.35);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.08);
+}
+
+.emptyIcon {
+  color: #94a3b8;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 1rem;
+}
+
+.spinning {
+  animation: addressSpinner 0.8s linear infinite;
+}
+
+@keyframes addressSpinner {
+  to { transform: rotate(360deg); }
 }

@@ -4,7 +4,8 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ContentManagerApi } from '@/features/content/api/ContentManagerApi';
 import type { 
   CreateFullContentDto, 
-  CreateVersionRequestDto 
+  CreateVersionRequestDto,
+  ContentSummaryDto,
 } from '@/features/content/api/ContentManagerApi'; 
 
 // ایجاد محتوای جدید
@@ -72,18 +73,37 @@ export const getContentForDisplay = createAsyncThunk(
 );
 
 // === اضافه شدن Thunk جدید برای دریافت جدیدترین مقالات ===
-export const getLatestContents = createAsyncThunk(
+export const getLatestContents = createAsyncThunk<
+  ContentSummaryDto[],
+  number | undefined,
+  {
+    state: {
+      contentManager: {
+        latestContents: ContentSummaryDto[];
+        latestLoading: boolean;
+      };
+    };
+    rejectValue: string;
+  }
+>(
   'contentManager/getLatestContents',
-  async (count: number = 3, { rejectWithValue }) => {
+  async (count = 3, { rejectWithValue }) => {
     try {
       const response = await ContentManagerApi.getLatestContents(count);
       if (response.data.isSuccess) {
-        return response.data.data; // آرایه‌ای از ContentSummaryDto
+        return response.data.data ?? [];
       }
-      return rejectWithValue(response.data.message);
+      return rejectWithValue(response.data.message || 'خطا در دریافت جدیدترین مقالات');
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'خطا در دریافت جدیدترین مقالات');
     }
-  }
+  },
+  {
+    condition: (count = 3, { getState }) => {
+      const state = getState().contentManager;
+      if (state.latestLoading) return false;
+      return state.latestContents.length < count;
+    },
+  },
 );
 // ========================================================

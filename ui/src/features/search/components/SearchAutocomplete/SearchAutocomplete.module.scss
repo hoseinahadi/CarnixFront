@@ -2,6 +2,9 @@
 @use "../../../../assets/styles/utils/mixins" as *;
 
 .searchContainer {
+  direction: rtl;
+  text-align: right;
+  font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
   position: relative;
   width: 100%;
   max-width: 600px;
@@ -265,7 +268,7 @@
   }
   
   .tag {
-    font-size: 11px;
+    font-size: 16px;
     padding: 3px 10px;
   }
 }
@@ -298,4 +301,11 @@
   .itemName {
     font-size: $font-size-xs;
   }
+}
+.resultsList {
+  width: 100%;
+  max-height: 360px;
+  overflow-y: auto;
+  direction: rtl;
+  text-align: right;
 }

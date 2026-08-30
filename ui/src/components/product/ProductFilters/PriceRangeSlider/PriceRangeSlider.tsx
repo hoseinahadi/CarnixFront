@@ -1,6 +1,7 @@
 // components/product/ProductFilters/PriceRangeSlider/PriceRangeSlider.tsx
 import React, { useState, useEffect } from 'react'
 import styles from './PriceRangeSlider.module.scss'
+import { formatPrice, PRICE_ROUNDING_STEP, roundPrice } from '@/utils/price'
 
 interface PriceRangeSliderProps {
   min: number
@@ -19,9 +20,6 @@ const PriceRangeSlider = ({ min, max, currentMin, currentMax, onChange }: PriceR
     setLocalMax(currentMax)
   }, [currentMin, currentMax])
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('fa-IR').format(Math.round(price))
-
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value)
     if (value <= localMax) {
@@ -37,7 +35,7 @@ const PriceRangeSlider = ({ min, max, currentMin, currentMax, onChange }: PriceR
   }
 
   const handleApply = () => {
-    onChange(localMin, localMax)
+    onChange(roundPrice(localMin), roundPrice(localMax))
   }
 
   // ✅ جلوگیری از تقسیم بر صفر در صورتی که کمترین و بیشترین قیمت یکی باشد
@@ -46,7 +44,7 @@ const PriceRangeSlider = ({ min, max, currentMin, currentMax, onChange }: PriceR
   const maxPercent = ((localMax - min) / rangeDiff) * 100
 
   // استپ داینامیک برای راحتی حرکت اسلایدر روی مبالغ بالا
-  const stepAmount = rangeDiff > 1000000 ? 10000 : 1000;
+  const stepAmount = PRICE_ROUNDING_STEP;
 
   return (
     <div className={styles.container}>

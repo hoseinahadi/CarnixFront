@@ -1,5 +1,5 @@
-@import '@/assets/styles/utils/variables';
-@import '@/assets/styles/utils/mixins';
+@use '@/assets/styles/utils/variables' as *;
+@use '@/assets/styles/utils/mixins' as *;
 
 .container {
   max-width: 800px; // عرض استاندارد و بهینه برای خوانایی چشم در مقالات
@@ -140,4 +140,28 @@
 @keyframes skeletonLoading {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+.error {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 16px;
+  color: $color-danger;
+  text-align: center;
+  font-size: $font-size-base;
+}
+
+.backToBlogBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: $border-radius-md;
+  background: $color-primary;
+  color: $color-white;
+  font-size: $font-size-base;
 }

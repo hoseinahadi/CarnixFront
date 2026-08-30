@@ -12,8 +12,9 @@ import {
   selectOrderError
 } from '@/store/feature/orders/orderSelectors';
 import { clearSelectedOrder } from '@/store/feature/orders/orderSlice';
-import axiosClient from '@/services/api/common/axiosClient';
+import { CheckoutReferenceApi } from '@/features/checkout/api/referenceDataApi';
 import styles from './OrderDetail.module.scss';
+import { calculateTaxFreeOrderTotal, formatPrice, roundPrice } from '@/utils/price';
 import { toast } from 'react-hot-toast';
 import {
   IconArrowLeft,
@@ -55,31 +56,33 @@ export default function OrderDetailContent({ params }: ComponentProps) {
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchOrderDetail(Number(id)));
-      fetchShippingMethods();
-    }
+    if (!id) return;
+
+    let active = true;
+    dispatch(fetchOrderDetail(Number(id)));
+
+    void CheckoutReferenceApi.getShippingMethods()
+      .then((response) => {
+        if (!active) return;
+        let methods: ShippingMethod[] = [];
+        if (response.data?.data) {
+          if (Array.isArray(response.data.data)) methods = response.data.data;
+          else if (response.data.data?.data && Array.isArray(response.data.data.data)) methods = response.data.data.data;
+          else if (response.data.data?.mainResults && Array.isArray(response.data.data.mainResults)) methods = response.data.data.mainResults;
+        } else if (response.data?.mainResults && Array.isArray(response.data.mainResults)) {
+          methods = response.data.mainResults;
+        }
+        setShippingMethods(methods);
+      })
+      .catch((error) => {
+        if (active) console.error('خطا در دریافت روش‌های ارسال:', error);
+      });
+
     return () => {
+      active = false;
       dispatch(clearSelectedOrder());
     };
   }, [id, dispatch]);
-
-  const fetchShippingMethods = async () => {
-    try {
-      const response = await axiosClient.get('/ShippingMethod/GetAll');
-      let methods: ShippingMethod[] = [];
-      if (response.data?.data) {
-        if (Array.isArray(response.data.data)) methods = response.data.data;
-        else if (response.data.data?.data && Array.isArray(response.data.data.data)) methods = response.data.data.data;
-        else if (response.data.data?.mainResults && Array.isArray(response.data.data.mainResults)) methods = response.data.data.mainResults;
-      } else if (response.data?.mainResults && Array.isArray(response.data.mainResults)) {
-        methods = response.data.mainResults;
-      }
-      setShippingMethods(methods);
-    } catch (error) {
-      console.error('❌ خطا در دریافت روش‌های ارسال:', error);
-    }
-  };
 
   const getShippingMethodName = (): string => {
     if (!order) return 'نامشخص';
@@ -102,7 +105,6 @@ export default function OrderDetailContent({ params }: ComponentProps) {
     try {
       await dispatch(cancelOrder({ id: Number(id), reason: cancelReason })).unwrap();
       setShowCancelModal(false);
-      dispatch(fetchOrderDetail(Number(id)));
     } catch (err) {
       console.error('خطا در لغو سفارش:', err);
     }
@@ -259,7 +261,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
               </div>
               <div className={styles.summaryItem}>
                 <span className={styles.label}>مبلغ کل</span>
-                <span className={styles.value}>{new Intl.NumberFormat('fa-IR').format(order.grandTotal || 0)} تومان</span>
+                <span className={styles.value}>{formatPrice(calculateTaxFreeOrderTotal(order))} تومان</span>
               </div>
               <div className={styles.summaryItem}>
                 <span className={styles.label}>ارسال با</span>
@@ -289,7 +291,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
                     <span>{item.vehicleModel || '۲۰۷'}</span>
                   </div>
                   <div className={styles.productPrice}>
-                    {new Intl.NumberFormat('fa-IR').format(item.unitPrice)} تومان
+                    {formatPrice(item.unitPrice)} تومان
                   </div>
                 </div>
               </div>
@@ -323,7 +325,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
                       </div>
                     </td>
                     <td><div className={styles.tdQty}>{item.quantity} عدد</div></td>
-                    <td><div className={styles.tdPrice}>{new Intl.NumberFormat('fa-IR').format(item.lineTotal || (item.unitPrice * item.quantity))} تومان</div></td>
+                    <td><div className={styles.tdPrice}>{formatPrice(roundPrice(item.unitPrice) * item.quantity)} تومان</div></td>
                   </tr>
                 ))}
               </tbody>

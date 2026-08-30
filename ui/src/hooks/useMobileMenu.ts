@@ -1,26 +1,18 @@
-// src/hooks/useMobileMenu.ts
-import { useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export const useMobileMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+  // شمارنده‌دار است و با Search/Modal/ProfileSidebar تداخل نمی‌کند.
+  useBodyScrollLock(isOpen);
 
-  const toggleMenu = () => setIsOpen(prev => !prev);
-  const closeMenu = () => setIsOpen(false);
+  const toggleMenu = useCallback(() => setIsOpen((current) => !current), []);
+  const closeMenu = useCallback(() => setIsOpen(false), []);
 
   return {
     isOpen,
     toggleMenu,
-    closeMenu
+    closeMenu,
   };
 };

@@ -43,6 +43,8 @@ interface VehicleState {
 
   makesStatus: VehicleLoadStatus;
   trimDetailsStatus: VehicleLoadStatus;
+  modelsRequestId: string | null;
+  modelsMakeId: number | null;
   pendingRequests: number;
   loading: boolean;
   error: string | null;
@@ -59,6 +61,8 @@ const initialState: VehicleState = {
 
   makesStatus: 'idle',
   trimDetailsStatus: 'idle',
+  modelsRequestId: null,
+  modelsMakeId: null,
   pendingRequests: 0,
   loading: false,
   error: null,
@@ -84,6 +88,8 @@ const vehicleSlice = createSlice({
   reducers: {
     clearModels: (state) => {
       state.models = [];
+      state.modelsRequestId = null;
+      state.modelsMakeId = null;
     },
     clearSelectedTrimDetail: (state) => {
       state.selectedTrimDetail = null;
@@ -122,18 +128,21 @@ const vehicleSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      .addCase(getModelsByMakeId.pending, (state) => {
+      .addCase(getModelsByMakeId.pending, (state, action) => {
         beginRequest(state);
+        state.modelsRequestId = action.meta.requestId;
+        state.modelsMakeId = action.meta.arg;
       })
-      .addCase(
-        getModelsByMakeId.fulfilled,
-        (state, action: PayloadAction<VehicleModel[]>) => {
-          finishRequest(state);
-          state.models = action.payload;
-        },
-      )
+      .addCase(getModelsByMakeId.fulfilled, (state, action) => {
+        finishRequest(state);
+        if (state.modelsRequestId !== action.meta.requestId) return;
+        state.models = action.payload;
+        state.modelsRequestId = null;
+      })
       .addCase(getModelsByMakeId.rejected, (state, action) => {
         finishRequest(state);
+        if (state.modelsRequestId !== action.meta.requestId) return;
+        state.modelsRequestId = null;
         state.error = action.payload as string;
       })
 

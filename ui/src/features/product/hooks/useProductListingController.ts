@@ -43,6 +43,11 @@ import {
   useAppSelector,
 } from '@/store/hooks';
 
+import {
+  findCategoryById,
+  findCategoryBySlugOrName,
+} from '@/utils/categoryTree';
+
 interface UseProductListingControllerOptions {
   categorySlug?: string;
 }
@@ -131,21 +136,16 @@ export const useProductListingController = (
     }
 
     if (numericCategoryId !== undefined) {
-      return categories.find(
-        (category) =>
-          Number(category.categoryId) === numericCategoryId,
+      return findCategoryById(
+        categories,
+        numericCategoryId,
       );
     }
 
-    return categories.find((category) => {
-      const categorySlugValue = category.slug?.trim();
-      const categoryName = category.name?.trim();
-
-      return (
-        categorySlugValue === decodedCategorySlug ||
-        categoryName === decodedCategorySlug
-      );
-    });
+    return findCategoryBySlugOrName(
+      categories,
+      decodedCategorySlug ?? '',
+    );
   }, [
     categorySlug,
     numericCategoryId,

@@ -8,6 +8,7 @@ import { selectAddressActionLoading, selectAddressError } from '@/store/feature/
 import { X, ChevronLeft, Trash2, AlertCircle, Loader2 } from 'lucide-react'
 import MapPicker from '@/components/common/MapPicker/MapPicker'
 import styles from './AddressModal.module.scss'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
 interface AddressFormData {
   addressTitle: string
@@ -65,6 +66,8 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialDat
   const [isMobile, setIsMobile] = useState(false)
 
   const isLoading = isSubmitting || actionLoadingState !== null
+
+  useBodyScrollLock(isOpen)
 
   useEffect(() => {
     if (!isOpen) { 

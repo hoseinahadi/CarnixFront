@@ -1,8 +1,11 @@
 // services/api/product/productFilterApi.ts
 
+import type { AxiosResponse } from 'axios';
+
 import axiosClient from '@/services/api/common/axiosClient';
 
 import {
+  createProductFilterRequestKey,
   normalizeProductFilters,
   type ProductFilterParams,
 } from '@/models/product/ProductFilters';
@@ -13,6 +16,29 @@ export interface ProductFilterApiEnvelope {
   data?: unknown;
   mainResults?: unknown;
 }
+
+const FILTER_RESULT_TTL_MS = 15_000;
+const MAX_FILTER_CACHE_ENTRIES = 30;
+
+type FilterCacheEntry = {
+  response: AxiosResponse<ProductFilterApiEnvelope>;
+  expiresAt: number;
+};
+
+const filterResultCache = new Map<string, FilterCacheEntry>();
+
+const pruneFilterCache = () => {
+  const now = Date.now();
+  for (const [key, entry] of filterResultCache) {
+    if (entry.expiresAt <= now) filterResultCache.delete(key);
+  }
+
+  while (filterResultCache.size > MAX_FILTER_CACHE_ENTRIES) {
+    const oldest = filterResultCache.keys().next().value as string | undefined;
+    if (!oldest) break;
+    filterResultCache.delete(oldest);
+  }
+};
 
 const serializeFilterParams = (
   sourceParams: ProductFilterParams,
@@ -61,15 +87,41 @@ const serializeFilterParams = (
 };
 
 export const productFilterApi = {
-  getFilteredProducts: (
+  getFilteredProducts: async (
     params: ProductFilterParams,
     signal?: AbortSignal,
-  ) =>
-    axiosClient.get<ProductFilterApiEnvelope>(
+  ): Promise<AxiosResponse<ProductFilterApiEnvelope>> => {
+    pruneFilterCache();
+
+    const normalized = normalizeProductFilters(params);
+    const key = createProductFilterRequestKey(normalized);
+    const cached = filterResultCache.get(key);
+
+    if (cached && cached.expiresAt > Date.now()) {
+      // لمس entry برای LRU سبک.
+      filterResultCache.delete(key);
+      filterResultCache.set(key, cached);
+      return cached.response;
+    }
+
+    const response = await axiosClient.get<ProductFilterApiEnvelope>(
       '/Product/filtered',
       {
-        params: serializeFilterParams(params),
+        params: serializeFilterParams(normalized),
         signal,
       },
-    ),
+    );
+
+    if (response.data.isSuccess !== false) {
+      filterResultCache.set(key, {
+        response,
+        expiresAt: Date.now() + FILTER_RESULT_TTL_MS,
+      });
+      pruneFilterCache();
+    }
+
+    return response;
+  },
+
+  clearCache: () => filterResultCache.clear(),
 };
