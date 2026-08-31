@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useAppSelector } from '@/store/hooks'; 
-import { selectProductDetails, selectDetailsLoading } from '@/store/feature/product/productSelectors'; 
+import { useAppSelector } from '@/store/hooks';
+import {
+  selectProductDetails,
+  selectDetailsLoading
+} from '@/store/feature/product/productSelectors';
 import { ChevronLeft } from 'lucide-react';
 import styles from './ProductInfo.module.scss';
 
@@ -10,15 +13,19 @@ interface ProductInfoProps {
   onNavigateToTab?: (tabId: string) => void;
 }
 
-export default function ProductInfo({ onNavigateToTab }: ProductInfoProps) {
+export default function ProductInfo({
+  onNavigateToTab
+}: ProductInfoProps) {
+
   const product = useAppSelector(selectProductDetails);
   const isLoading = useAppSelector(selectDetailsLoading);
 
-  // Debug
   useEffect(() => {
     if (product) {
+      // debug
     }
   }, [product]);
+
 
   if (isLoading) {
     return (
@@ -30,28 +37,34 @@ export default function ProductInfo({ onNavigateToTab }: ProductInfoProps) {
     );
   }
 
+
   if (!product) return null;
 
-  // استخراج ویژگی‌ها
-  const featureValues = product.featureValues || [];
-  
-  // ویژگی‌هایی که مقدار دارند
+
+  const featureValues = product.featureValues ?? [];
+
+
   const filledFeatures = featureValues.filter(
-    (    fv: { valueString: any; valueNumeric: any; optionName: any; }) => fv.valueString || fv.valueNumeric || fv.optionName
+    (fv) =>
+      Boolean(fv.valueString) ||
+      fv.valueNumeric !== undefined ||
+      Boolean(fv.optionName)
   );
-  
-  // ۴ ویژگی اول
+
+
   const topFeatures = filledFeatures.slice(0, 4);
 
 
   return (
     <div className={styles.productInfo}>
-      {/* عنوان کالا */}
+
       <div className={styles.header}>
-        <h1 className={styles.title}>{product.productName}</h1>
+        <h1 className={styles.title}>
+          {product.productName}
+        </h1>
       </div>
 
-      {/* شماره فنی قطعه */}
+
       {product.productCode && (
         <div className={styles.metaInfo}>
           <span className={styles.productCode}>
@@ -60,56 +73,147 @@ export default function ProductInfo({ onNavigateToTab }: ProductInfoProps) {
         </div>
       )}
 
-      {/* ویژگی‌های محصول */}
+
+
       {topFeatures.length > 0 ? (
+
         <div className={styles.featuresSection}>
-          <h3 className={styles.featuresTitle}>ویژگی های محصول:</h3>
-          
+
+          <h3 className={styles.featuresTitle}>
+            ویژگی های محصول:
+          </h3>
+
+
           <div className={styles.featuresGrid}>
-            {topFeatures.map((fv: { featureName: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined; optionName: any; valueString: any; valueNumeric: any; unit: any; }, index: React.Key | null | undefined) => (
-              <div key={index} className={styles.featureItem}>
-                <span className={styles.featureLabel}>{fv.featureName}: </span>
-                <span className={styles.featureValue}>
-                  {fv.optionName || fv.valueString || fv.valueNumeric || '-'}
-                  {fv.unit ? ` ${fv.unit}` : ''}
+
+            {topFeatures.map((fv, index) => (
+
+              <div
+                key={index}
+                className={styles.featureItem}
+              >
+
+                <span className={styles.featureLabel}>
+                  {fv.featureName}:
                 </span>
+
+
+                <span className={styles.featureValue}>
+
+                  {
+                    fv.optionName ||
+                    fv.valueString ||
+                    fv.valueNumeric ||
+                    '-'
+                  }
+
+
+                  {fv.unit &&
+                    ` ${fv.unit}`
+                  }
+
+                </span>
+
               </div>
+
             ))}
+
           </div>
 
-          <button 
+
+
+          <button
             className={styles.viewAllBtn}
-            onClick={() => onNavigateToTab?.('specifications')}
+            onClick={() =>
+              onNavigateToTab?.('specifications')
+            }
           >
-            مشاهده همه ویژگی‌ها <ChevronLeft size={14} />
+
+            مشاهده همه ویژگی‌ها
+
+            <ChevronLeft size={14} />
+
           </button>
+
+
         </div>
+
+
       ) : (
-        /* Fallback */
+
+
         <div className={styles.featuresSection}>
-          <h3 className={styles.featuresTitle}>اطلاعات محصول:</h3>
+
+
+          <h3 className={styles.featuresTitle}>
+            اطلاعات محصول:
+          </h3>
+
+
           <div className={styles.featuresGrid}>
+
+
             {product.brandName && (
+
               <div className={styles.featureItem}>
-                <span className={styles.featureLabel}>برند: </span>
-                <span className={styles.featureValue}>{product.brandName}</span>
+
+                <span className={styles.featureLabel}>
+                  برند:
+                </span>
+
+                <span className={styles.featureValue}>
+                  {product.brandName}
+                </span>
+
               </div>
+
             )}
+
+
+
             {product.categoryName && (
+
               <div className={styles.featureItem}>
-                <span className={styles.featureLabel}>دسته‌بندی: </span>
-                <span className={styles.featureValue}>{product.categoryName}</span>
+
+                <span className={styles.featureLabel}>
+                  دسته‌بندی:
+                </span>
+
+                <span className={styles.featureValue}>
+                  {product.categoryName}
+                </span>
+
               </div>
+
             )}
+
+
+
             {product.totalStock > 0 && (
+
               <div className={styles.featureItem}>
-                <span className={styles.featureLabel}>موجودی: </span>
-                <span className={styles.featureValue}>{product.totalStock} عدد</span>
+
+                <span className={styles.featureLabel}>
+                  موجودی:
+                </span>
+
+                <span className={styles.featureValue}>
+                  {product.totalStock} عدد
+                </span>
+
               </div>
+
             )}
+
+
           </div>
+
+
         </div>
+
+
       )}
+
     </div>
   );
 }

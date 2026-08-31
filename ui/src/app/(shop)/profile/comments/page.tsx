@@ -22,10 +22,12 @@ import type { Review } from '@/features/product/api/productReviewApi'
 import BackToSidebar from '@/components/profile/BackToSidebar/BackToSidebar'
 
 interface ProductReviewsProps {
-  productId?: number // اگه مستقیم productId داری
+  productId?: number
 }
 
-export default function ProductReviews({ productId: propsProductId }: ProductReviewsProps = {}) {
+export default function ProductReviews({
+  productId: propsProductId
+}: ProductReviewsProps) {
   // product رو از Redux بگیر یا از props استفاده کن
   const productFromRedux = useAppSelector(selectProductDetails)
   const productId = propsProductId || productFromRedux?.productId

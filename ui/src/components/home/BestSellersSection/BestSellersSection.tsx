@@ -206,7 +206,7 @@ const BestSellersSection = () => {
         }
       >
         {products.map(
-          (product) => (
+          (product:any) => (
             <div
               key={
                 product.productId
