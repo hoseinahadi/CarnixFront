@@ -212,7 +212,7 @@ const NewestProductsSection = () => {
         }
       >
         {products.map(
-          (product) => (
+          (product:any) => (
             <div
               key={
                 product.productId
