@@ -17,6 +17,7 @@ import {
 import { Loader2 } from 'lucide-react';
 
 import { useAppDispatch } from '@/store/hooks';
+
 import {
   sendOtpThunk,
   verifyOtpThunk,
@@ -35,6 +36,37 @@ const getRejectedMessage = (
     ? error
     : fallbackMessage;
 
+/*
+ * فقط Redirect داخلی سایت مجاز است.
+ *
+ * معتبر:
+ * /cart?step=2
+ * /profile
+ *
+ * نامعتبر:
+ * https://example.com
+ * //example.com
+ */
+const getSafeCallbackUrl = (
+  callbackUrl: string | null,
+): string => {
+  if (!callbackUrl) {
+    return '/';
+  }
+
+  const normalized =
+    callbackUrl.trim();
+
+  if (
+    !normalized.startsWith('/') ||
+    normalized.startsWith('//')
+  ) {
+    return '/';
+  }
+
+  return normalized;
+};
+
 export default function OtpVerificationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,6 +74,18 @@ export default function OtpVerificationContent() {
 
   const phoneNumber =
     searchParams.get('phone')?.trim() ?? '';
+
+  /*
+   * callbackUrl که از Login آمده:
+   *
+   * /verify-otp
+   *   ?phone=0912...
+   *   &callbackUrl=/cart?step=2
+   */
+  const callbackUrl =
+    getSafeCallbackUrl(
+      searchParams.get('callbackUrl'),
+    );
 
   const [otp, setOtp] = useState<string[]>(
     Array.from(
@@ -64,23 +108,45 @@ export default function OtpVerificationContent() {
     Array<HTMLInputElement | null>
   >([]);
 
+  /*
+   * لینک بازگشت به Login نیز callbackUrl
+   * را حفظ می‌کند.
+   */
+  const loginUrl =
+    `/login?callbackUrl=${encodeURIComponent(
+      callbackUrl,
+    )}`;
+
   useEffect(() => {
     if (!phoneNumber) {
-      router.replace('/login');
+      router.replace(loginUrl);
     }
-  }, [phoneNumber, router]);
+  }, [
+    phoneNumber,
+    router,
+    loginUrl,
+  ]);
 
   useEffect(() => {
     if (timer <= 0) {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => {
-      setTimer((previousTimer) => Math.max(0, previousTimer - 1));
-    }, 1_000);
+    const timeoutId =
+      window.setTimeout(() => {
+        setTimer(
+          (previousTimer) =>
+            Math.max(
+              0,
+              previousTimer - 1,
+            ),
+        );
+      }, 1_000);
 
     return () => {
-      window.clearTimeout(timeoutId);
+      window.clearTimeout(
+        timeoutId,
+      );
     };
   }, [timer]);
 
@@ -88,12 +154,16 @@ export default function OtpVerificationContent() {
     index: number,
     value: string,
   ) => {
-    const normalizedValue = value
-      .replace(/\D/g, '')
-      .slice(-1);
+    const normalizedValue =
+      value
+        .replace(/\D/g, '')
+        .slice(-1);
 
     const nextOtp = [...otp];
-    nextOtp[index] = normalizedValue;
+
+    nextOtp[index] =
+      normalizedValue;
+
     setOtp(nextOtp);
     setLocalError('');
 
@@ -109,7 +179,8 @@ export default function OtpVerificationContent() {
 
   const handleKeyDown = (
     index: number,
-    event: KeyboardEvent<HTMLInputElement>,
+    event:
+      KeyboardEvent<HTMLInputElement>,
   ) => {
     if (
       event.key === 'Backspace' &&
@@ -136,17 +207,28 @@ export default function OtpVerificationContent() {
 
     try {
       await dispatch(
-        sendOtpThunk({ phoneNumber }),
+        sendOtpThunk({
+          phoneNumber,
+        }),
       ).unwrap();
 
       setOtp(
         Array.from(
-          { length: OTP_LENGTH },
+          {
+            length:
+              OTP_LENGTH,
+          },
           () => '',
         ),
       );
-      setTimer(RESEND_SECONDS);
-      inputRefs.current[0]?.focus();
+
+      setTimer(
+        RESEND_SECONDS,
+      );
+
+      inputRefs.current[
+        0
+      ]?.focus();
     } catch (error: unknown) {
       setLocalError(
         getRejectedMessage(
@@ -160,16 +242,22 @@ export default function OtpVerificationContent() {
   };
 
   const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>,
+    event:
+      FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
-    const code = otp.join('');
+    const code =
+      otp.join('');
 
-    if (code.length !== OTP_LENGTH) {
+    if (
+      code.length !==
+      OTP_LENGTH
+    ) {
       setLocalError(
         'کد تأیید را کامل وارد کنید.',
       );
+
       return;
     }
 
@@ -177,22 +265,52 @@ export default function OtpVerificationContent() {
     setLocalError('');
 
     try {
-      const result = await dispatch(
-        verifyOtpThunk({
-          phoneNumber,
-          code,
-        }),
-      ).unwrap();
+      const result =
+        await dispatch(
+          verifyOtpThunk({
+            phoneNumber,
+            code,
+          }),
+        ).unwrap();
 
-      if (result.isRegistered) {
-        router.replace('/');
+      /*
+       * کاربر قبلاً ثبت‌نام شده است.
+       *
+       * دیگر همیشه به Home نمی‌رود.
+       * اگر از Checkout آمده باشد،
+       * به همان Checkout برمی‌گردد.
+       */
+      if (
+        result.isRegistered
+      ) {
+        router.replace(
+          callbackUrl,
+        );
+
         return;
       }
 
+      /*
+       * کاربر جدید:
+       *
+       * phone + callbackUrl
+       * هر دو به Register منتقل می‌شوند.
+       */
+      const registerParams =
+        new URLSearchParams();
+
+      registerParams.set(
+        'phone',
+        phoneNumber,
+      );
+
+      registerParams.set(
+        'callbackUrl',
+        callbackUrl,
+      );
+
       router.replace(
-        `/register?phone=${encodeURIComponent(
-          phoneNumber,
-        )}`,
+        `/register?${registerParams.toString()}`,
       );
     } catch (error: unknown) {
       setLocalError(
@@ -209,14 +327,20 @@ export default function OtpVerificationContent() {
   const formatTime = (
     value: number,
   ): string => {
-    const minutes = Math.floor(
-      value / 60,
-    );
-    const seconds = value % 60;
+    const minutes =
+      Math.floor(
+        value / 60,
+      );
+
+    const seconds =
+      value % 60;
 
     return `${minutes}:${seconds
       .toString()
-      .padStart(2, '0')}`.replace(
+      .padStart(
+        2,
+        '0',
+      )}`.replace(
       /\d/g,
       (digit) =>
         '۰۱۲۳۴۵۶۷۸۹'[
@@ -230,27 +354,51 @@ export default function OtpVerificationContent() {
   }
 
   return (
-    <div className={styles.authPage}>
-      <div className={styles.authCard}>
-        <div className={styles.header}>
+    <div
+      className={
+        styles.authPage
+      }
+    >
+      <div
+        className={
+          styles.authCard
+        }
+      >
+        <div
+          className={
+            styles.header
+          }
+        >
           <h1
-            className={styles.titleDesktop}
+            className={
+              styles.titleDesktop
+            }
           >
             قطعه فروش
           </h1>
 
           <h1
-            className={styles.titleMobile}
+            className={
+              styles.titleMobile
+            }
           >
             کارنیکس
           </h1>
 
-          <p className={styles.subtitle}>
+          <p
+            className={
+              styles.subtitle
+            }
+          >
             تأیید شماره تماس
           </p>
         </div>
 
-        <div className={styles.phoneInfo}>
+        <div
+          className={
+            styles.phoneInfo
+          }
+        >
           <span>
             کد تأیید به شماره{' '}
             <span dir="ltr">
@@ -262,58 +410,99 @@ export default function OtpVerificationContent() {
           <button
             type="button"
             onClick={() =>
-              router.push('/login')
+              router.push(
+                loginUrl,
+              )
             }
-            className={styles.editBtn}
+            className={
+              styles.editBtn
+            }
+            disabled={loading}
           >
             ویرایش شماره
           </button>
         </div>
 
         <form
-          onSubmit={handleSubmit}
-          className={styles.form}
+          onSubmit={
+            handleSubmit
+          }
+          className={
+            styles.form
+          }
         >
           <div
-            className={styles.otpContainer}
+            className={
+              styles.otpContainer
+            }
             dir="ltr"
           >
-            {otp.map((digit, index) => (
-              <input
-                key={index}
-                ref={(element) => {
-                  inputRefs.current[index] =
-                    element;
-                }}
-                type="text"
-                inputMode="numeric"
-                autoComplete={
-                  index === 0
-                    ? 'one-time-code'
-                    : 'off'
-                }
-                maxLength={1}
-                className={styles.otpInput}
-                value={digit}
-                onChange={(event) =>
-                  handleChange(
-                    index,
-                    event.target.value,
-                  )
-                }
-                onKeyDown={(event) =>
-                  handleKeyDown(
-                    index,
+            {otp.map(
+              (
+                digit,
+                index,
+              ) => (
+                <input
+                  key={
+                    index
+                  }
+                  ref={(
+                    element,
+                  ) => {
+                    inputRefs.current[
+                      index
+                    ] =
+                      element;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete={
+                    index ===
+                    0
+                      ? 'one-time-code'
+                      : 'off'
+                  }
+                  maxLength={
+                    1
+                  }
+                  className={
+                    styles.otpInput
+                  }
+                  value={
+                    digit
+                  }
+                  onChange={(
                     event,
-                  )
-                }
-                autoFocus={index === 0}
-                disabled={loading}
-                aria-label={`رقم ${
-                  index + 1
-                } کد تأیید`}
-              />
-            ))}
+                  ) =>
+                    handleChange(
+                      index,
+                      event
+                        .target
+                        .value,
+                    )
+                  }
+                  onKeyDown={(
+                    event,
+                  ) =>
+                    handleKeyDown(
+                      index,
+                      event,
+                    )
+                  }
+                  autoFocus={
+                    index ===
+                    0
+                  }
+                  disabled={
+                    loading
+                  }
+                  aria-label={`رقم ${
+                    index +
+                    1
+                  } کد تأیید`}
+                />
+              ),
+            )}
           </div>
 
           {localError && (
@@ -322,13 +511,20 @@ export default function OtpVerificationContent() {
               className={
                 styles.errorMessage
               }
-              style={{ marginTop: '10px' }}
+              style={{
+                marginTop:
+                  '10px',
+              }}
             >
               {localError}
             </div>
           )}
 
-          <div className={styles.timer}>
+          <div
+            className={
+              styles.timer
+            }
+          >
             {timer > 0 ? (
               `ارسال مجدد کد ${formatTime(
                 timer,
@@ -342,7 +538,9 @@ export default function OtpVerificationContent() {
                 onClick={() => {
                   void handleResend();
                 }}
-                disabled={loading}
+                disabled={
+                  loading
+                }
               >
                 ارسال مجدد کد
               </button>
@@ -351,16 +549,22 @@ export default function OtpVerificationContent() {
 
           <button
             type="submit"
-            className={styles.submitBtn}
+            className={
+              styles.submitBtn
+            }
             disabled={
-              otp.join('').length <
-                OTP_LENGTH || loading
+              otp.join('')
+                .length <
+                OTP_LENGTH ||
+              loading
             }
           >
             {loading ? (
               <Loader2
                 size={20}
-                className={styles.spinner}
+                className={
+                  styles.spinner
+                }
               />
             ) : (
               'تأیید'
@@ -368,7 +572,11 @@ export default function OtpVerificationContent() {
           </button>
         </form>
 
-        <Link href="/login">
+        <Link
+          href={
+            loginUrl
+          }
+        >
           بازگشت به ورود
         </Link>
       </div>

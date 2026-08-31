@@ -21,6 +21,7 @@ import type {
 } from '@/models/auth/RegisterRequest';
 
 import { useAppDispatch } from '@/store/hooks';
+
 import {
   registerThunk,
 } from '@/store/feature/auth/authThunks';
@@ -42,6 +43,37 @@ const getRejectedMessage = (
     ? error
     : fallbackMessage;
 
+/*
+ * فقط Redirect داخلی مجاز است.
+ *
+ * معتبر:
+ * /cart?step=2
+ * /profile
+ *
+ * نامعتبر:
+ * https://example.com
+ * //example.com
+ */
+const getSafeCallbackUrl = (
+  callbackUrl: string | null,
+): string => {
+  if (!callbackUrl) {
+    return '/';
+  }
+
+  const normalized =
+    callbackUrl.trim();
+
+  if (
+    !normalized.startsWith('/') ||
+    normalized.startsWith('//')
+  ) {
+    return '/';
+  }
+
+  return normalized;
+};
+
 function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -49,6 +81,18 @@ function RegisterContent() {
 
   const phoneNumber =
     searchParams.get('phone')?.trim() ?? '';
+
+  /*
+   * مسیر برگشت کاربر بعد از ثبت‌نام.
+   *
+   * برای Checkout:
+   *
+   * /cart?step=2
+   */
+  const callbackUrl =
+    getSafeCallbackUrl(
+      searchParams.get('callbackUrl'),
+    );
 
   const [formData, setFormData] =
     useState<RegisterFormState>({
@@ -64,11 +108,23 @@ function RegisterContent() {
   const [localError, setLocalError] =
     useState('');
 
+  /*
+   * اگر کاربر بدون شماره وارد Register شده باشد،
+   * به Login برمی‌گردد ولی callbackUrl حفظ می‌شود.
+   */
   useEffect(() => {
     if (!phoneNumber) {
-      router.replace('/login');
+      router.replace(
+        `/login?callbackUrl=${encodeURIComponent(
+          callbackUrl,
+        )}`,
+      );
     }
-  }, [phoneNumber, router]);
+  }, [
+    phoneNumber,
+    callbackUrl,
+    router,
+  ]);
 
   const handleChange = (
     event: ChangeEvent<
@@ -97,6 +153,10 @@ function RegisterContent() {
       ...previousState,
       car,
     }));
+
+    if (localError) {
+      setLocalError('');
+    }
   };
 
   const handleSubmit = async (
@@ -106,6 +166,7 @@ function RegisterContent() {
 
     const firstName =
       formData.firstName.trim();
+
     const lastName =
       formData.lastName.trim();
 
@@ -113,39 +174,82 @@ function RegisterContent() {
       setLocalError(
         'لطفاً نام و نام خانوادگی را وارد کنید.',
       );
+
+      return;
+    }
+
+    if (!phoneNumber) {
+      setLocalError(
+        'شماره موبایل معتبر نیست.',
+      );
+
       return;
     }
 
     setLoading(true);
     setLocalError('');
 
+    /*
+     * TODO:
+     *
+     * این Password موقتاً برای سازگاری با Contract فعلی Backend
+     * باقی مانده است.
+     *
+     * در مرحله Auth Backend، ثبت‌نام OTP را از Password جدا
+     * می‌کنیم تا شماره موبایل Password کاربر نباشد.
+     */
     const payload: RegisterRequest = {
       userName: phoneNumber,
       phoneNumber,
       name: firstName,
       family: lastName,
+
       email:
-        formData.email.trim() || undefined,
+        formData.email.trim() ||
+        undefined,
+
       password: phoneNumber,
       confirmPassword: phoneNumber,
+
       roleName: 'User',
-      car: formData.car || undefined,
+
+      car:
+        formData.car ||
+        undefined,
     };
 
     try {
-      const result = await dispatch(
-        registerThunk(payload),
-      ).unwrap();
+      const result =
+        await dispatch(
+          registerThunk(payload),
+        ).unwrap();
 
+      /*
+       * اگر Backend بعد از Register توکن داده باشد،
+       * کاربر Login شده و مستقیماً به مقصد قبلی برمی‌گردد.
+       */
       if (
         result.token ||
         result.accessToken
       ) {
-        router.replace('/');
+        router.replace(
+          callbackUrl,
+        );
+
         return;
       }
 
-      router.replace('/login');
+      /*
+       * اگر Register موفق بوده ولی Token برنگشته،
+       * کاربر باید دوباره Login کند.
+       *
+       * callbackUrl همچنان حفظ می‌شود.
+       */
+      router.replace(
+        `/login?callbackUrl=${encodeURIComponent(
+          callbackUrl,
+        )}`,
+      );
     } catch (error: unknown) {
       setLocalError(
         getRejectedMessage(
@@ -163,54 +267,102 @@ function RegisterContent() {
   }
 
   return (
-    <div className={styles.authPage}>
-      <div className={styles.authCard}>
-        <div className={styles.header}>
+    <div
+      className={
+        styles.authPage
+      }
+    >
+      <div
+        className={
+          styles.authCard
+        }
+      >
+        <div
+          className={
+            styles.header
+          }
+        >
           <h1
-            className={styles.titleDesktop}
+            className={
+              styles.titleDesktop
+            }
           >
             قطعه فروش
           </h1>
 
           <h1
-            className={styles.titleMobile}
+            className={
+              styles.titleMobile
+            }
           >
             کارنیکس
           </h1>
 
-          <p className={styles.subtitle}>
+          <p
+            className={
+              styles.subtitle
+            }
+          >
             تکمیل اطلاعات
           </p>
 
-          <p className={styles.mobileHint}>
+          <p
+            className={
+              styles.mobileHint
+            }
+          >
             لطفاً اطلاعات کاربری خود را تکمیل کنید
           </p>
         </div>
 
         <form
-          onSubmit={handleSubmit}
-          className={styles.form}
+          onSubmit={
+            handleSubmit
+          }
+          className={
+            styles.form
+          }
         >
-          <div className={styles.row}>
+          <div
+            className={
+              styles.row
+            }
+          >
             <input
               type="text"
               name="firstName"
-              className={styles.input}
+              className={
+                styles.input
+              }
               placeholder="نام"
-              value={formData.firstName}
-              onChange={handleChange}
-              disabled={loading}
+              value={
+                formData.firstName
+              }
+              onChange={
+                handleChange
+              }
+              disabled={
+                loading
+              }
               autoComplete="given-name"
             />
 
             <input
               type="text"
               name="lastName"
-              className={styles.input}
+              className={
+                styles.input
+              }
               placeholder="نام خانوادگی"
-              value={formData.lastName}
-              onChange={handleChange}
-              disabled={loading}
+              value={
+                formData.lastName
+              }
+              onChange={
+                handleChange
+              }
+              disabled={
+                loading
+              }
               autoComplete="family-name"
             />
           </div>
@@ -218,20 +370,34 @@ function RegisterContent() {
           <input
             type="email"
             name="email"
-            className={styles.input}
+            className={
+              styles.input
+            }
             placeholder="ایمیل (اختیاری)"
-            value={formData.email}
-            onChange={handleChange}
+            value={
+              formData.email
+            }
+            onChange={
+              handleChange
+            }
             dir="ltr"
-            disabled={loading}
+            disabled={
+              loading
+            }
             autoComplete="email"
           />
 
           <VehicleSelect
-            value={formData.car}
-            onChange={handleCarChange}
+            value={
+              formData.car
+            }
+            onChange={
+              handleCarChange
+            }
             placeholder="انتخاب خودرو (اختیاری)"
-            disabled={loading}
+            disabled={
+              loading
+            }
           />
 
           {localError && (
@@ -247,13 +413,19 @@ function RegisterContent() {
 
           <button
             type="submit"
-            className={styles.submitBtn}
-            disabled={loading}
+            className={
+              styles.submitBtn
+            }
+            disabled={
+              loading
+            }
           >
             {loading ? (
               <Loader2
                 size={20}
-                className={styles.spinner}
+                className={
+                  styles.spinner
+                }
               />
             ) : (
               'تکمیل و ارسال'
@@ -265,8 +437,12 @@ function RegisterContent() {
             onClick={() =>
               router.push('/')
             }
-            className={styles.skipBtn}
-            disabled={loading}
+            className={
+              styles.skipBtn
+            }
+            disabled={
+              loading
+            }
           >
             بعداً تکمیل می‌کنم
           </button>

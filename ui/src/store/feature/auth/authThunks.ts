@@ -48,31 +48,97 @@ import type {
 
 import {
   fetchMyCart,
+  mergeGuestCart,
 } from '@/store/feature/cart/cartThunks';
 
-import { sessionCleared } from '@/store/actions/sessionActions';
+import {
+  sessionCleared,
+} from '@/store/actions/sessionActions';
 
+/*
+ * بعد از Login / OTP / Register موفق:
+ *
+ * 1. اطلاعات کاربر دریافت می‌شود.
+ * 2. سبد مهمان با سبد حساب Merge می‌شود.
+ * 3. اگر Merge به هر دلیلی انجام نشد،
+ *    حداقل سبد حساب کاربر Fetch می‌شود.
+ *
+ * نکته:
+ * شکست این عملیات‌ها نباید Login موفق را
+ * به Login ناموفق تبدیل کند.
+ */
 const loadAuthenticatedUserData = async (
   dispatch: AppDispatch,
 ): Promise<void> => {
   /*
-   * شکست getMe یا Cart نباید Login موفق را به Login ناموفق تبدیل کند.
-   * AuthGuard بعداً می‌تواند اطلاعات کاربر را دوباره دریافت کند.
+   * دریافت اطلاعات کاربر
    */
   try {
     await dispatch(
-      getMeThunk({ force: true }),
+      getMeThunk({
+        force: true,
+      }),
     ).unwrap();
   } catch {
-    // خطا در Slice ثبت می‌شود.
+    /*
+     * خطای getMe در Slice ثبت می‌شود.
+     * Authentication موفق را Fail نمی‌کنیم.
+     */
   }
 
+  /*
+   * ابتدا تلاش می‌کنیم Guest Cart را Merge کنیم.
+   *
+   * axiosClient همان X-Session-Id قبلی مهمان را
+   * همراه Token جدید ارسال می‌کند.
+   *
+   * بنابراین Backend می‌تواند:
+   *
+   * Guest Session Cart
+   * +
+   * User Cart
+   *
+   * را با هم ادغام کند.
+   */
   try {
     await dispatch(
-      fetchMyCart({ force: true }),
+      mergeGuestCart(),
+    ).unwrap();
+
+    /*
+     * mergeGuestCart خودش بعد از Merge موفق
+     * fetchMyCart({ force: true }) را اجرا می‌کند.
+     *
+     * بنابراین در حالت موفق Fetch دوباره لازم نیست.
+     */
+    return;
+  } catch {
+    /*
+     * ممکن است:
+     *
+     * - Guest Cart وجود نداشته باشد
+     * - Merge Endpoint موقتاً خطا بدهد
+     * - Backend در دسترس نباشد
+     *
+     * Login را Fail نمی‌کنیم.
+     */
+  }
+
+  /*
+   * اگر Merge موفق نشد،
+   * حداقل Cart واقعی حساب کاربر را دریافت می‌کنیم.
+   */
+  try {
+    await dispatch(
+      fetchMyCart({
+        force: true,
+      }),
     ).unwrap();
   } catch {
-    // خالی یا در دسترس نبودن سبد خرید مانع ورود کاربر نمی‌شود.
+    /*
+     * نبودن یا در دسترس نبودن Cart
+     * مانع Login کاربر نمی‌شود.
+     */
   }
 };
 
@@ -80,7 +146,12 @@ export const getMeThunk = createAsyncThunk<
   UserDetail,
   { force?: boolean } | undefined,
   {
-    state: { auth: { userDetail: UserDetail | null; meLoading: boolean } };
+    state: {
+      auth: {
+        userDetail: UserDetail | null;
+        meLoading: boolean;
+      };
+    };
     rejectValue: string;
   }
 >(
@@ -114,11 +185,27 @@ export const getMeThunk = createAsyncThunk<
       );
     }
   },
+
   {
-    condition: (args, { getState }) => {
-      const { userDetail, meLoading } = getState().auth;
-      if (meLoading) return false;
-      if (args?.force) return true;
+    condition: (
+      args,
+      {
+        getState,
+      },
+    ) => {
+      const {
+        userDetail,
+        meLoading,
+      } = getState().auth;
+
+      if (meLoading) {
+        return false;
+      }
+
+      if (args?.force) {
+        return true;
+      }
+
       return !userDetail;
     },
   },
@@ -154,7 +241,9 @@ export const loginThunk = createAsyncThunk<
         );
 
       const tokens =
-        extractAuthTokens(payload);
+        extractAuthTokens(
+          payload,
+        );
 
       if (!tokens) {
         return rejectWithValue(
@@ -162,21 +251,31 @@ export const loginThunk = createAsyncThunk<
         );
       }
 
-      saveAuthTokens(tokens);
+      /*
+       * Token باید قبل از Merge ذخیره شود،
+       * چون /Cart/merge به Authentication نیاز دارد.
+       */
+      saveAuthTokens(
+        tokens,
+      );
 
       await loadAuthenticatedUserData(
         dispatch,
       );
 
       return {
-        token: tokens.accessToken,
+        token:
+          tokens.accessToken,
+
         refreshToken:
           tokens.refreshToken,
+
         message:
           typeof payload === 'object' &&
           payload !== null &&
           'message' in payload &&
-          typeof payload.message === 'string'
+          typeof payload.message ===
+            'string'
             ? payload.message
             : undefined,
       };
@@ -235,18 +334,29 @@ export const logoutThunk = createAsyncThunk<
 >(
   'auth/logout',
 
-  async (_, { dispatch }) => {
+  async (
+    _,
+    {
+      dispatch,
+    },
+  ) => {
     try {
       await authApi.logout();
     } catch {
       /*
-       * حتی اگر Backend در دسترس نباشد، اطلاعات محلی باید پاک شود
-       * تا کاربر در UI واردشده باقی نماند.
+       * حتی اگر Backend در دسترس نباشد،
+       * اطلاعات محلی باید پاک شود.
        */
     } finally {
       clearAuthStorage();
-      // علاوه بر Storage/Cache، stateهای شخصی Redux نیز همان لحظه آزاد شوند.
-      dispatch(sessionCleared());
+
+      /*
+       * Stateهای وابسته به User نیز
+       * همان لحظه پاک شوند.
+       */
+      dispatch(
+        sessionCleared(),
+      );
     }
   },
 );
@@ -281,11 +391,23 @@ export const registerThunk = createAsyncThunk<
         );
 
       const tokens =
-        extractAuthTokens(payload);
+        extractAuthTokens(
+          payload,
+        );
 
+      /*
+       * اگر Backend بعد از Register
+       * Token برگرداند، کاربر همان لحظه
+       * Authenticated می‌شود.
+       */
       if (tokens) {
-        saveAuthTokens(tokens);
+        saveAuthTokens(
+          tokens,
+        );
 
+        /*
+         * Guest Cart نیز همین‌جا Merge می‌شود.
+         */
         await loadAuthenticatedUserData(
           dispatch,
         );
@@ -293,10 +415,15 @@ export const registerThunk = createAsyncThunk<
 
       return {
         ...payload,
+
         ...(tokens
           ? {
               token:
                 tokens.accessToken,
+
+              accessToken:
+                tokens.accessToken,
+
               refreshToken:
                 tokens.refreshToken,
             }
@@ -332,7 +459,9 @@ export const sendOtpThunk = createAsyncThunk<
   ) => {
     try {
       const response =
-        await authApi.sendOtp(data);
+        await authApi.sendOtp(
+          data,
+        );
 
       return unwrapOperationResult<SendOtpResponse>(
         response.data,
@@ -371,7 +500,9 @@ export const verifyOtpThunk = createAsyncThunk<
   ) => {
     try {
       const response =
-        await authApi.verifyOtp(data);
+        await authApi.verifyOtp(
+          data,
+        );
 
       const payload =
         unwrapOperationResult<VerifyOtpResponse>(
@@ -380,8 +511,14 @@ export const verifyOtpThunk = createAsyncThunk<
         );
 
       const tokens =
-        extractAuthTokens(payload);
+        extractAuthTokens(
+          payload,
+        );
 
+      /*
+       * اگر Backend می‌گوید کاربر قبلاً
+       * ثبت شده، باید Token هم بدهد.
+       */
       if (
         payload.isRegistered &&
         !tokens
@@ -391,8 +528,21 @@ export const verifyOtpThunk = createAsyncThunk<
         );
       }
 
+      /*
+       * کاربر ثبت‌شده:
+       *
+       * OTP
+       * ↓
+       * Token
+       * ↓
+       * Merge Guest Cart
+       * ↓
+       * Fetch User Cart
+       */
       if (tokens) {
-        saveAuthTokens(tokens);
+        saveAuthTokens(
+          tokens,
+        );
 
         await loadAuthenticatedUserData(
           dispatch,
@@ -401,12 +551,15 @@ export const verifyOtpThunk = createAsyncThunk<
 
       return {
         ...payload,
+
         ...(tokens
           ? {
               token:
                 tokens.accessToken,
+
               accessToken:
                 tokens.accessToken,
+
               refreshToken:
                 tokens.refreshToken,
             }

@@ -1,26 +1,62 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectAddresses, selectAddressLoading } from '@/store/feature/address/AddressSelectors';
-import { fetchAddresses } from '@/store/feature/address/AddressThunks';
-import { 
-  Plus, 
-  Home, 
-  MapPin, 
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
+import {
   Edit3,
+  Home,
+  Loader2,
+  MapPin,
+  Plus,
   Trash2,
   Truck,
-  Loader2
 } from 'lucide-react';
+
+import AddressModal from '@/components/address/AddressModal';
+
+import {
+  CheckoutReferenceApi,
+  type ShippingQuoteResponse,
+} from '@/features/checkout/api/referenceDataApi';
+
+import type { AddressResponseDto } from '@/models/address/AddressResponseDto';
+import type { Cart } from '@/models/cart/Cart';
+
+import {
+  getApiErrorMessage,
+  isRequestCanceled,
+} from '@/services/api/common/apiError';
+
+import {
+  selectAddressLoading,
+  selectAddresses,
+} from '@/store/feature/address/AddressSelectors';
+
+import {
+  fetchAddresses,
+} from '@/store/feature/address/AddressThunks';
+
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/store/hooks';
+
 import styles from './CartStep2.module.scss';
-import AddressModal from '../address/AddressModal';
-import { CheckoutReferenceApi } from '@/features/checkout/api/referenceDataApi';
-import { calculateRoundedCartDiscount, calculateRoundedCartSubtotal, calculateTaxFreeCartTotal, formatPrice, roundPrice } from '@/utils/price';
 
 interface CartStep2Props {
-  cart: any;
-  onNext: (addressId: number, shippingMethod: string, shippingCost: number) => void;
+  cart: Cart;
+
+  onNext: (
+    addressId: number,
+    shippingMethod: string,
+    shippingCost: number,
+  ) => void;
+
   onBack: () => void;
 }
 
@@ -36,433 +72,1538 @@ interface ShippingMethod {
   regionLimit: string | null;
 }
 
-const CartStep2: React.FC<CartStep2Props> = ({ cart, onNext, onBack }) => {
-  const dispatch = useAppDispatch();
-  const addresses = useAppSelector(selectAddresses);
-  const addressesLoading = useAppSelector(selectAddressLoading);
+interface ModalConfig {
+  isOpen: boolean;
+  mode: 'create' | 'edit' | 'delete';
+  initialData?: AddressResponseDto;
+}
 
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
-  const [selectedShippingCode, setSelectedShippingCode] = useState<string>('STANDARD');
-  const [selectedShippingCost, setSelectedShippingCost] = useState<number>(roundPrice(220000));
-  
-  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
-  const [shippingLoading, setShippingLoading] = useState(true);
-  const [shippingError, setShippingError] = useState<string | null>(null);
-  
-  const [modalKey, setModalKey] = useState<number>(0);
-  const [modalConfig, setModalConfig] = useState<{
-    isOpen: boolean;
-    mode: 'create' | 'edit' | 'delete';
-    initialData?: any;
-  }>({
+/*
+ * پاسخ ShippingMethod ممکن است بسته به Wrapper
+ * یکی از این حالت‌ها باشد:
+ *
+ * [...]
+ *
+ * { data: [...] }
+ *
+ * { mainResults: [...] }
+ *
+ * { data: { data: [...] } }
+ */
+const extractShippingMethods = (
+  payload: unknown,
+): ShippingMethod[] => {
+  if (Array.isArray(payload)) {
+    return payload as ShippingMethod[];
+  }
+
+  if (
+    typeof payload !== 'object' ||
+    payload === null
+  ) {
+    return [];
+  }
+
+  const source =
+    payload as Record<string, unknown>;
+
+  const candidates = [
+    source.data,
+    source.mainResults,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate as ShippingMethod[];
+    }
+
+    if (
+      typeof candidate === 'object' &&
+      candidate !== null
+    ) {
+      const nested =
+        candidate as Record<string, unknown>;
+
+      if (Array.isArray(nested.data)) {
+        return nested.data as ShippingMethod[];
+      }
+
+      if (
+        Array.isArray(
+          nested.mainResults,
+        )
+      ) {
+        return nested.mainResults as ShippingMethod[];
+      }
+    }
+  }
+
+  return [];
+};
+
+const CartStep2 = ({
+  cart,
+  onNext,
+  onBack,
+}: CartStep2Props) => {
+  const dispatch =
+    useAppDispatch();
+
+  const addresses =
+    useAppSelector(
+      selectAddresses,
+    );
+
+  const addressesLoading =
+    useAppSelector(
+      selectAddressLoading,
+    );
+
+  const [
+    selectedAddressId,
+    setSelectedAddressId,
+  ] = useState<number | null>(
+    null,
+  );
+
+  /*
+   * هیچ Shipping Method ساختگی
+   * به صورت Default نداریم.
+   */
+  const [
+    selectedShippingCode,
+    setSelectedShippingCode,
+  ] = useState('');
+
+  /*
+   * این مبلغ دیگر BaseCost نیست.
+   *
+   * فقط مبلغ Quote شده از Backend
+   * داخل این State قرار می‌گیرد.
+   */
+  const [
+    selectedShippingCost,
+    setSelectedShippingCost,
+  ] = useState(0);
+
+  const [
+    shippingMethods,
+    setShippingMethods,
+  ] = useState<
+    ShippingMethod[]
+  >([]);
+
+  const [
+    shippingLoading,
+    setShippingLoading,
+  ] = useState(true);
+
+  const [
+    shippingError,
+    setShippingError,
+  ] = useState<string | null>(
+    null,
+  );
+
+  /*
+   * ==========================================================
+   * SHIPPING QUOTE STATE
+   * ==========================================================
+   */
+
+  const [
+    quoteLoading,
+    setQuoteLoading,
+  ] = useState(false);
+
+  const [
+    quoteError,
+    setQuoteError,
+  ] = useState<string | null>(
+    null,
+  );
+
+  const [
+    quoteReady,
+    setQuoteReady,
+  ] = useState(false);
+
+  const [
+    shippingQuote,
+    setShippingQuote,
+  ] = useState<
+    ShippingQuoteResponse | null
+  >(null);
+
+  /*
+   * برای جلوگیری از Race Condition:
+   *
+   * اگر کاربر سریع:
+   *
+   * آدرس 1
+   * ↓
+   * آدرس 2
+   *
+   * را انتخاب کند، پاسخ قدیمی نباید
+   * روی پاسخ جدید Override شود.
+   */
+  const quoteRequestIdRef =
+    useRef(0);
+
+  const [
+    modalKey,
+    setModalKey,
+  ] = useState(0);
+
+  const [
+    modalConfig,
+    setModalConfig,
+  ] = useState<ModalConfig>({
     isOpen: false,
     mode: 'create',
-    initialData: undefined,
   });
 
-  const itemsCount = cart?.totalItemsCount || cart?.items?.length || 0;
-  const cartSubTotal = calculateRoundedCartSubtotal(cart);
-  const cartDiscount = calculateRoundedCartDiscount(cart);
-  const taxFreeCartTotal = calculateTaxFreeCartTotal(cart);
+  const itemsCount =
+    cart.totalItemsCount ||
+    cart.items.length;
 
+  const cartSubTotal =
+    Number(
+      cart.subTotal || 0,
+    );
+
+  const cartDiscount =
+    Number(
+      cart.totalDiscount || 0,
+    );
+
+  const cartTax =
+    Number(
+      cart.taxAmount || 0,
+    );
+
+  /*
+   * grandTotal خود Cart
+   * منبع اصلی Backend است.
+   *
+   * Shipping جداگانه از Quote
+   * اضافه می‌شود.
+   */
+  const backendCartTotal =
+    Number.isFinite(
+      Number(cart.grandTotal),
+    )
+      ? Number(
+          cart.grandTotal,
+        )
+      : Math.max(
+          0,
+          cartSubTotal -
+            cartDiscount +
+            cartTax,
+        );
+
+  const finalTotal =
+    Math.max(
+      0,
+      backendCartTotal +
+        (
+          quoteReady
+            ? selectedShippingCost
+            : 0
+        ),
+    );
+
+  /*
+   * ==========================================================
+   * LOAD ADDRESSES + SHIPPING METHODS
+   * ==========================================================
+   */
   useEffect(() => {
-    dispatch(fetchAddresses());
-    fetchShippingMethods();
-  }, []);
+    const addressRequest =
+      dispatch(
+        fetchAddresses(),
+      );
 
+    let cancelled = false;
+
+    const fetchShippingMethods =
+      async () => {
+        try {
+          setShippingLoading(
+            true,
+          );
+
+          setShippingError(
+            null,
+          );
+
+          const response =
+            await CheckoutReferenceApi
+              .getShippingMethods();
+
+          if (cancelled) {
+            return;
+          }
+
+          const methods =
+            extractShippingMethods(
+              response.data,
+            )
+              .filter(
+                (
+                  method,
+                ): method is ShippingMethod =>
+                  Boolean(
+                    method &&
+                      method.isActive &&
+                      method.shippingMethodId >
+                        0 &&
+                      typeof method.code ===
+                        'string' &&
+                      method.code.trim()
+                        .length > 0,
+                  ),
+              );
+
+          if (
+            methods.length ===
+            0
+          ) {
+            setShippingMethods(
+              [],
+            );
+
+            setSelectedShippingCode(
+              '',
+            );
+
+            setSelectedShippingCost(
+              0,
+            );
+
+            setQuoteReady(
+              false,
+            );
+
+            setShippingError(
+              'در حال حاضر روش ارسال فعالی وجود ندارد.',
+            );
+
+            return;
+          }
+
+          setShippingMethods(
+            methods,
+          );
+
+          /*
+           * اولین Method واقعی Backend
+           * انتخاب می‌شود.
+           */
+          setSelectedShippingCode(
+            (
+              currentCode,
+            ) => {
+              const currentExists =
+                methods.some(
+                  (method) =>
+                    method.code ===
+                    currentCode,
+                );
+
+              if (
+                currentExists
+              ) {
+                return currentCode;
+              }
+
+              return methods[0]
+                .code;
+            },
+          );
+        } catch (
+          error: unknown
+        ) {
+          if (
+            cancelled ||
+            isRequestCanceled(
+              error,
+            )
+          ) {
+            return;
+          }
+
+          /*
+           * Fail Closed:
+           *
+           * دیگر STANDARD / TIPAX /
+           * PICKUP ساختگی نداریم.
+           */
+          setShippingMethods(
+            [],
+          );
+
+          setSelectedShippingCode(
+            '',
+          );
+
+          setSelectedShippingCost(
+            0,
+          );
+
+          setQuoteReady(
+            false,
+          );
+
+          setShippingError(
+            getApiErrorMessage(
+              error,
+              'امکان دریافت روش‌های ارسال وجود ندارد.',
+            ),
+          );
+        } finally {
+          if (!cancelled) {
+            setShippingLoading(
+              false,
+            );
+          }
+        }
+      };
+
+    void fetchShippingMethods();
+
+    return () => {
+      cancelled = true;
+
+      addressRequest.abort();
+    };
+  }, [dispatch]);
+
+  /*
+   * ==========================================================
+   * DEFAULT ADDRESS
+   * ==========================================================
+   */
   useEffect(() => {
-    if (addresses.length > 0 && selectedAddressId === null) {
-      const defaultAddress = addresses.find(a => a.isDefault);
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress.userAddressId);
-      } else {
-        setSelectedAddressId(addresses[0].userAddressId);
-      }
-    }
-  }, [addresses]);
+    if (
+      addresses.length ===
+      0
+    ) {
+      setSelectedAddressId(
+        null,
+      );
 
-  // ⭐ دریافت روش‌های ارسال
-  const fetchShippingMethods = async () => {
-    setShippingLoading(true);
-    setShippingError(null);
-    
-    try {
-      const response = await CheckoutReferenceApi.getShippingMethods();
-      
-      
-      let methods: ShippingMethod[] = [];
-      
-      // ⭐ بررسی ساختارهای مختلف پاسخ
-      if (response.data?.data) {
-        // ممکنه response.data.data آرایه باشه
-        if (Array.isArray(response.data.data)) {
-          methods = response.data.data;
-        }
-        // یا response.data.data.data
-        else if (response.data.data?.data && Array.isArray(response.data.data.data)) {
-          methods = response.data.data.data;
-        }
-        // یا response.data.data.mainResults
-        else if (response.data.data?.mainResults && Array.isArray(response.data.data.mainResults)) {
-          methods = response.data.data.mainResults;
-        }
-      }
-      // یا response.data.mainResults
-      else if (response.data?.mainResults && Array.isArray(response.data.mainResults)) {
-        methods = response.data.mainResults;
-      }
-      
-      
-      if (methods.length > 0) {
-        // فیلتر روش‌های فعال
-        const activeMethods = methods.filter(m => m.isActive);
-        
-        if (activeMethods.length > 0) {
-          setShippingMethods(activeMethods);
-          // انتخاب اولین روش به عنوان پیش‌فرض
-          setSelectedShippingCode(activeMethods[0].code);
-          setSelectedShippingCost(roundPrice(activeMethods[0].baseCost));
-        } else {
-          setShippingMethods(getDefaultMethods());
-        }
-      } else {
-        setShippingMethods(getDefaultMethods());
-      }
-    } catch (error: any) {
-      console.error('❌ Error fetching shipping methods:', error);
-      setShippingMethods(getDefaultMethods());
-      setShippingError('روش‌های پیش‌فرض نمایش داده می‌شوند.');
-    } finally {
-      setShippingLoading(false);
-    }
-  };
-
-  // ⭐ روش‌های پیش‌فرض
-  const getDefaultMethods = (): ShippingMethod[] => {
-    return [
-      {
-        shippingMethodId: 1,
-        name: 'پست پیشتاز',
-        code: 'STANDARD',
-        description: 'ارسال استاندارد با پست',
-        baseCost: roundPrice(220000),
-        estimatedDeliveryDays: 5,
-        isActive: true,
-        maxWeightKg: null,
-        regionLimit: null
-      },
-      {
-        shippingMethodId: 2,
-        name: 'تیپاکس',
-        code: 'TIPAX',
-        description: 'ارسال سریع با تیپاکس',
-        baseCost: roundPrice(300000),
-        estimatedDeliveryDays: 3,
-        isActive: true,
-        maxWeightKg: null,
-        regionLimit: null
-      },
-      {
-        shippingMethodId: 3,
-        name: 'پیک',
-        code: 'PICKUP',
-        description: 'تحویل حضوری در تهران و همدان',
-        baseCost: 0,
-        estimatedDeliveryDays: 1,
-        isActive: true,
-        maxWeightKg: null,
-        regionLimit: 'تهران, همدان'
-      }
-    ];
-  };
-
-  // ⭐ بررسی محدودیت منطقه‌ای
-  const isShippingAvailable = (method: ShippingMethod): boolean => {
-    if (!selectedAddressId || !method.regionLimit) return true;
-    
-    const selectedAddress = addresses.find(a => a.userAddressId === selectedAddressId);
-    if (!selectedAddress) return true;
-    
-    const allowedCities = method.regionLimit.split(',').map(c => c.trim());
-    const userCity = selectedAddress.city  || selectedAddress.province || '';
-    
-    return allowedCities.some(city => userCity.includes(city));
-  };
-
-  const handleShippingSelect = (method: ShippingMethod) => {
-    if (!isShippingAvailable(method)) return;
-    
-    setSelectedShippingCode(method.code);
-    setSelectedShippingCost(roundPrice(method.baseCost));
-  };
-
-  const handleSubmit = () => {
-    if (!selectedAddressId) {
-      alert('لطفاً یک آدرس انتخاب کنید');
       return;
     }
-    onNext(selectedAddressId, selectedShippingCode, selectedShippingCost);
+
+    const selectedStillExists =
+      addresses.some(
+        (address) =>
+          address.userAddressId ===
+          selectedAddressId,
+      );
+
+    if (
+      selectedStillExists
+    ) {
+      return;
+    }
+
+    const defaultAddress =
+      addresses.find(
+        (address) =>
+          address.isDefault,
+      );
+
+    setSelectedAddressId(
+      defaultAddress
+        ?.userAddressId ??
+        addresses[0]
+          .userAddressId,
+    );
+  }, [
+    addresses,
+    selectedAddressId,
+  ]);
+
+  /*
+   * ==========================================================
+   * REAL SERVER-SIDE SHIPPING QUOTE
+   * ==========================================================
+   *
+   * هر بار یکی از این‌ها تغییر کند:
+   *
+   * Cart
+   * Address
+   * Shipping Method
+   *
+   * Quote جدید از Backend می‌گیریم.
+   */
+  useEffect(() => {
+    const cartId =
+      Number(
+        cart.cartId,
+      );
+
+    if (
+      !Number.isFinite(
+        cartId,
+      ) ||
+      cartId <= 0 ||
+      !selectedAddressId ||
+      !selectedShippingCode
+    ) {
+      setSelectedShippingCost(
+        0,
+      );
+
+      setShippingQuote(
+        null,
+      );
+
+      setQuoteReady(
+        false,
+      );
+
+      setQuoteError(
+        null,
+      );
+
+      setQuoteLoading(
+        false,
+      );
+
+      return;
+    }
+
+    const requestId =
+      ++quoteRequestIdRef.current;
+
+    let cancelled = false;
+
+    const loadQuote =
+      async () => {
+        try {
+          setQuoteLoading(
+            true,
+          );
+
+          setQuoteError(
+            null,
+          );
+
+          setQuoteReady(
+            false,
+          );
+
+          setSelectedShippingCost(
+            0,
+          );
+
+          setShippingQuote(
+            null,
+          );
+
+          const response =
+            await CheckoutReferenceApi
+              .getShippingQuote({
+                cartId,
+                userAddressId:
+                  selectedAddressId,
+                shippingMethod:
+                  selectedShippingCode,
+              });
+
+          if (
+            cancelled ||
+            requestId !==
+              quoteRequestIdRef
+                .current
+          ) {
+            return;
+          }
+
+          const result =
+            response.data;
+
+          if (
+            !result ||
+            result.isSuccess !==
+              true ||
+            !result.data
+          ) {
+            throw new Error(
+              result?.message ||
+                'امکان محاسبه هزینه ارسال وجود ندارد.',
+            );
+          }
+
+          const quote =
+            result.data;
+
+          const cost =
+            Number(
+              quote.shippingCost,
+            );
+
+          if (
+            !Number.isFinite(
+              cost,
+            ) ||
+            cost < 0
+          ) {
+            throw new Error(
+              'هزینه ارسال دریافت‌شده معتبر نیست.',
+            );
+          }
+
+          /*
+           * یک کنترل اضافه:
+           * Quote باید مربوط به همان
+           * Shipping Method انتخابی باشد.
+           */
+          if (
+            quote.shippingMethodCode &&
+            quote
+              .shippingMethodCode
+              .trim()
+              .toLowerCase() !==
+              selectedShippingCode
+                .trim()
+                .toLowerCase()
+          ) {
+            throw new Error(
+              'پاسخ هزینه ارسال با روش انتخاب‌شده مطابقت ندارد.',
+            );
+          }
+
+          setSelectedShippingCost(
+            cost,
+          );
+
+          setShippingQuote(
+            quote,
+          );
+
+          setQuoteReady(
+            true,
+          );
+        } catch (
+          error: unknown
+        ) {
+          if (
+            cancelled ||
+            requestId !==
+              quoteRequestIdRef
+                .current ||
+            isRequestCanceled(
+              error,
+            )
+          ) {
+            return;
+          }
+
+          setSelectedShippingCost(
+            0,
+          );
+
+          setShippingQuote(
+            null,
+          );
+
+          setQuoteReady(
+            false,
+          );
+
+          setQuoteError(
+            getApiErrorMessage(
+              error,
+              'امکان محاسبه هزینه ارسال برای آدرس و روش انتخاب‌شده وجود ندارد.',
+            ),
+          );
+        } finally {
+          if (
+            !cancelled &&
+            requestId ===
+              quoteRequestIdRef
+                .current
+          ) {
+            setQuoteLoading(
+              false,
+            );
+          }
+        }
+      };
+
+    void loadQuote();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    cart.cartId,
+    selectedAddressId,
+    selectedShippingCode,
+  ]);
+
+  /*
+   * ==========================================================
+   * SHIPPING SELECT
+   * ==========================================================
+   *
+   * هیچ محاسبه‌ای در Frontend انجام نمی‌شود.
+   *
+   * فقط Code انتخاب می‌شود و useEffect
+   * بالا Quote جدید می‌گیرد.
+   */
+  const handleShippingSelect = (
+    method: ShippingMethod,
+  ) => {
+    if (
+      shippingLoading ||
+      quoteLoading
+    ) {
+      return;
+    }
+
+    if (
+      selectedShippingCode ===
+      method.code
+    ) {
+      return;
+    }
+
+    setSelectedShippingCode(
+      method.code,
+    );
+
+    setSelectedShippingCost(
+      0,
+    );
+
+    setShippingQuote(
+      null,
+    );
+
+    setQuoteReady(
+      false,
+    );
+
+    setQuoteError(
+      null,
+    );
   };
 
-  const openModal = (mode: 'create' | 'edit' | 'delete', address?: any) => {
-    setModalKey(prev => prev + 1);
+  /*
+   * ==========================================================
+   * NEXT
+   * ==========================================================
+   */
+  const handleSubmit = () => {
+    if (!selectedAddressId) {
+      window.alert(
+        'لطفاً یک آدرس انتخاب کنید',
+      );
+
+      return;
+    }
+
+    if (
+      !selectedShippingCode
+    ) {
+      window.alert(
+        'لطفاً یک روش ارسال انتخاب کنید',
+      );
+
+      return;
+    }
+
+    /*
+     * تا زمانی که Quote واقعی Backend
+     * دریافت نشده باشد اجازه ورود به
+     * Step 3 داده نمی‌شود.
+     */
+    if (
+      quoteLoading ||
+      !quoteReady ||
+      !shippingQuote
+    ) {
+      window.alert(
+        quoteError ||
+          'هزینه ارسال هنوز محاسبه نشده است.',
+      );
+
+      return;
+    }
+
+    onNext(
+      selectedAddressId,
+      selectedShippingCode,
+      selectedShippingCost,
+    );
+  };
+
+  const openModal = (
+    mode: ModalConfig['mode'],
+    address?: AddressResponseDto,
+  ) => {
+    setModalKey(
+      (
+        current,
+      ) =>
+        current + 1,
+    );
+
     setModalConfig({
       isOpen: true,
       mode,
-      initialData: address,
+      initialData:
+        address,
     });
   };
 
-  const closeModal = () => {
-    setModalConfig({
-      isOpen: false,
-      mode: 'create',
-      initialData: undefined,
-    });
+  const closeModal =
+    useCallback(() => {
+      setModalConfig({
+        isOpen: false,
+        mode: 'create',
+      });
+
+      /*
+       * بعد از ایجاد یا ویرایش Address
+       * لیست را از Backend Refresh می‌کنیم.
+       *
+       * تغییر Address باعث Quote جدید
+       * خواهد شد.
+       */
+      void dispatch(
+        fetchAddresses({
+          force: true,
+        }),
+      );
+    }, [dispatch]);
+
+  const formatCurrency = (
+    amount: number,
+  ) =>
+    amount.toLocaleString(
+      'fa-IR',
+    );
+
+  const getDeliveryDaysText = (
+    days: number,
+  ) => {
+    if (days === 0) {
+      return 'همان روز';
+    }
+
+    if (days === 1) {
+      return '۱ روز کاری';
+    }
+
+    return `${days.toLocaleString(
+      'fa-IR',
+    )} روز کاری`;
   };
 
-  const formatCurrency = (amount: number): string => formatPrice(amount);
-
-  const getDeliveryDaysText = (days: number): string => {
-    if (days === 0) return 'همان روز';
-    if (days === 1) return '۱ روز کاری';
-    return `${days} روز کاری`;
-  };
-
-  // ⭐ لودینگ آدرس‌ها
   if (addressesLoading) {
     return (
-      <div className={styles.loading}>
-        <Loader2 className={styles.spinner} size={32} />
-        <p>در حال بارگذاری آدرس‌ها...</p>
+      <div
+        className={
+          styles.loading
+        }
+      >
+        <Loader2
+          className={
+            styles.spinner
+          }
+          size={32}
+        />
+
+        <p>
+          در حال بارگذاری آدرس‌ها...
+        </p>
       </div>
     );
   }
 
   return (
     <>
-      <div className={styles.sectionHeader}>
-        <h3>آدرس‌ها</h3>
-        <p className={styles.sectionSubtitle}>لطفاً از بین آدرس‌های موجود یکی را انتخاب کنید</p>
+      <div
+        className={
+          styles.sectionHeader
+        }
+      >
+        <h3>
+          آدرس‌ها
+        </h3>
+
+        <p
+          className={
+            styles.sectionSubtitle
+          }
+        >
+          لطفاً از بین آدرس‌های موجود یکی را انتخاب کنید
+        </p>
       </div>
 
-      <div className={styles.step2Container}>
-        {/* سمت راست */}
-        <div className={styles.addressesSection}>
-          
-          {/* ⭐ لیست آدرس‌ها */}
-          <div className={styles.addressList}>
-            {addresses.length === 0 ? (
-              <div className={styles.noAddress}>
-                <div className={styles.noAddressIcon}>
-                  <Home size={48} />
-                </div>
-                <p>هیچ آدرسی ثبت نشده است</p>
-                <button 
-                  className={styles.addFirstAddressBtn}
-                  onClick={() => openModal('create')}
+      <div
+        className={
+          styles.step2Container
+        }
+      >
+        <div
+          className={
+            styles.addressesSection
+          }
+        >
+          {/* ================= ADDRESSES ================= */}
+
+          <div
+            className={
+              styles.addressList
+            }
+          >
+            {addresses.length ===
+            0 ? (
+              <div
+                className={
+                  styles.noAddress
+                }
+              >
+                <div
+                  className={
+                    styles.noAddressIcon
+                  }
                 >
-                  <Plus size={20} />
+                  <Home
+                    size={48}
+                  />
+                </div>
+
+                <p>
+                  هیچ آدرسی ثبت نشده است
+                </p>
+
+                <button
+                  type="button"
+                  className={
+                    styles.addFirstAddressBtn
+                  }
+                  onClick={() =>
+                    openModal(
+                      'create',
+                    )
+                  }
+                >
+                  <Plus
+                    size={20}
+                  />
+
                   ثبت اولین آدرس
                 </button>
               </div>
             ) : (
-              addresses.map((address) => (
-                <div
-                  key={address.userAddressId}
-                  className={`${styles.addressCard} ${selectedAddressId === address.userAddressId ? styles.selected : ''}`}
-                  onClick={() => setSelectedAddressId(address.userAddressId)}
-                >
-                  <div className={styles.addressHeader}>
-                    <div className={styles.addressTitleWrapper}>
-                      <span className={styles.addressTitle}>{address.addressTitle}</span>
-                      {address.isDefault && (
-                        <span className={styles.defaultBadge}>پیش‌فرض</span>
-                      )}
+              addresses.map(
+                (
+                  address,
+                ) => (
+                  <div
+                    key={
+                      address.userAddressId
+                    }
+                    className={`${styles.addressCard} ${
+                      selectedAddressId ===
+                      address.userAddressId
+                        ? styles.selected
+                        : ''
+                    }`}
+                    onClick={() =>
+                      setSelectedAddressId(
+                        address.userAddressId,
+                      )
+                    }
+                  >
+                    <div
+                      className={
+                        styles.addressHeader
+                      }
+                    >
+                      <div
+                        className={
+                          styles.addressTitleWrapper
+                        }
+                      >
+                        <span
+                          className={
+                            styles.addressTitle
+                          }
+                        >
+                          {
+                            address.addressTitle
+                          }
+                        </span>
+
+                        {address.isDefault && (
+                          <span
+                            className={
+                              styles.defaultBadge
+                            }
+                          >
+                            پیش‌فرض
+                          </span>
+                        )}
+                      </div>
+
+                      <div
+                        className={
+                          styles.addressActions
+                        }
+                      >
+                        <button
+                          type="button"
+                          className={
+                            styles.iconBtn
+                          }
+                          aria-label="ویرایش آدرس"
+                          onClick={(
+                            event,
+                          ) => {
+                            event.stopPropagation();
+
+                            openModal(
+                              'edit',
+                              address,
+                            );
+                          }}
+                        >
+                          <Edit3
+                            size={16}
+                          />
+                        </button>
+
+                        <button
+                          type="button"
+                          className={
+                            styles.iconBtn
+                          }
+                          aria-label="حذف آدرس"
+                          onClick={(
+                            event,
+                          ) => {
+                            event.stopPropagation();
+
+                            openModal(
+                              'delete',
+                              address,
+                            );
+                          }}
+                        >
+                          <Trash2
+                            size={16}
+                          />
+                        </button>
+                      </div>
                     </div>
-                    <div className={styles.addressActions}>
-                      <button 
-                        className={styles.iconBtn} 
-                        aria-label="ویرایش آدرس"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openModal('edit', address);
-                        }}
+
+                    <div
+                      className={
+                        styles.addressBody
+                      }
+                    >
+                      <div
+                        className={
+                          styles.addressText
+                        }
                       >
-                        <Edit3 size={16} />
-                      </button>
-                      <button 
-                        className={styles.iconBtn} 
-                        aria-label="حذف آدرس"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openModal('delete', address);
-                        }}
+                        <MapPin
+                          size={16}
+                        />
+
+                        <span>
+                          {
+                            address.fullAddress
+                          }
+                        </span>
+                      </div>
+
+                      <div
+                        className={
+                          styles.addressFooter
+                        }
                       >
-                        <Trash2 size={16} />
-                      </button>
+                        <span>
+                          👤{' '}
+                          {
+                            address.recipientName
+                          }
+                        </span>
+
+                        <span>
+                          📞{' '}
+                          {
+                            address.phoneNumber
+                          }
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className={styles.addressBody}>
-                    <div className={styles.addressText}>
-                      <MapPin size={16} />
-                      <span>{address.fullAddress}</span>
-                    </div>
-                    <div className={styles.addressFooter}>
-                      <span>👤 {address.recipientName}</span>
-                      <span>📞 {address.phoneNumber}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
+                ),
+              )
             )}
 
-            {addresses.length > 0 && (
-              <button 
-                className={styles.addAddressBtn}
-                onClick={() => openModal('create')}
+            {addresses.length >
+              0 && (
+              <button
+                type="button"
+                className={
+                  styles.addAddressBtn
+                }
+                onClick={() =>
+                  openModal(
+                    'create',
+                  )
+                }
               >
-                <Plus size={20} />
+                <Plus
+                  size={20}
+                />
+
                 افزودن آدرس جدید
               </button>
             )}
           </div>
 
-          {/* ⭐ روش‌های ارسال */}
-          <div className={styles.shippingSection}>
-            <h3 className={styles.shippingTitle}>نحوه ارسال</h3>
-            
+          {/* ================= SHIPPING ================= */}
+
+          <div
+            className={
+              styles.shippingSection
+            }
+          >
+            <h3
+              className={
+                styles.shippingTitle
+              }
+            >
+              نحوه ارسال
+            </h3>
+
             {shippingError && (
-              <div className={styles.shippingError}>
-                ⚠️ {shippingError}
+              <div
+                className={
+                  styles.shippingError
+                }
+              >
+                ⚠️{' '}
+                {
+                  shippingError
+                }
               </div>
             )}
-            
-            {shippingLoading ? (
-              <div className={styles.loading}>
-                <Loader2 className={styles.spinner} size={24} />
-                <p>در حال بارگذاری روش‌های ارسال...</p>
+
+            {quoteError && (
+              <div
+                className={
+                  styles.shippingError
+                }
+              >
+                ⚠️{' '}
+                {
+                  quoteError
+                }
               </div>
-            ) : shippingMethods.length === 0 ? (
-              <div className={styles.noMethods}>
-                <p>روش ارسالی یافت نشد.</p>
+            )}
+
+            {shippingLoading ? (
+              <div
+                className={
+                  styles.loading
+                }
+              >
+                <Loader2
+                  className={
+                    styles.spinner
+                  }
+                  size={24}
+                />
+
+                <p>
+                  در حال بارگذاری روش‌های ارسال...
+                </p>
+              </div>
+            ) : shippingMethods
+                .length ===
+              0 ? (
+              <div
+                className={
+                  styles.noMethods
+                }
+              >
+                <p>
+                  روش ارسال فعالی یافت نشد.
+                </p>
               </div>
             ) : (
-              <div className={styles.shippingMethods}>
-                {shippingMethods.map((method) => {
-                  const available = isShippingAvailable(method);
-                  const isSelected = selectedShippingCode === method.code;
-                  
-                  return (
-                    <div
-                      key={method.shippingMethodId}
-                      className={`
-                        ${styles.shippingMethod} 
-                        ${isSelected ? styles.selected : ''}
-                        ${!available ? styles.disabled : ''}
-                      `}
-                      onClick={() => handleShippingSelect(method)}
-                    >
-                      <div className={styles.methodInfo}>
-                        <div className={styles.methodName}>
-                          <Truck size={18} />
-                          <span>{method.name}</span>
-                        </div>
-                        <div className={styles.methodDetails}>
-                          <span className={styles.methodPrice}>
-                            {method.baseCost > 0 
-                              ? `${formatCurrency(method.baseCost)} تومان` 
-                              : 'رایگان'
+              <div
+                className={
+                  styles.shippingMethods
+                }
+              >
+                {shippingMethods.map(
+                  (
+                    method,
+                  ) => {
+                    const isSelected =
+                      selectedShippingCode ===
+                      method.code;
+
+                    return (
+                      <div
+                        key={
+                          method.shippingMethodId
+                        }
+                        className={`
+                          ${styles.shippingMethod}
+                          ${
+                            isSelected
+                              ? styles.selected
+                              : ''
+                          }
+                        `}
+                        onClick={() =>
+                          handleShippingSelect(
+                            method,
+                          )
+                        }
+                      >
+                        <div
+                          className={
+                            styles.methodInfo
+                          }
+                        >
+                          <div
+                            className={
+                              styles.methodName
                             }
-                          </span>
-                          <span className={styles.methodDays}>
-                            {getDeliveryDaysText(method.estimatedDeliveryDays)}
-                          </span>
+                          >
+                            <Truck
+                              size={18}
+                            />
+
+                            <span>
+                              {
+                                method.name
+                              }
+                            </span>
+                          </div>
+
+                          <div
+                            className={
+                              styles.methodDetails
+                            }
+                          >
+                            <span
+                              className={
+                                styles.methodPrice
+                              }
+                            >
+                              {isSelected &&
+                              quoteLoading
+                                ? 'در حال محاسبه...'
+                                : isSelected &&
+                                    quoteReady
+                                  ? selectedShippingCost >
+                                    0
+                                    ? `${formatCurrency(
+                                        selectedShippingCost,
+                                      )} تومان`
+                                    : 'رایگان'
+                                  : method.baseCost >
+                                      0
+                                    ? `پایه ${formatCurrency(
+                                        method.baseCost,
+                                      )} تومان`
+                                    : 'هزینه پایه: رایگان'}
+                            </span>
+
+                            <span
+                              className={
+                                styles.methodDays
+                              }
+                            >
+                              {getDeliveryDaysText(
+                                isSelected &&
+                                  shippingQuote
+                                  ? shippingQuote
+                                      .estimatedDeliveryDays
+                                  : method
+                                      .estimatedDeliveryDays,
+                              )}
+                            </span>
+                          </div>
+
+                          {method.description && (
+                            <div
+                              className={
+                                styles.methodDescription
+                              }
+                            >
+                              {
+                                method.description
+                              }
+                            </div>
+                          )}
+
+                          {method.regionLimit && (
+                            <div
+                              className={
+                                styles.methodUnavailable
+                              }
+                            >
+                              محدوده سرویس:{' '}
+                              {
+                                method.regionLimit
+                              }
+                            </div>
+                          )}
                         </div>
-                        {method.description && (
-                          <div className={styles.methodDescription}>
-                            {method.description}
-                          </div>
-                        )}
-                        {!available && method.regionLimit && (
-                          <div className={styles.methodUnavailable}>
-                            ⚠️ فقط {method.regionLimit}
-                          </div>
-                        )}
+
+                        <div
+                          className={
+                            styles.radioCircle
+                          }
+                        >
+                          {isSelected && (
+                            <div
+                              className={
+                                styles.radioInner
+                              }
+                            />
+                          )}
+                        </div>
                       </div>
-                      <div className={styles.radioCircle}>
-                        {isSelected && (
-                          <div className={styles.radioInner} />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  },
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* ⭐ سمت چپ: خلاصه سفارش */}
-        <div className={styles.summary}>
-          <div className={styles.summaryHeader}>
-            <h3>خلاصه سفارش</h3>
+        {/* ================= SUMMARY ================= */}
+
+        <div
+          className={
+            styles.summary
+          }
+        >
+          <div
+            className={
+              styles.summaryHeader
+            }
+          >
+            <h3>
+              خلاصه سفارش
+            </h3>
           </div>
 
-          <div className={styles.summaryContent}>
-            <div className={styles.summaryRow}>
-              <span>تعداد کالا</span>
-              <span>{itemsCount} عدد</span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>قیمت کالاها</span>
-              <span>{formatCurrency(cartSubTotal)} تومان</span>
-            </div>
-            {cartDiscount > 0 && (
-              <div className={styles.summaryRow}>
-                <span>تخفیف کالاها</span>
-                <span>-{formatCurrency(cartDiscount)} تومان</span>
-              </div>
-            )}
-            <div className={styles.summaryRow}>
-              <span>هزینه ارسال</span>
+          <div
+            className={
+              styles.summaryContent
+            }
+          >
+            <div
+              className={
+                styles.summaryRow
+              }
+            >
               <span>
-                {selectedShippingCost > 0 
-                  ? `${formatCurrency(selectedShippingCost)} تومان` 
-                  : 'رایگان'
-                }
+                تعداد کالا
+              </span>
+
+              <span>
+                {itemsCount.toLocaleString(
+                  'fa-IR',
+                )}{' '}
+                عدد
               </span>
             </div>
-            <div className={styles.summaryDivider} />
-            <div className={styles.summaryRowTotal}>
-              <span>جمع کل</span>
-              <span>{formatCurrency(taxFreeCartTotal + selectedShippingCost)} تومان</span>
+
+            <div
+              className={
+                styles.summaryRow
+              }
+            >
+              <span>
+                قیمت کالاها
+              </span>
+
+              <span>
+                {formatCurrency(
+                  cartSubTotal,
+                )}{' '}
+                تومان
+              </span>
+            </div>
+
+            {cartDiscount >
+              0 && (
+              <div
+                className={
+                  styles.summaryRow
+                }
+              >
+                <span>
+                  تخفیف
+                </span>
+
+                <span>
+                  -
+                  {formatCurrency(
+                    cartDiscount,
+                  )}{' '}
+                  تومان
+                </span>
+              </div>
+            )}
+
+            {cartTax > 0 && (
+              <div
+                className={
+                  styles.summaryRow
+                }
+              >
+                <span>
+                  مالیات
+                </span>
+
+                <span>
+                  {formatCurrency(
+                    cartTax,
+                  )}{' '}
+                  تومان
+                </span>
+              </div>
+            )}
+
+            <div
+              className={
+                styles.summaryRow
+              }
+            >
+              <span>
+                هزینه ارسال
+              </span>
+
+              <span>
+                {!selectedAddressId ||
+                !selectedShippingCode
+                  ? 'انتخاب نشده'
+                  : quoteLoading
+                    ? 'در حال محاسبه...'
+                    : quoteReady
+                      ? selectedShippingCost >
+                        0
+                        ? `${formatCurrency(
+                            selectedShippingCost,
+                          )} تومان`
+                        : 'رایگان'
+                      : 'نامشخص'}
+              </span>
+            </div>
+
+            <div
+              className={
+                styles.summaryDivider
+              }
+            />
+
+            <div
+              className={
+                styles.summaryRowTotal
+              }
+            >
+              <span>
+                جمع کل
+              </span>
+
+              <span>
+                {formatCurrency(
+                  finalTotal,
+                )}{' '}
+                تومان
+              </span>
             </div>
           </div>
 
-          <div className={styles.actions}>
-            <button className={styles.backBtn} onClick={onBack}>
+          <div
+            className={
+              styles.actions
+            }
+          >
+            <button
+              type="button"
+              className={
+                styles.backBtn
+              }
+              onClick={
+                onBack
+              }
+              disabled={
+                quoteLoading
+              }
+            >
               بازگشت
             </button>
-            <button 
-              className={styles.nextBtn} 
-              onClick={handleSubmit}
-              disabled={!selectedAddressId || shippingLoading}
+
+            <button
+              type="button"
+              className={
+                styles.nextBtn
+              }
+              onClick={
+                handleSubmit
+              }
+              disabled={
+                !selectedAddressId ||
+                !selectedShippingCode ||
+                shippingLoading ||
+                quoteLoading ||
+                !quoteReady ||
+                Boolean(
+                  quoteError,
+                )
+              }
             >
-              ادامه
+              {quoteLoading
+                ? 'در حال محاسبه هزینه ارسال...'
+                : 'ادامه'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* ⭐ مودال آدرس */}
+      {/* ================= ADDRESS MODAL ================= */}
+
       {modalConfig.isOpen && (
         <AddressModal
-          key={modalKey}
-          isOpen={modalConfig.isOpen}
-          onClose={closeModal}
-          mode={modalConfig.mode}
-          initialData={modalConfig.initialData}
+          key={
+            modalKey
+          }
+          isOpen={
+            modalConfig.isOpen
+          }
+          onClose={
+            closeModal
+          }
+          mode={
+            modalConfig.mode
+          }
+          initialData={
+            modalConfig.initialData
+          }
         />
       )}
     </>

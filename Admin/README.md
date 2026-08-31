@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Carnix Admin — Complete
 
-## Getting Started
+پنل مدیریت مستقل **Next.js + TypeScript** که مستقیم از روی Controllerها، Routeها، DTOها و الگوی Authentication بک‌اند Carnix ساخته شده است.
 
-First, run the development server:
+## اجرا
 
 ```bash
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+پنل به‌صورت پیش‌فرض روی `http://localhost:3001` اجرا می‌شود. CORS فعلی بک‌اند Carnix پورت 3001 را مجاز کرده است.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+در `.env.local` آدرس API را تنظیم کنید:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:7191
+NEXT_PUBLIC_STORE_URL=http://localhost:3000
+```
 
-## Learn More
+## Authentication
 
-To learn more about Next.js, take a look at the following resources:
+- Login: `POST /api/Auth/login`
+- Header تمام درخواست‌های احرازشده: `Authorization: ApiToken <token>`
+- Session verification: `GET /api/Auth/me`
+- Logout: `POST /api/Auth/logout`
+- روی HTTP 401 توکن پاک و کاربر به `/login` هدایت می‌شود.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## امکانات اصلی
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Dashboard واقعی: Stats + Trends
+- محصولات، دسته‌بندی، برند، Tag، Feature Definition/Option/Value، Category Feature
+- SKU، تصویر، Media، Video، 360 View، Warranty
+- Product Tools: SEO، SKU Attribute، Product Tag، Similarity، Upload Media
+- سفارش‌ها: فهرست، جستجو، آمار، جزئیات، تغییر Status/Carrier، لغو
+- Order Statuses، Carts، Product Discounts، Price History، Bundles
+- Inventory: Low Stock، Set، Adjust، Transfer، Reserve، Release
+- Warehouses
+- Users، Roles، Permissions، Permission Rescan
+- Content: CreateFullContent + SEO + Blocks + Publish
+- Reviews + Product Questions
+- Vehicle Makes/Models
+- Shipping Methods + Payment Methods
+- API Center برای تمام اکشن‌های Controllerهای بک‌اند
 
-## Deploy on Vercel
+## پوشش Backend
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+فایل `BACKEND-COVERAGE.md` شامل فهرست کامل Routeهاست. فایل `src/lib/endpoints.json` نیز inventory قابل استفاده داخل خود پنل را نگه می‌دارد.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+در نسخه تحویلی فعلی:
+
+- 48 Controller
+- 263 HTTP Action
+- 0 Route بدون `api/`
+- تمام بخش‌های منوی پنل Resolve می‌شوند
+- TypeScript/TSX از نظر Syntax بررسی شده است
+
+## UI rules
+
+- RTL کامل
+- Font stack با اولویت `IRANYekan` / `IRANYekanX`
+- حداقل Font Size برابر 16px
+- Select/Dropdown راست‌چین
+- Responsive desktop/tablet/mobile
+- Loading spinner تا پایان واقعی Request فعال می‌ماند
+
+## نسخه‌ها
+
+- Next.js 16.3.3
+- React / React DOM 19.2.8
+- TypeScript 5.8.x
+
+## نکته مهم
+
+Backend همچنان مرجع نهایی Permission، Validation و Business Rule است. پنل محدودیت‌های Authorization را دور نمی‌زند و همان API Token و PermissionFilter بک‌اند را استفاده می‌کند.

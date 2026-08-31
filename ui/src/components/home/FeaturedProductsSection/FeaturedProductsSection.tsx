@@ -1,150 +1,382 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import {
+  useEffect,
+  useState,
+} from 'react';
+
 import Link from 'next/link';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import {
-  selectFeaturedProducts, selectFeaturedLoading,
-  selectDiscountedProducts, selectDiscountedLoading
-} from '@/store/feature/product/productSelectors';
-import {
-  getFeaturedProductsPaged,
-  getDiscountedProductsPaged
-} from '@/store/feature/product/productThunks';
+
 import ProductCard from '@/components/product/productCard/ProductCard';
+import { useHorizontalDragScroll } from '@/hooks/useHorizontalDragScroll';
+
+import {
+  selectDiscountedLoading,
+  selectDiscountedProducts,
+  selectDiscountedStatus,
+  selectFeaturedLoading,
+  selectFeaturedProducts,
+  selectFeaturedStatus,
+} from '@/store/feature/product/productSelectors';
+
+import {
+  getDiscountedProductsPaged,
+  getFeaturedProductsPaged,
+} from '@/store/feature/product/productThunks';
+
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/store/hooks';
+
 import styles from './FeaturedProductsSection.module.scss';
+import { Product } from '@/models/product/Product';
 
-const FeaturedProductsSection = () => {
-  const dispatch = useAppDispatch();
+type ProductTab =
+  | 'featured'
+  | 'discounted';
 
-  const featuredData = useAppSelector(selectFeaturedProducts);
-  const isFeaturedLoading = useAppSelector(selectFeaturedLoading);
-  const discountedData = useAppSelector(selectDiscountedProducts);
-  const isDiscountedLoading = useAppSelector(selectDiscountedLoading);
+const FeaturedProductsSection =
+  () => {
+    const dispatch =
+      useAppDispatch();
 
-  const [activeTab, setActiveTab] = useState<'featured' | 'discounted'>('featured');
-  const pageSize = 10;
+    // ==========================================================
+    // FEATURED STATE
+    // ==========================================================
 
-  // 🟢 اضافه‌شدن قابلیت Drag
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isDown = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
+    const featuredData =
+      useAppSelector(
+        selectFeaturedProducts,
+      );
 
-  useEffect(() => {
-    if (activeTab === 'featured') {
-      dispatch(getFeaturedProductsPaged({ pageNumber: 1, pageSize }));
-    } else {
-      dispatch(getDiscountedProductsPaged({ pageNumber: 1, pageSize }));
-    }
-  }, [dispatch, activeTab]);
+    const featuredLoading =
+      useAppSelector(
+        selectFeaturedLoading,
+      );
 
-  const isLoading = activeTab === 'featured' ? isFeaturedLoading : isDiscountedLoading;
+    const featuredStatus =
+      useAppSelector(
+        selectFeaturedStatus,
+      );
 
-  useEffect(() => {
-    const slider = scrollContainerRef.current;
-    if (!slider) return;
+    // ==========================================================
+    // DISCOUNTED STATE
+    // ==========================================================
 
-    const onMouseDown = (e: MouseEvent) => {
-      isDown.current = true;
-      slider.classList.add(styles.active);
-      startX.current = e.pageX - slider.offsetLeft;
-      scrollLeft.current = slider.scrollLeft;
-    };
+    const discountedData =
+      useAppSelector(
+        selectDiscountedProducts,
+      );
 
-    const onMouseLeave = () => {
-      isDown.current = false;
-      slider.classList.remove(styles.active);
-    };
+    const discountedLoading =
+      useAppSelector(
+        selectDiscountedLoading,
+      );
 
-    const onMouseUp = () => {
-      isDown.current = false;
-      slider.classList.remove(styles.active);
-    };
+    const discountedStatus =
+      useAppSelector(
+        selectDiscountedStatus,
+      );
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDown.current) return;
-      e.preventDefault();
-      const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX.current) * 1.5;
-      slider.scrollLeft = scrollLeft.current - walk;
-    };
+    // ==========================================================
+    // ACTIVE TAB
+    // ==========================================================
 
-    slider.addEventListener('mousedown', onMouseDown);
-    slider.addEventListener('mouseleave', onMouseLeave);
-    slider.addEventListener('mouseup', onMouseUp);
-    slider.addEventListener('mousemove', onMouseMove);
+    const [
+      activeTab,
+      setActiveTab,
+    ] =
+      useState<ProductTab>(
+        'featured',
+      );
 
-    return () => {
-      slider.removeEventListener('mousedown', onMouseDown);
-      slider.removeEventListener('mouseleave', onMouseLeave);
-      slider.removeEventListener('mouseup', onMouseUp);
-      slider.removeEventListener('mousemove', onMouseMove);
-    };
-  }, [isLoading, activeTab]); // 🟢 اجرای مجدد بایندینگ‌ها بعد از لود هر تب
+    const scrollContainerRef =
+      useHorizontalDragScroll<HTMLDivElement>(
+        styles.active,
+      );
 
-  const currentData = activeTab === 'featured' ? featuredData : discountedData;
-  const rawData = currentData?.mainResults || currentData?.data || currentData;
-  const products = Array.isArray(rawData) ? rawData : (rawData?.items || []);
+    // ==========================================================
+    // LOAD FEATURED
+    // ==========================================================
 
-  const getViewAllLink = () => {
-    return activeTab === 'featured' ? '/products?sortBy=featured' : '/products?sortBy=discounted';
-  };
+    useEffect(() => {
+      /*
+       * فقط در صورتی که:
+       *
+       * 1. تب Featured فعال باشد
+       * 2. قبلاً Request شروع نشده باشد
+       *
+       * Request ارسال می‌شود.
+       *
+       * request.abort() در cleanup وجود ندارد.
+       *
+       * چون featuredStatus بعد از dispatch
+       * از idle به loading تغییر می‌کند و cleanup
+       * Effect قبلی Request را Cancel می‌کرد.
+       */
+      if (
+        activeTab !==
+        'featured'
+      ) {
+        return;
+      }
 
-  const tabs = [
-    { id: 'featured', label: 'محصولات ویژه' },
-    { id: 'discounted', label: 'تخفیف‌دار' },
-  ];
+      if (
+        featuredStatus !==
+        'idle'
+      ) {
+        return;
+      }
 
-  return (
-    <section className={styles.featuredSection}>
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <div className={styles.headerTop}>
-            <h2 className={styles.title}>محصولات ویژه</h2>
-            <Link href={getViewAllLink()} className={styles.viewAllLink}>
-              مشاهده همه
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </Link>
-          </div>
+      void dispatch(
+        getFeaturedProductsPaged({
+          pageNumber: 1,
+          pageSize: 10,
+        }),
+      );
+    }, [
+      activeTab,
+      dispatch,
+      featuredStatus,
+    ]);
 
-          <div className={styles.tabsWrapper}>
-            <div className={styles.tabs}>
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  className={`${styles.tabBtn} ${activeTab === tab.id ? styles.activeTab : ''}`}
-                  onClick={() => setActiveTab(tab.id as 'featured' | 'discounted')}
+    // ==========================================================
+    // LOAD DISCOUNTED
+    // ==========================================================
+
+    useEffect(() => {
+      /*
+       * تخفیف‌دارها Lazy Load می‌شوند.
+       *
+       * یعنی تا وقتی کاربر تب تخفیف‌دار را باز نکند
+       * Request اضافی به Backend ارسال نمی‌شود.
+       */
+      if (
+        activeTab !==
+        'discounted'
+      ) {
+        return;
+      }
+
+      if (
+        discountedStatus !==
+        'idle'
+      ) {
+        return;
+      }
+
+      void dispatch(
+        getDiscountedProductsPaged({
+          pageNumber: 1,
+          pageSize: 10,
+        }),
+      );
+    }, [
+      activeTab,
+      discountedStatus,
+      dispatch,
+    ]);
+
+    // ==========================================================
+    // CURRENT TAB DATA
+    // ==========================================================
+
+    const isFeatured =
+      activeTab ===
+      'featured';
+
+    const isLoading =
+      isFeatured
+        ? featuredLoading
+        : discountedLoading;
+
+    const products =
+      isFeatured
+        ? featuredData?.items ??
+          []
+        : discountedData?.items ??
+          [];
+
+    // ==========================================================
+    // VIEW ALL URL
+    // ==========================================================
+
+    const viewAllHref =
+      isFeatured
+        ? '/products?sortBy=featured'
+        : '/products?sortBy=discounted';
+
+    // ==========================================================
+    // RENDER
+    // ==========================================================
+
+    return (
+      <section
+        className={
+          styles.featuredSection
+        }
+      >
+        <div
+          className={
+            styles.container
+          }
+        >
+          {/* HEADER */}
+          <div
+            className={
+              styles.header
+            }
+          >
+            <div
+              className={
+                styles.headerTop
+              }
+            >
+              <h2
+                className={
+                  styles.title
+                }
+              >
+                محصولات ویژه
+              </h2>
+
+              <Link
+                href={
+                  viewAllHref
+                }
+                className={
+                  styles.viewAllLink
+                }
+              >
+                مشاهده همه
+
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
                 >
-                  {tab.label}
+                  <polyline
+                    points="15 18 9 12 15 6"
+                  />
+                </svg>
+              </Link>
+            </div>
+
+            {/* TABS */}
+            <div
+              className={
+                styles.tabsWrapper
+              }
+            >
+              <div
+                className={
+                  styles.tabs
+                }
+              >
+                <button
+                  type="button"
+                  className={`${styles.tabBtn} ${
+                    activeTab ===
+                    'featured'
+                      ? styles.activeTab
+                      : ''
+                  }`}
+                  onClick={() => {
+                    setActiveTab(
+                      'featured',
+                    );
+                  }}
+                >
+                  محصولات ویژه
                 </button>
-              ))}
+
+                <button
+                  type="button"
+                  className={`${styles.tabBtn} ${
+                    activeTab ===
+                    'discounted'
+                      ? styles.activeTab
+                      : ''
+                  }`}
+                  onClick={() => {
+                    setActiveTab(
+                      'discounted',
+                    );
+                  }}
+                >
+                  تخفیف‌دار
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className={styles.scrollContainer} ref={scrollContainerRef}>
-          {isLoading ? (
-            Array.from({ length: 5 }).map((_, index) => (
-              <div key={index} className={styles.skeletonCard}></div>
-            ))
-          ) : products.length === 0 ? (
-            <div className={styles.emptyState}>
-              <p>محصولی یافت نشد</p>
-            </div>
-          ) : (
-            products.map((product: any) => (
-              <div key={product.productId} className={styles.cardWrapper}>
-                <ProductCard product={product} />
+          {/* PRODUCTS */}
+          <div
+            className={
+              styles.scrollContainer
+            }
+            ref={
+              scrollContainerRef
+            }
+          >
+            {isLoading ? (
+              Array.from({
+                length: 5,
+              }).map(
+                (
+                  _,
+                  index,
+                ) => (
+                  <div
+                    key={index}
+                    className={
+                      styles.skeletonCard
+                    }
+                  />
+                ),
+              )
+            ) : products.length ===
+              0 ? (
+              <div
+                className={
+                  styles.emptyState
+                }
+              >
+                <p>
+                  محصولی یافت نشد
+                </p>
               </div>
-            ))
-          )}
+            ) : (
+              products.map(
+                (
+                  product: Product,
+                ) => (
+                  <div
+                    key={
+                      product.productId
+                    }
+                    className={
+                      styles.cardWrapper
+                    }
+                  >
+                    <ProductCard
+                      product={
+                        product
+                      }
+                    />
+                  </div>
+                ),
+              )
+            )}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-};
+      </section>
+    );
+  };
 
 export default FeaturedProductsSection;

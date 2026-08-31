@@ -25,6 +25,38 @@ const getRejectedMessage = (
     ? error
     : fallbackMessage;
 
+/*
+ * فقط Redirect داخلی سایت مجاز است.
+ *
+ * مثال معتبر:
+ * /cart?step=2
+ *
+ * مواردی مثل:
+ * https://example.com
+ * //example.com
+ *
+ * پذیرفته نمی‌شوند تا Open Redirect نداشته باشیم.
+ */
+const getSafeCallbackUrl = (
+  callbackUrl: string | null,
+): string => {
+  if (!callbackUrl) {
+    return '/';
+  }
+
+  const normalized =
+    callbackUrl.trim();
+
+  if (
+    !normalized.startsWith('/') ||
+    normalized.startsWith('//')
+  ) {
+    return '/';
+  }
+
+  return normalized;
+};
+
 export default function Login() {
   const [phoneNumber, setPhoneNumber] =
     useState('');
@@ -54,6 +86,7 @@ export default function Login() {
       setLocalError(
         'شماره موبایل معتبر نیست.',
       );
+
       return;
     }
 
@@ -68,10 +101,42 @@ export default function Login() {
         }),
       ).unwrap();
 
+      /*
+       * callbackUrl را از URL فعلی Login می‌گیریم.
+       *
+       * مثال:
+       *
+       * /login?callbackUrl=/cart?step=2
+       *
+       * و به صفحه OTP منتقل می‌کنیم.
+       */
+      const currentSearchParams =
+        new URLSearchParams(
+          window.location.search,
+        );
+
+      const callbackUrl =
+        getSafeCallbackUrl(
+          currentSearchParams.get(
+            'callbackUrl',
+          ),
+        );
+
+      const verifyParams =
+        new URLSearchParams();
+
+      verifyParams.set(
+        'phone',
+        normalizedPhoneNumber,
+      );
+
+      verifyParams.set(
+        'callbackUrl',
+        callbackUrl,
+      );
+
       router.push(
-        `/verify-otp?phone=${encodeURIComponent(
-          normalizedPhoneNumber,
-        )}`,
+        `/verify-otp?${verifyParams.toString()}`,
       );
     } catch (error: unknown) {
       setLocalError(
@@ -90,13 +155,17 @@ export default function Login() {
       <div className={styles.loginContainer}>
         <div className={styles.header}>
           <h1
-            className={styles.logoTitleDesktop}
+            className={
+              styles.logoTitleDesktop
+            }
           >
             قطعه فروش
           </h1>
 
           <h1
-            className={styles.logoTitleMobile}
+            className={
+              styles.logoTitleMobile
+            }
           >
             کارنیکس
           </h1>
@@ -118,7 +187,11 @@ export default function Login() {
             لطفاً شماره موبایل خود را وارد کنید
           </p>
 
-          <div className={styles.formGroup}>
+          <div
+            className={
+              styles.formGroup
+            }
+          >
             <input
               type="tel"
               inputMode="numeric"
@@ -164,7 +237,9 @@ export default function Login() {
             {loading ? (
               <Loader2
                 size={20}
-                className={styles.spinner}
+                className={
+                  styles.spinner
+                }
               />
             ) : (
               'ادامه'
@@ -172,11 +247,17 @@ export default function Login() {
           </button>
         </form>
 
-        <div className={styles.termsFooter}>
+        <div
+          className={
+            styles.termsFooter
+          }
+        >
           ورود به منزله پذیرش{' '}
           <Link
             href="/terms"
-            className={styles.boldLink}
+            className={
+              styles.boldLink
+            }
           >
             قوانین و مقررات
           </Link>{' '}
