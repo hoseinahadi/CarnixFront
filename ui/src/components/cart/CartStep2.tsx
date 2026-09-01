@@ -78,18 +78,6 @@ interface ModalConfig {
   initialData?: AddressResponseDto;
 }
 
-/*
- * پاسخ ShippingMethod ممکن است بسته به Wrapper
- * یکی از این حالت‌ها باشد:
- *
- * [...]
- *
- * { data: [...] }
- *
- * { mainResults: [...] }
- *
- * { data: { data: [...] } }
- */
 const extractShippingMethods = (
   payload: unknown,
 ): ShippingMethod[] => {
@@ -146,328 +134,101 @@ const CartStep2 = ({
   onNext,
   onBack,
 }: CartStep2Props) => {
-  const dispatch =
-    useAppDispatch();
+  const dispatch = useAppDispatch();
 
-  const addresses =
-    useAppSelector(
-      selectAddresses,
-    );
+  const addresses = useAppSelector(selectAddresses);
+  const addressesLoading = useAppSelector(selectAddressLoading);
 
-  const addressesLoading =
-    useAppSelector(
-      selectAddressLoading,
-    );
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+  const [selectedShippingCode, setSelectedShippingCode] = useState('');
+  const [selectedShippingCost, setSelectedShippingCost] = useState(0);
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+  const [shippingLoading, setShippingLoading] = useState(true);
+  const [shippingError, setShippingError] = useState<string | null>(null);
 
-  const [
-    selectedAddressId,
-    setSelectedAddressId,
-  ] = useState<number | null>(
-    null,
-  );
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [quoteReady, setQuoteReady] = useState(false);
+  const [shippingQuote, setShippingQuote] = useState<ShippingQuoteResponse | null>(null);
 
-  /*
-   * هیچ Shipping Method ساختگی
-   * به صورت Default نداریم.
-   */
-  const [
-    selectedShippingCode,
-    setSelectedShippingCode,
-  ] = useState('');
+  const quoteRequestIdRef = useRef(0);
 
-  /*
-   * این مبلغ دیگر BaseCost نیست.
-   *
-   * فقط مبلغ Quote شده از Backend
-   * داخل این State قرار می‌گیرد.
-   */
-  const [
-    selectedShippingCost,
-    setSelectedShippingCost,
-  ] = useState(0);
-
-  const [
-    shippingMethods,
-    setShippingMethods,
-  ] = useState<
-    ShippingMethod[]
-  >([]);
-
-  const [
-    shippingLoading,
-    setShippingLoading,
-  ] = useState(true);
-
-  const [
-    shippingError,
-    setShippingError,
-  ] = useState<string | null>(
-    null,
-  );
-
-  /*
-   * ==========================================================
-   * SHIPPING QUOTE STATE
-   * ==========================================================
-   */
-
-  const [
-    quoteLoading,
-    setQuoteLoading,
-  ] = useState(false);
-
-  const [
-    quoteError,
-    setQuoteError,
-  ] = useState<string | null>(
-    null,
-  );
-
-  const [
-    quoteReady,
-    setQuoteReady,
-  ] = useState(false);
-
-  const [
-    shippingQuote,
-    setShippingQuote,
-  ] = useState<
-    ShippingQuoteResponse | null
-  >(null);
-
-  /*
-   * برای جلوگیری از Race Condition:
-   *
-   * اگر کاربر سریع:
-   *
-   * آدرس 1
-   * ↓
-   * آدرس 2
-   *
-   * را انتخاب کند، پاسخ قدیمی نباید
-   * روی پاسخ جدید Override شود.
-   */
-  const quoteRequestIdRef =
-    useRef(0);
-
-  const [
-    modalKey,
-    setModalKey,
-  ] = useState(0);
-
-  const [
-    modalConfig,
-    setModalConfig,
-  ] = useState<ModalConfig>({
+  const [modalKey, setModalKey] = useState(0);
+  const [modalConfig, setModalConfig] = useState<ModalConfig>({
     isOpen: false,
     mode: 'create',
   });
 
-  const itemsCount =
-    cart.totalItemsCount ||
-    cart.items.length;
+  const itemsCount = cart.totalItemsCount || cart.items.length;
+  const cartSubTotal = Number(cart.subTotal || 0);
+  const cartDiscount = Number(cart.totalDiscount || 0);
+  
+  /* 🟢 کسر مالیات از جمع کل بک‌اند برای اطمینان ۱۰۰ درصدی */
+  const cartTax = Number(cart.taxAmount || 0);
 
-  const cartSubTotal =
-    Number(
-      cart.subTotal || 0,
-    );
+  const backendCartTotal = Number.isFinite(Number(cart.grandTotal))
+      ? Math.max(0, Number(cart.grandTotal) - cartTax)
+      : Math.max(0, cartSubTotal - cartDiscount);
 
-  const cartDiscount =
-    Number(
-      cart.totalDiscount || 0,
-    );
-
-  const cartTax =
-    Number(
-      cart.taxAmount || 0,
-    );
-
-  /*
-   * grandTotal خود Cart
-   * منبع اصلی Backend است.
-   *
-   * Shipping جداگانه از Quote
-   * اضافه می‌شود.
-   */
-  const backendCartTotal =
-    Number.isFinite(
-      Number(cart.grandTotal),
-    )
-      ? Number(
-          cart.grandTotal,
-        )
-      : Math.max(
-          0,
-          cartSubTotal -
-            cartDiscount +
-            cartTax,
-        );
-
-  const finalTotal =
-    Math.max(
+  const finalTotal = Math.max(
       0,
-      backendCartTotal +
-        (
-          quoteReady
-            ? selectedShippingCost
-            : 0
-        ),
-    );
+      backendCartTotal + (quoteReady ? selectedShippingCost : 0)
+  );
 
-  /*
-   * ==========================================================
-   * LOAD ADDRESSES + SHIPPING METHODS
-   * ==========================================================
-   */
   useEffect(() => {
-    const addressRequest =
-      dispatch(
-        fetchAddresses(),
-      );
+    dispatch(fetchAddresses());
+  }, [dispatch]);
 
+  useEffect(() => {
     let cancelled = false;
 
-    const fetchShippingMethods =
-      async () => {
+    const fetchShippingMethods = async () => {
         try {
-          setShippingLoading(
-            true,
-          );
+          setShippingLoading(true);
+          setShippingError(null);
 
-          setShippingError(
-            null,
-          );
+          const response = await CheckoutReferenceApi.getShippingMethods();
 
-          const response =
-            await CheckoutReferenceApi
-              .getShippingMethods();
+          if (cancelled) return;
 
-          if (cancelled) {
-            return;
-          }
-
-          const methods =
-            extractShippingMethods(
-              response.data,
-            )
+          const methods = extractShippingMethods(response.data)
               .filter(
-                (
-                  method,
-                ): method is ShippingMethod =>
+                (method): method is ShippingMethod =>
                   Boolean(
                     method &&
-                      method.isActive &&
-                      method.shippingMethodId >
-                        0 &&
-                      typeof method.code ===
-                        'string' &&
-                      method.code.trim()
-                        .length > 0,
-                  ),
+                    method.isActive &&
+                    method.shippingMethodId > 0 &&
+                    typeof method.code === 'string' &&
+                    method.code.trim().length > 0
+                  )
               );
 
-          if (
-            methods.length ===
-            0
-          ) {
-            setShippingMethods(
-              [],
-            );
-
-            setSelectedShippingCode(
-              '',
-            );
-
-            setSelectedShippingCost(
-              0,
-            );
-
-            setQuoteReady(
-              false,
-            );
-
-            setShippingError(
-              'در حال حاضر روش ارسال فعالی وجود ندارد.',
-            );
-
+          if (methods.length === 0) {
+            setShippingMethods([]);
+            setSelectedShippingCode('');
+            setSelectedShippingCost(0);
+            setQuoteReady(false);
+            setShippingError('در حال حاضر روش ارسال فعالی وجود ندارد.');
             return;
           }
 
-          setShippingMethods(
-            methods,
-          );
+          setShippingMethods(methods);
 
-          /*
-           * اولین Method واقعی Backend
-           * انتخاب می‌شود.
-           */
-          setSelectedShippingCode(
-            (
-              currentCode,
-            ) => {
-              const currentExists =
-                methods.some(
-                  (method) =>
-                    method.code ===
-                    currentCode,
-                );
+          setSelectedShippingCode((currentCode) => {
+              const currentExists = methods.some((method) => method.code === currentCode);
+              if (currentExists) return currentCode;
+              return methods[0].code;
+          });
+        } catch (error: unknown) {
+          if (cancelled || isRequestCanceled(error)) return;
 
-              if (
-                currentExists
-              ) {
-                return currentCode;
-              }
-
-              return methods[0]
-                .code;
-            },
-          );
-        } catch (
-          error: unknown
-        ) {
-          if (
-            cancelled ||
-            isRequestCanceled(
-              error,
-            )
-          ) {
-            return;
-          }
-
-          /*
-           * Fail Closed:
-           *
-           * دیگر STANDARD / TIPAX /
-           * PICKUP ساختگی نداریم.
-           */
-          setShippingMethods(
-            [],
-          );
-
-          setSelectedShippingCode(
-            '',
-          );
-
-          setSelectedShippingCost(
-            0,
-          );
-
-          setQuoteReady(
-            false,
-          );
-
-          setShippingError(
-            getApiErrorMessage(
-              error,
-              'امکان دریافت روش‌های ارسال وجود ندارد.',
-            ),
-          );
+          setShippingMethods([]);
+          setSelectedShippingCode('');
+          setSelectedShippingCost(0);
+          setQuoteReady(false);
+          setShippingError(getApiErrorMessage(error, 'امکان دریافت روش‌های ارسال وجود ندارد.'));
         } finally {
-          if (!cancelled) {
-            setShippingLoading(
-              false,
-            );
-          }
+          if (!cancelled) setShippingLoading(false);
         }
       };
 
@@ -475,263 +236,92 @@ const CartStep2 = ({
 
     return () => {
       cancelled = true;
-
-      addressRequest.abort();
     };
-  }, [dispatch]);
+  }, []);
 
-  /*
-   * ==========================================================
-   * DEFAULT ADDRESS
-   * ==========================================================
-   */
   useEffect(() => {
-    if (
-      addresses.length ===
-      0
-    ) {
-      setSelectedAddressId(
-        null,
-      );
-
+    if (addresses.length === 0) {
+      setSelectedAddressId(null);
       return;
     }
 
-    const selectedStillExists =
-      addresses.some(
-        (address) =>
-          address.userAddressId ===
-          selectedAddressId,
-      );
+    const selectedStillExists = addresses.some(
+        (address) => address.userAddressId === selectedAddressId
+    );
 
-    if (
-      selectedStillExists
-    ) {
-      return;
-    }
+    if (selectedStillExists) return;
 
-    const defaultAddress =
-      addresses.find(
-        (address) =>
-          address.isDefault,
-      );
+    const defaultAddress = addresses.find((address) => address.isDefault);
 
     setSelectedAddressId(
-      defaultAddress
-        ?.userAddressId ??
-        addresses[0]
-          .userAddressId,
+      defaultAddress?.userAddressId ?? addresses[0].userAddressId
     );
-  }, [
-    addresses,
-    selectedAddressId,
-  ]);
+  }, [addresses, selectedAddressId]);
 
-  /*
-   * ==========================================================
-   * REAL SERVER-SIDE SHIPPING QUOTE
-   * ==========================================================
-   *
-   * هر بار یکی از این‌ها تغییر کند:
-   *
-   * Cart
-   * Address
-   * Shipping Method
-   *
-   * Quote جدید از Backend می‌گیریم.
-   */
   useEffect(() => {
-    const cartId =
-      Number(
-        cart.cartId,
-      );
+    const cartId = Number(cart.cartId);
 
-    if (
-      !Number.isFinite(
-        cartId,
-      ) ||
-      cartId <= 0 ||
-      !selectedAddressId ||
-      !selectedShippingCode
-    ) {
-      setSelectedShippingCost(
-        0,
-      );
-
-      setShippingQuote(
-        null,
-      );
-
-      setQuoteReady(
-        false,
-      );
-
-      setQuoteError(
-        null,
-      );
-
-      setQuoteLoading(
-        false,
-      );
-
+    if (!Number.isFinite(cartId) || cartId <= 0 || !selectedAddressId || !selectedShippingCode) {
+      setSelectedShippingCost(0);
+      setShippingQuote(null);
+      setQuoteReady(false);
+      setQuoteError(null);
+      setQuoteLoading(false);
       return;
     }
 
-    const requestId =
-      ++quoteRequestIdRef.current;
-
+    const requestId = ++quoteRequestIdRef.current;
     let cancelled = false;
 
-    const loadQuote =
-      async () => {
+    const loadQuote = async () => {
         try {
-          setQuoteLoading(
-            true,
-          );
+          setQuoteLoading(true);
+          setQuoteError(null);
+          setQuoteReady(false);
+          setSelectedShippingCost(0);
+          setShippingQuote(null);
 
-          setQuoteError(
-            null,
-          );
-
-          setQuoteReady(
-            false,
-          );
-
-          setSelectedShippingCost(
-            0,
-          );
-
-          setShippingQuote(
-            null,
-          );
-
-          const response =
-            await CheckoutReferenceApi
-              .getShippingQuote({
+          const response = await CheckoutReferenceApi.getShippingQuote({
                 cartId,
-                userAddressId:
-                  selectedAddressId,
-                shippingMethod:
-                  selectedShippingCode,
-              });
+                userAddressId: selectedAddressId,
+                shippingMethod: selectedShippingCode,
+          });
 
-          if (
-            cancelled ||
-            requestId !==
-              quoteRequestIdRef
-                .current
-          ) {
-            return;
+          if (cancelled || requestId !== quoteRequestIdRef.current) return;
+
+          const result = response.data;
+
+          if (!result || result.isSuccess !== true || !result.data) {
+            throw new Error(result?.message || 'امکان محاسبه هزینه ارسال وجود ندارد.');
           }
 
-          const result =
-            response.data;
+          const quote = result.data;
+          const cost = Number(quote.shippingCost);
 
-          if (
-            !result ||
-            result.isSuccess !==
-              true ||
-            !result.data
-          ) {
-            throw new Error(
-              result?.message ||
-                'امکان محاسبه هزینه ارسال وجود ندارد.',
-            );
+          if (!Number.isFinite(cost) || cost < 0) {
+            throw new Error('هزینه ارسال دریافت‌شده معتبر نیست.');
           }
 
-          const quote =
-            result.data;
-
-          const cost =
-            Number(
-              quote.shippingCost,
-            );
-
-          if (
-            !Number.isFinite(
-              cost,
-            ) ||
-            cost < 0
-          ) {
-            throw new Error(
-              'هزینه ارسال دریافت‌شده معتبر نیست.',
-            );
-          }
-
-          /*
-           * یک کنترل اضافه:
-           * Quote باید مربوط به همان
-           * Shipping Method انتخابی باشد.
-           */
           if (
             quote.shippingMethodCode &&
-            quote
-              .shippingMethodCode
-              .trim()
-              .toLowerCase() !==
-              selectedShippingCode
-                .trim()
-                .toLowerCase()
+            quote.shippingMethodCode.trim().toLowerCase() !== selectedShippingCode.trim().toLowerCase()
           ) {
-            throw new Error(
-              'پاسخ هزینه ارسال با روش انتخاب‌شده مطابقت ندارد.',
-            );
+            throw new Error('پاسخ هزینه ارسال با روش انتخاب‌شده مطابقت ندارد.');
           }
 
-          setSelectedShippingCost(
-            cost,
-          );
+          setSelectedShippingCost(cost);
+          setShippingQuote(quote);
+          setQuoteReady(true);
+        } catch (error: unknown) {
+          if (cancelled || requestId !== quoteRequestIdRef.current || isRequestCanceled(error)) return;
 
-          setShippingQuote(
-            quote,
-          );
-
-          setQuoteReady(
-            true,
-          );
-        } catch (
-          error: unknown
-        ) {
-          if (
-            cancelled ||
-            requestId !==
-              quoteRequestIdRef
-                .current ||
-            isRequestCanceled(
-              error,
-            )
-          ) {
-            return;
-          }
-
-          setSelectedShippingCost(
-            0,
-          );
-
-          setShippingQuote(
-            null,
-          );
-
-          setQuoteReady(
-            false,
-          );
-
-          setQuoteError(
-            getApiErrorMessage(
-              error,
-              'امکان محاسبه هزینه ارسال برای آدرس و روش انتخاب‌شده وجود ندارد.',
-            ),
-          );
+          setSelectedShippingCost(0);
+          setShippingQuote(null);
+          setQuoteReady(false);
+          setQuoteError(getApiErrorMessage(error, 'امکان محاسبه هزینه ارسال برای آدرس و روش انتخاب‌شده وجود ندارد.'));
         } finally {
-          if (
-            !cancelled &&
-            requestId ===
-              quoteRequestIdRef
-                .current
-          ) {
-            setQuoteLoading(
-              false,
-            );
+          if (!cancelled && requestId === quoteRequestIdRef.current) {
+            setQuoteLoading(false);
           }
         }
       };
@@ -741,869 +331,335 @@ const CartStep2 = ({
     return () => {
       cancelled = true;
     };
-  }, [
-    cart.cartId,
-    selectedAddressId,
-    selectedShippingCode,
-  ]);
+  }, [cart.cartId, selectedAddressId, selectedShippingCode]);
 
-  /*
-   * ==========================================================
-   * SHIPPING SELECT
-   * ==========================================================
-   *
-   * هیچ محاسبه‌ای در Frontend انجام نمی‌شود.
-   *
-   * فقط Code انتخاب می‌شود و useEffect
-   * بالا Quote جدید می‌گیرد.
-   */
-  const handleShippingSelect = (
-    method: ShippingMethod,
-  ) => {
-    if (
-      shippingLoading ||
-      quoteLoading
-    ) {
-      return;
-    }
+  const handleShippingSelect = (method: ShippingMethod) => {
+    if (shippingLoading || quoteLoading) return;
+    if (selectedShippingCode === method.code) return;
 
-    if (
-      selectedShippingCode ===
-      method.code
-    ) {
-      return;
-    }
-
-    setSelectedShippingCode(
-      method.code,
-    );
-
-    setSelectedShippingCost(
-      0,
-    );
-
-    setShippingQuote(
-      null,
-    );
-
-    setQuoteReady(
-      false,
-    );
-
-    setQuoteError(
-      null,
-    );
+    setSelectedShippingCode(method.code);
+    setSelectedShippingCost(0);
+    setShippingQuote(null);
+    setQuoteReady(false);
+    setQuoteError(null);
   };
 
-  /*
-   * ==========================================================
-   * NEXT
-   * ==========================================================
-   */
   const handleSubmit = () => {
     if (!selectedAddressId) {
-      window.alert(
-        'لطفاً یک آدرس انتخاب کنید',
-      );
-
+      window.alert('لطفاً یک آدرس انتخاب کنید');
       return;
     }
 
-    if (
-      !selectedShippingCode
-    ) {
-      window.alert(
-        'لطفاً یک روش ارسال انتخاب کنید',
-      );
-
+    if (!selectedShippingCode) {
+      window.alert('لطفاً یک روش ارسال انتخاب کنید');
       return;
     }
 
-    /*
-     * تا زمانی که Quote واقعی Backend
-     * دریافت نشده باشد اجازه ورود به
-     * Step 3 داده نمی‌شود.
-     */
-    if (
-      quoteLoading ||
-      !quoteReady ||
-      !shippingQuote
-    ) {
-      window.alert(
-        quoteError ||
-          'هزینه ارسال هنوز محاسبه نشده است.',
-      );
-
+    if (quoteLoading || !quoteReady || !shippingQuote) {
+      window.alert(quoteError || 'هزینه ارسال هنوز محاسبه نشده است.');
       return;
     }
 
-    onNext(
-      selectedAddressId,
-      selectedShippingCode,
-      selectedShippingCost,
-    );
+    onNext(selectedAddressId, selectedShippingCode, selectedShippingCost);
   };
 
-  const openModal = (
-    mode: ModalConfig['mode'],
-    address?: AddressResponseDto,
-  ) => {
-    setModalKey(
-      (
-        current,
-      ) =>
-        current + 1,
-    );
-
+  const openModal = (mode: ModalConfig['mode'], address?: AddressResponseDto) => {
+    setModalKey((current) => current + 1);
     setModalConfig({
       isOpen: true,
       mode,
-      initialData:
-        address,
+      initialData: address,
     });
   };
 
-  const closeModal =
-    useCallback(() => {
+  const closeModal = useCallback(() => {
       setModalConfig({
         isOpen: false,
         mode: 'create',
       });
+      void dispatch(fetchAddresses({ force: true }));
+  }, [dispatch]);
 
-      /*
-       * بعد از ایجاد یا ویرایش Address
-       * لیست را از Backend Refresh می‌کنیم.
-       *
-       * تغییر Address باعث Quote جدید
-       * خواهد شد.
-       */
-      void dispatch(
-        fetchAddresses({
-          force: true,
-        }),
-      );
-    }, [dispatch]);
+  const formatCurrency = (amount: number) => amount.toLocaleString('fa-IR');
 
-  const formatCurrency = (
-    amount: number,
-  ) =>
-    amount.toLocaleString(
-      'fa-IR',
-    );
-
-  const getDeliveryDaysText = (
-    days: number,
-  ) => {
-    if (days === 0) {
-      return 'همان روز';
-    }
-
-    if (days === 1) {
-      return '۱ روز کاری';
-    }
-
-    return `${days.toLocaleString(
-      'fa-IR',
-    )} روز کاری`;
+  const getDeliveryDaysText = (days: number) => {
+    if (days === 0) return 'همان روز';
+    if (days === 1) return '۱ روز کاری';
+    return `${days.toLocaleString('fa-IR')} روز کاری`;
   };
 
   if (addressesLoading) {
     return (
-      <div
-        className={
-          styles.loading
-        }
-      >
-        <Loader2
-          className={
-            styles.spinner
-          }
-          size={32}
-        />
-
-        <p>
-          در حال بارگذاری آدرس‌ها...
-        </p>
+      <div className={styles.loading}>
+        <Loader2 className={styles.spinner} size={32} />
+        <p>در حال بارگذاری آدرس‌ها...</p>
       </div>
     );
   }
 
   return (
     <>
-      <div
-        className={
-          styles.sectionHeader
-        }
-      >
-        <h3>
-          آدرس‌ها
-        </h3>
-
-        <p
-          className={
-            styles.sectionSubtitle
-          }
-        >
+      <div className={styles.sectionHeader}>
+        <h3>آدرس‌ها</h3>
+        <p className={styles.sectionSubtitle}>
           لطفاً از بین آدرس‌های موجود یکی را انتخاب کنید
         </p>
       </div>
 
-      <div
-        className={
-          styles.step2Container
-        }
-      >
-        <div
-          className={
-            styles.addressesSection
-          }
-        >
-          {/* ================= ADDRESSES ================= */}
-
-          <div
-            className={
-              styles.addressList
-            }
-          >
-            {addresses.length ===
-            0 ? (
-              <div
-                className={
-                  styles.noAddress
-                }
-              >
-                <div
-                  className={
-                    styles.noAddressIcon
-                  }
-                >
-                  <Home
-                    size={48}
-                  />
+      <div className={styles.step2Container}>
+        <div className={styles.addressesSection}>
+          <div className={styles.addressList}>
+            {addresses.length === 0 ? (
+              <div className={styles.noAddress}>
+                <div className={styles.noAddressIcon}>
+                  <Home size={48} />
                 </div>
-
-                <p>
-                  هیچ آدرسی ثبت نشده است
-                </p>
-
+                <p>هیچ آدرسی ثبت نشده است</p>
                 <button
                   type="button"
-                  className={
-                    styles.addFirstAddressBtn
-                  }
-                  onClick={() =>
-                    openModal(
-                      'create',
-                    )
-                  }
+                  className={styles.addFirstAddressBtn}
+                  onClick={() => openModal('create')}
                 >
-                  <Plus
-                    size={20}
-                  />
-
+                  <Plus size={20} />
                   ثبت اولین آدرس
                 </button>
               </div>
             ) : (
-              addresses.map(
-                (
-                  address,
-                ) => (
+              addresses.map((address) => (
                   <div
-                    key={
-                      address.userAddressId
-                    }
-                    className={`${styles.addressCard} ${
-                      selectedAddressId ===
-                      address.userAddressId
-                        ? styles.selected
-                        : ''
-                    }`}
-                    onClick={() =>
-                      setSelectedAddressId(
-                        address.userAddressId,
-                      )
-                    }
+                    key={address.userAddressId}
+                    className={`${styles.addressCard} ${selectedAddressId === address.userAddressId ? styles.selected : ''}`}
+                    onClick={() => setSelectedAddressId(address.userAddressId)}
                   >
-                    <div
-                      className={
-                        styles.addressHeader
-                      }
-                    >
-                      <div
-                        className={
-                          styles.addressTitleWrapper
-                        }
-                      >
-                        <span
-                          className={
-                            styles.addressTitle
-                          }
-                        >
-                          {
-                            address.addressTitle
-                          }
-                        </span>
-
+                    <div className={styles.addressHeader}>
+                      <div className={styles.addressTitleWrapper}>
+                        <span className={styles.addressTitle}>{address.addressTitle}</span>
                         {address.isDefault && (
-                          <span
-                            className={
-                              styles.defaultBadge
-                            }
-                          >
-                            پیش‌فرض
-                          </span>
+                          <span className={styles.defaultBadge}>پیش‌فرض</span>
                         )}
                       </div>
 
-                      <div
-                        className={
-                          styles.addressActions
-                        }
-                      >
+                      <div className={styles.addressActions}>
                         <button
                           type="button"
-                          className={
-                            styles.iconBtn
-                          }
+                          className={styles.iconBtn}
                           aria-label="ویرایش آدرس"
-                          onClick={(
-                            event,
-                          ) => {
+                          onClick={(event) => {
                             event.stopPropagation();
-
-                            openModal(
-                              'edit',
-                              address,
-                            );
+                            openModal('edit', address);
                           }}
                         >
-                          <Edit3
-                            size={16}
-                          />
+                          <Edit3 size={16} />
                         </button>
-
                         <button
                           type="button"
-                          className={
-                            styles.iconBtn
-                          }
+                          className={styles.iconBtn}
                           aria-label="حذف آدرس"
-                          onClick={(
-                            event,
-                          ) => {
+                          onClick={(event) => {
                             event.stopPropagation();
-
-                            openModal(
-                              'delete',
-                              address,
-                            );
+                            openModal('delete', address);
                           }}
                         >
-                          <Trash2
-                            size={16}
-                          />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
 
-                    <div
-                      className={
-                        styles.addressBody
-                      }
-                    >
-                      <div
-                        className={
-                          styles.addressText
-                        }
-                      >
-                        <MapPin
-                          size={16}
-                        />
-
-                        <span>
-                          {
-                            address.fullAddress
-                          }
-                        </span>
+                    <div className={styles.addressBody}>
+                      <div className={styles.addressText}>
+                        <MapPin size={16} />
+                        <span>{address.fullAddress}</span>
                       </div>
-
-                      <div
-                        className={
-                          styles.addressFooter
-                        }
-                      >
-                        <span>
-                          👤{' '}
-                          {
-                            address.recipientName
-                          }
-                        </span>
-
-                        <span>
-                          📞{' '}
-                          {
-                            address.phoneNumber
-                          }
-                        </span>
+                      <div className={styles.addressFooter}>
+                        <span>👤 {address.recipientName}</span>
+                        <span>📞 {address.phoneNumber}</span>
                       </div>
                     </div>
                   </div>
-                ),
-              )
+                ))
             )}
 
-            {addresses.length >
-              0 && (
+            {addresses.length > 0 && (
               <button
                 type="button"
-                className={
-                  styles.addAddressBtn
-                }
-                onClick={() =>
-                  openModal(
-                    'create',
-                  )
-                }
+                className={styles.addAddressBtn}
+                onClick={() => openModal('create')}
               >
-                <Plus
-                  size={20}
-                />
-
+                <Plus size={20} />
                 افزودن آدرس جدید
               </button>
             )}
           </div>
 
-          {/* ================= SHIPPING ================= */}
-
-          <div
-            className={
-              styles.shippingSection
-            }
-          >
-            <h3
-              className={
-                styles.shippingTitle
-              }
-            >
-              نحوه ارسال
-            </h3>
+          <div className={styles.shippingSection}>
+            <h3 className={styles.shippingTitle}>نحوه ارسال</h3>
 
             {shippingError && (
-              <div
-                className={
-                  styles.shippingError
-                }
-              >
-                ⚠️{' '}
-                {
-                  shippingError
-                }
+              <div className={styles.shippingError}>
+                ⚠️ {shippingError}
               </div>
             )}
 
             {quoteError && (
-              <div
-                className={
-                  styles.shippingError
-                }
-              >
-                ⚠️{' '}
-                {
-                  quoteError
-                }
+              <div className={styles.shippingError}>
+                ⚠️ {quoteError}
               </div>
             )}
 
             {shippingLoading ? (
-              <div
-                className={
-                  styles.loading
-                }
-              >
-                <Loader2
-                  className={
-                    styles.spinner
-                  }
-                  size={24}
-                />
-
-                <p>
-                  در حال بارگذاری روش‌های ارسال...
-                </p>
+              <div className={styles.loading}>
+                <Loader2 className={styles.spinner} size={24} />
+                <p>در حال بارگذاری روش‌های ارسال...</p>
               </div>
-            ) : shippingMethods
-                .length ===
-              0 ? (
-              <div
-                className={
-                  styles.noMethods
-                }
-              >
-                <p>
-                  روش ارسال فعالی یافت نشد.
-                </p>
+            ) : shippingMethods.length === 0 ? (
+              <div className={styles.noMethods}>
+                <p>روش ارسال فعالی یافت نشد.</p>
               </div>
             ) : (
-              <div
-                className={
-                  styles.shippingMethods
-                }
-              >
-                {shippingMethods.map(
-                  (
-                    method,
-                  ) => {
-                    const isSelected =
-                      selectedShippingCode ===
-                      method.code;
+              <div className={styles.shippingMethods}>
+                {shippingMethods.map((method) => {
+                    const isSelected = selectedShippingCode === method.code;
 
                     return (
                       <div
-                        key={
-                          method.shippingMethodId
-                        }
-                        className={`
-                          ${styles.shippingMethod}
-                          ${
-                            isSelected
-                              ? styles.selected
-                              : ''
-                          }
-                        `}
-                        onClick={() =>
-                          handleShippingSelect(
-                            method,
-                          )
-                        }
+                        key={method.shippingMethodId}
+                        className={`${styles.shippingMethod} ${isSelected ? styles.selected : ''}`}
+                        onClick={() => handleShippingSelect(method)}
                       >
-                        <div
-                          className={
-                            styles.methodInfo
-                          }
-                        >
-                          <div
-                            className={
-                              styles.methodName
-                            }
-                          >
-                            <Truck
-                              size={18}
-                            />
-
-                            <span>
-                              {
-                                method.name
-                              }
-                            </span>
+                        <div className={styles.methodInfo}>
+                          <div className={styles.methodName}>
+                            <Truck size={18} />
+                            <span>{method.name}</span>
                           </div>
 
-                          <div
-                            className={
-                              styles.methodDetails
-                            }
-                          >
-                            <span
-                              className={
-                                styles.methodPrice
-                              }
-                            >
-                              {isSelected &&
-                              quoteLoading
+                          <div className={styles.methodDetails}>
+                            <span className={styles.methodPrice}>
+                              {isSelected && quoteLoading
                                 ? 'در حال محاسبه...'
-                                : isSelected &&
-                                    quoteReady
-                                  ? selectedShippingCost >
-                                    0
-                                    ? `${formatCurrency(
-                                        selectedShippingCost,
-                                      )} تومان`
+                                : isSelected && quoteReady
+                                  ? selectedShippingCost > 0
+                                    ? `${formatCurrency(selectedShippingCost)} تومان`
                                     : 'رایگان'
-                                  : method.baseCost >
-                                      0
-                                    ? `پایه ${formatCurrency(
-                                        method.baseCost,
-                                      )} تومان`
+                                  : method.baseCost > 0
+                                    ? `پایه ${formatCurrency(method.baseCost)} تومان`
                                     : 'هزینه پایه: رایگان'}
                             </span>
 
-                            <span
-                              className={
-                                styles.methodDays
-                              }
-                            >
+                            <span className={styles.methodDays}>
                               {getDeliveryDaysText(
-                                isSelected &&
-                                  shippingQuote
-                                  ? shippingQuote
-                                      .estimatedDeliveryDays
-                                  : method
-                                      .estimatedDeliveryDays,
+                                isSelected && shippingQuote
+                                  ? shippingQuote.estimatedDeliveryDays
+                                  : method.estimatedDeliveryDays,
                               )}
                             </span>
                           </div>
 
                           {method.description && (
-                            <div
-                              className={
-                                styles.methodDescription
-                              }
-                            >
-                              {
-                                method.description
-                              }
+                            <div className={styles.methodDescription}>
+                              {method.description}
                             </div>
                           )}
 
                           {method.regionLimit && (
-                            <div
-                              className={
-                                styles.methodUnavailable
-                              }
-                            >
-                              محدوده سرویس:{' '}
-                              {
-                                method.regionLimit
-                              }
+                            <div className={styles.methodUnavailable}>
+                              محدوده سرویس: {method.regionLimit}
                             </div>
                           )}
                         </div>
 
-                        <div
-                          className={
-                            styles.radioCircle
-                          }
-                        >
-                          {isSelected && (
-                            <div
-                              className={
-                                styles.radioInner
-                              }
-                            />
-                          )}
+                        <div className={styles.radioCircle}>
+                          {isSelected && <div className={styles.radioInner} />}
                         </div>
                       </div>
                     );
-                  },
-                )}
+                  })}
               </div>
             )}
           </div>
         </div>
 
-        {/* ================= SUMMARY ================= */}
-
-        <div
-          className={
-            styles.summary
-          }
-        >
-          <div
-            className={
-              styles.summaryHeader
-            }
-          >
-            <h3>
-              خلاصه سفارش
-            </h3>
+        <div className={styles.summary}>
+          <div className={styles.summaryHeader}>
+            <h3>خلاصه سفارش</h3>
           </div>
 
-          <div
-            className={
-              styles.summaryContent
-            }
-          >
-            <div
-              className={
-                styles.summaryRow
-              }
-            >
-              <span>
-                تعداد کالا
-              </span>
-
-              <span>
-                {itemsCount.toLocaleString(
-                  'fa-IR',
-                )}{' '}
-                عدد
-              </span>
+          <div className={styles.summaryContent}>
+            <div className={styles.summaryRow}>
+              <span>تعداد کالا</span>
+              <span>{itemsCount.toLocaleString('fa-IR')} عدد</span>
             </div>
 
-            <div
-              className={
-                styles.summaryRow
-              }
-            >
-              <span>
-                قیمت کالاها
-              </span>
-
-              <span>
-                {formatCurrency(
-                  cartSubTotal,
-                )}{' '}
-                تومان
-              </span>
+            <div className={styles.summaryRow}>
+              <span>قیمت کالاها</span>
+              <span>{formatCurrency(cartSubTotal)} تومان</span>
             </div>
 
-            {cartDiscount >
-              0 && (
-              <div
-                className={
-                  styles.summaryRow
-                }
-              >
-                <span>
-                  تخفیف
-                </span>
-
-                <span>
-                  -
-                  {formatCurrency(
-                    cartDiscount,
-                  )}{' '}
-                  تومان
-                </span>
+            {cartDiscount > 0 && (
+              <div className={styles.summaryRow}>
+                <span>تخفیف</span>
+                <span>-{formatCurrency(cartDiscount)} تومان</span>
               </div>
             )}
 
-            {cartTax > 0 && (
-              <div
-                className={
-                  styles.summaryRow
-                }
-              >
-                <span>
-                  مالیات
-                </span>
-
-                <span>
-                  {formatCurrency(
-                    cartTax,
-                  )}{' '}
-                  تومان
-                </span>
-              </div>
-            )}
-
-            <div
-              className={
-                styles.summaryRow
-              }
-            >
+            <div className={styles.summaryRow}>
+              <span>هزینه ارسال</span>
               <span>
-                هزینه ارسال
-              </span>
-
-              <span>
-                {!selectedAddressId ||
-                !selectedShippingCode
+                {!selectedAddressId || !selectedShippingCode
                   ? 'انتخاب نشده'
                   : quoteLoading
                     ? 'در حال محاسبه...'
                     : quoteReady
-                      ? selectedShippingCost >
-                        0
-                        ? `${formatCurrency(
-                            selectedShippingCost,
-                          )} تومان`
+                      ? selectedShippingCost > 0
+                        ? `${formatCurrency(selectedShippingCost)} تومان`
                         : 'رایگان'
                       : 'نامشخص'}
               </span>
             </div>
 
-            <div
-              className={
-                styles.summaryDivider
-              }
-            />
+            <div className={styles.summaryDivider} />
 
-            <div
-              className={
-                styles.summaryRowTotal
-              }
-            >
-              <span>
-                جمع کل
-              </span>
-
-              <span>
-                {formatCurrency(
-                  finalTotal,
-                )}{' '}
-                تومان
-              </span>
+            <div className={styles.summaryRowTotal}>
+              <span>جمع کل</span>
+              <span>{formatCurrency(finalTotal)} تومان</span>
             </div>
           </div>
 
-          <div
-            className={
-              styles.actions
-            }
-          >
+          <div className={styles.actions}>
             <button
               type="button"
-              className={
-                styles.backBtn
-              }
-              onClick={
-                onBack
-              }
-              disabled={
-                quoteLoading
-              }
+              className={styles.backBtn}
+              onClick={onBack}
+              disabled={quoteLoading}
             >
               بازگشت
             </button>
 
             <button
               type="button"
-              className={
-                styles.nextBtn
-              }
-              onClick={
-                handleSubmit
-              }
+              className={styles.nextBtn}
+              onClick={handleSubmit}
               disabled={
                 !selectedAddressId ||
                 !selectedShippingCode ||
                 shippingLoading ||
                 quoteLoading ||
                 !quoteReady ||
-                Boolean(
-                  quoteError,
-                )
+                Boolean(quoteError)
               }
             >
-              {quoteLoading
-                ? 'در حال محاسبه هزینه ارسال...'
-                : 'ادامه'}
+              {quoteLoading ? 'در حال محاسبه هزینه ارسال...' : 'ادامه'}
             </button>
           </div>
         </div>
       </div>
 
-      {/* ================= ADDRESS MODAL ================= */}
-
       {modalConfig.isOpen && (
         <AddressModal
-          key={
-            modalKey
-          }
-          isOpen={
-            modalConfig.isOpen
-          }
-          onClose={
-            closeModal
-          }
-          mode={
-            modalConfig.mode
-          }
-          initialData={
-            modalConfig.initialData
-          }
+          key={modalKey}
+          isOpen={modalConfig.isOpen}
+          onClose={closeModal}
+          mode={modalConfig.mode}
+          initialData={modalConfig.initialData}
         />
       )}
     </>

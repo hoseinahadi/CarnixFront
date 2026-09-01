@@ -6,6 +6,7 @@ import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThu
 import { Trash2, Minus, Plus } from 'lucide-react';
 import styles from './CartStep1.module.scss';
 import { calculateRoundedCartSubtotal, calculateTaxFreeCartTotal, formatPrice } from '@/utils/price';
+import toast from 'react-hot-toast'; // 🟢
 
 interface CartStep1Props {
   cart: any;
@@ -21,13 +22,22 @@ const toPersianNumber = (value: number | undefined | null): string => {
 const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) => {
   const dispatch = useAppDispatch();
 
-  const handleQuantityChange = (cartItemId: number, newQuantity: number) => {
+  const handleQuantityChange = async (cartItemId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
-    dispatch(updateItemQuantity({ cartItemId, quantity: newQuantity }));
+    try {
+      await dispatch(updateItemQuantity({ cartItemId, quantity: newQuantity })).unwrap();
+    } catch (error) {
+      toast.error(error as string, { duration: 4000 }); // 🟢
+    }
   };
 
-  const handleRemove = (cartItemId: number) => {
-    dispatch(removeCartItem(cartItemId));
+  const handleRemove = async (cartItemId: number) => {
+    try {
+      await dispatch(removeCartItem(cartItemId)).unwrap();
+      toast.success('حذف شد', { duration: 3000 }); // 🟢
+    } catch (error) {
+      toast.error(error as string, { duration: 4000 }); // 🟢
+    }
   };
 
   return (
@@ -38,60 +48,64 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
     
       <div className={styles.step1Container}>
         <div className={styles.cartItems}>
-          {cart.items.map((item: any) => (
-            <div key={item.cartItemId} className={styles.cartItem}>
-              <div className={styles.image}>
-                <img 
-                  src={item.imageUrl || item.product?.imageUrl} 
-                  alt={item.productName || item.product?.productName} 
-                />
-              </div>
-              <div className={styles.itemContent}>
-                <div className={styles.details}>
-                  <h3 className={styles.productName}>
-                    {item.productName || item.product?.productName}
-                  </h3>
-                  <div className={styles.productCode}>
-                    کد قطعه: {item.product?.sku || '---'}
-                  </div>
+          {cart.items.map((item: any) => {
+            const currentItemId = item.cartItemId || item.id || item.productId;
+
+            return (
+              <div key={currentItemId} className={styles.cartItem}>
+                <div className={styles.image}>
+                  <img 
+                    src={item.imageUrl || item.product?.imageUrl} 
+                    alt={item.productName || item.product?.productName} 
+                  />
                 </div>
-                <div className={styles.actions}>
-                  <button 
-                    onClick={() => handleRemove(item.cartItemId)}
-                    disabled={actionLoading}
-                    className={styles.deleteBtn}
-                    aria-label="حذف محصول"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                  <div className={styles.priceRow}>
-                    <span className={styles.price}>
-                      {formatPrice(item.price || item.unitPrice)} تومان
-                    </span>
+                <div className={styles.itemContent}>
+                  <div className={styles.details}>
+                    <h3 className={styles.productName}>
+                      {item.productName || item.product?.productName}
+                    </h3>
+                    <div className={styles.productCode}>
+                      کد قطعه: {item.product?.sku || '---'}
+                    </div>
                   </div>
-                  <div className={styles.quantityControl}>
+                  <div className={styles.actions}>
                     <button 
-                      onClick={() => handleQuantityChange(item.cartItemId, item.quantity - 1)}
-                      disabled={item.quantity <= 1 || actionLoading}
-                      className={styles.qtyBtn}
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className={styles.qtyValue}>
-                      {toPersianNumber(item.quantity)}
-                    </span>
-                    <button 
-                      onClick={() => handleQuantityChange(item.cartItemId, item.quantity + 1)}
+                      onClick={() => handleRemove(currentItemId)}
                       disabled={actionLoading}
-                      className={styles.qtyBtn}
+                      className={styles.deleteBtn}
+                      aria-label="حذف محصول"
                     >
-                      <Plus size={16} />
+                      <Trash2 size={20} />
                     </button>
+                    <div className={styles.priceRow}>
+                      <span className={styles.price}>
+                        {formatPrice(item.price || item.unitPrice)} تومان
+                      </span>
+                    </div>
+                    <div className={styles.quantityControl}>
+                      <button 
+                        onClick={() => handleQuantityChange(currentItemId, item.quantity - 1)}
+                        disabled={item.quantity <= 1 || actionLoading}
+                        className={styles.qtyBtn}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className={styles.qtyValue}>
+                        {toPersianNumber(item.quantity)}
+                      </span>
+                      <button 
+                        onClick={() => handleQuantityChange(currentItemId, item.quantity + 1)}
+                        disabled={actionLoading}
+                        className={styles.qtyBtn}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className={styles.summary}>
@@ -111,7 +125,6 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
             <div className={styles.summaryRow}>
               <span>سود شما از خرید</span>
               <span className={styles.discountAmount}>
-                {/* 🟢 باگ منطقی اصلاح شد: فقط مقدار تخفیف نمایش داده شود */}
                 {formatPrice(cart.totalDiscount || 0)} تومان
               </span>
             </div>

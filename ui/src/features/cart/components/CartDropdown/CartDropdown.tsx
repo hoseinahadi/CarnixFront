@@ -10,6 +10,7 @@ import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThu
 import styles from './CartDropdown.module.scss'
 import { Cart } from '@/models/cart/Cart'
 import { calculateTaxFreeCartTotal, formatPrice } from '@/utils/price'
+import toast from 'react-hot-toast' // 🟢
 
 interface CartDropdownProps {
   cart: Cart | null
@@ -23,9 +24,7 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   
-  // استیت برای نگهداری آیدی محصولی که دکمه آن کلیک شده است
   const [updatingItemId, setUpdatingItemId] = useState<number | null>(null)
-
 
   const handleNavigate = (path: string) => {
     onClose()
@@ -40,7 +39,7 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
     try {
       await dispatch(updateItemQuantity({ cartItemId, quantity: newQuantity })).unwrap()
     } catch (error) {
-      console.error('خطا در تغییر تعداد:', error)
+      toast.error(error as string, { duration: 4000 }) // 🟢
     } finally {
       setUpdatingItemId(null)
     }
@@ -53,9 +52,10 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
         await dispatch(updateItemQuantity({ cartItemId, quantity: currentQuantity - 1 })).unwrap()
       } else {
         await dispatch(removeCartItem(cartItemId)).unwrap()
+        toast.success('از سبد خرید حذف شد', { duration: 3000 }) // 🟢
       }
     } catch (error) {
-      console.error('خطا در حذف/کاهش محصول:', error)
+      toast.error(error as string, { duration: 4000 }) // 🟢
     } finally {
       setUpdatingItemId(null)
     }
@@ -76,7 +76,6 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
         </button>
       </div>
 
-      {/* نمایش اسپینر بزرگ فقط زمانی که سبد خریدی وجود ندارد */}
       {loading && !cart ? (
         <div className={styles.loadingWrapper}>
           <CircularProgress size={30} />
@@ -88,17 +87,17 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
       ) : (
         <>
           <div className={styles.itemsList}>
-            {cart.items.map((item, index) => {
-              // بررسی لودینگ فقط برای محصول فعلی
-              const isThisItemLoading = updatingItemId === item.cartItemId;
+            {cart.items.map((item: any, index) => {
+              const currentItemId = item.cartItemId || item.id || item.productId;
+              const isThisItemLoading = updatingItemId === currentItemId;
 
               return (
-                <div key={`cart-item-${item.cartItemId}-${index}`} className={styles.cartItem}>
+                <div key={`cart-item-${currentItemId}-${index}`} className={styles.cartItem}>
                   <div className={styles.imageContainer}>
                     {item.product?.imageUrl ? (
                       <Image
                         src={item.product.imageUrl}
-                        alt={item.product.productName}
+                        alt={item.product.productName || 'بدون نام'}
                         width={60}
                         height={60}
                       />
@@ -109,10 +108,10 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
 
                   <div className={styles.itemDetails}>
                     <div className={styles.productName}>
-                      {item.product?.productName || 'محصول نامشخص'}
+                      {item.product?.productName || item.productName || 'محصول نامشخص'}
                     </div>
                     <div className={styles.priceWrapper}>
-                      <span className={styles.price}>{formatPrice(item.unitPrice)}</span>
+                      <span className={styles.price}>{formatPrice(item.unitPrice || item.price)}</span>
                       <span className={styles.currency}>تومان</span>
                     </div>
                   </div>
@@ -121,7 +120,7 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
                     <div className={styles.quantityBox}>
                       <button 
                         className={styles.quantityBtn}
-                        onClick={() => handleQuantityChange(item.cartItemId, item.quantity, 1)}
+                        onClick={() => handleQuantityChange(currentItemId, item.quantity, 1)}
                         disabled={isThisItemLoading}
                       >
                         <IconPlus size={14} />
@@ -137,14 +136,12 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
                       
                       <button 
                         className={`${styles.quantityBtn} ${item.quantity === 1 ? styles.danger : ''}`}
-                        onClick={() => handleDecreaseOrRemove(item.cartItemId, item.quantity)}
+                        onClick={() => handleDecreaseOrRemove(currentItemId, item.quantity)}
                         disabled={isThisItemLoading}
                       >
                         {item.quantity > 1 ? <IconMinus size={14} /> : <IconTrash size={14} />}
                       </button>
                     </div>
-                    
-                    
                   </div>
                 </div>
               )

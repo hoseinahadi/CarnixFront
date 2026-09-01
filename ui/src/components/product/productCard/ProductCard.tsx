@@ -10,6 +10,7 @@ import { Plus, Minus, Trash2, Loader2, ShoppingCart } from 'lucide-react';
 import styles from './ProductCard.module.scss';
 import ProductOverViewModal from '../ProductOverViewModal/ProductOverViewModal';
 import { roundPrice } from '@/utils/price';
+import toast from 'react-hot-toast'; // 🟢 اضافه شدن Toast
 
 interface ProductCardProps {
   product: Product;
@@ -54,26 +55,41 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     if (product.totalStock <= 0 || isGlobalCartLoading) return;
 
     setIsAddingThisItem(true);
-    await dispatch(addToCart({ productId: product.productId, quantity: 1 }));
-    setIsAddingThisItem(false);
-  };
-
-  const handleIncrease = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (cartItem && !isGlobalCartLoading) {
-      dispatch(updateItemQuantity({ cartItemId: cartItem.cartItemId, quantity: cartItem.quantity + 1 }));
+    try {
+      await dispatch(addToCart({ productId: product.productId, quantity: 1 })).unwrap();
+      toast.success('محصول با موفقیت به سبد خرید اضافه شد', { duration: 3000 }); // 🟢 پیام موفقیت
+    } catch (error) {
+      toast.error(error as string, { duration: 4000 }); // 🟢 نمایش ارور به صورت پاپ‌آپ موقت
+    } finally {
+      setIsAddingThisItem(false);
     }
   };
 
-  const handleDecreaseOrRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleIncrease = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (cartItem && !isGlobalCartLoading) {
-      if (cartItem.quantity > 1) {
-        dispatch(updateItemQuantity({ cartItemId: cartItem.cartItemId, quantity: cartItem.quantity - 1 }));
-      } else {
-        dispatch(removeCartItem(cartItem.cartItemId));
+      try {
+        await dispatch(updateItemQuantity({ cartItemId: cartItem.cartItemId, quantity: cartItem.quantity + 1 })).unwrap();
+      } catch (error) {
+        toast.error(error as string, { duration: 4000 }); // 🟢
+      }
+    }
+  };
+
+  const handleDecreaseOrRemove = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (cartItem && !isGlobalCartLoading) {
+      try {
+        if (cartItem.quantity > 1) {
+          await dispatch(updateItemQuantity({ cartItemId: cartItem.cartItemId, quantity: cartItem.quantity - 1 })).unwrap();
+        } else {
+          await dispatch(removeCartItem(cartItem.cartItemId)).unwrap();
+          toast.success('محصول از سبد خرید حذف شد', { duration: 3000 });
+        }
+      } catch (error) {
+        toast.error(error as string, { duration: 4000 }); // 🟢
       }
     }
   };
@@ -118,7 +134,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <span className={styles.placeholder}>بدون تصویر</span>
             )}
             
-            {/* بج ناموجود روی عکس */}
             {isOutOfStock && (
               <span className={styles.outOfStockBadge}>ناموجود</span>
             )}
@@ -130,7 +145,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
 
         <div className={styles.footer}>
-          {/* 🟢 ۱. قیمت در سمت راست */}
           <div className={styles.priceWrapper}>
             {!isOutOfStock && hasDiscount && (
               <span className={styles.oldPrice}>{basePriceFormatted.toLocaleString('fa-IR')}</span>
@@ -146,7 +160,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </span>
           </div>
 
-          {/* 🟢 ۲. دکمه سبد خرید در سمت چپ */}
           <div className={styles.cartActionWrapper}>
             {!isInCart ? (
               <button 

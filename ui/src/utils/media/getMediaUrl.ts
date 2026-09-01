@@ -5,7 +5,7 @@ const getBackendOrigin = (): string => {
   const configured =
     process.env.NEXT_PUBLIC_BACKEND_URL ??
     process.env.NEXT_PUBLIC_API_URL ??
-    'http://localhost:8080';
+    'http://localhost:7191';
 
   return stripApiSuffix(configured.trim());
 };

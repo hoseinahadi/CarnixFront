@@ -26,7 +26,7 @@ const getImageUrl = (url: string | null | undefined) => {
   if (!url) return '';
   if (url.startsWith('http')) return url; 
   
-  let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'; 
+  let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7191'; 
   
   if (baseUrl.endsWith('/api')) {
     baseUrl = baseUrl.substring(0, baseUrl.length - 4);
