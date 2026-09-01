@@ -1,4 +1,3 @@
-
 import {
   createSlice,
   type PayloadAction,
@@ -14,6 +13,7 @@ import {
   fetchCategories,
   searchCategories,
   updateCategory,
+  fetchSubCategories, // 🟢 اضافه شد
 } from './categoryThunks';
 
 export type CategoryFetchStatus =
@@ -40,6 +40,22 @@ const initialState: CategoryState = {
   successMessage: null,
 };
 
+// 🟢 متد بازگشتی برای پیدا کردن والد و اختصاص دادن زیردسته‌ها به آن
+const updateSubCategoriesTree = (categories: Category[], parentId: number, newSubs: Category[]): boolean => {
+  for (let i = 0; i < categories.length; i++) {
+    if (categories[i].categoryId === parentId) {
+      categories[i].subCategories = newSubs;
+      return true;
+    }
+    if (categories[i].subCategories && categories[i].subCategories!.length > 0) {
+      if (updateSubCategoriesTree(categories[i].subCategories!, parentId, newSubs)) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 const categorySlice = createSlice({
   name: 'category',
   initialState,
@@ -50,10 +66,6 @@ const categorySlice = createSlice({
       state.successMessage = null;
     },
 
-    /*
-     * Retry دریافت لیست باید صریح باشد.
-     * Effectهای صفحه این Action را خودکار اجرا نمی‌کنند.
-     */
     resetCategoryFetch: (state) => {
       if (
         state.fetchStatus !== 'loading'
@@ -95,6 +107,12 @@ const categorySlice = createSlice({
             'خطا در دریافت دسته‌بندی‌ها';
         },
       );
+
+    // 🟢 هندل کردن اضافه شدن داینامیک زیر دسته‌ها
+    builder.addCase(fetchSubCategories.fulfilled, (state, action) => {
+      const { parentId, subCategories } = action.payload;
+      updateSubCategoriesTree(state.categories, parentId, subCategories);
+    });
 
     builder
       .addCase(

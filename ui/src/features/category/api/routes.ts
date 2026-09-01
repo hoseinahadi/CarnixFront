@@ -7,9 +7,14 @@ import { OperationResult } from '@/models/common/OperationResult';
 const BASE_URL = '/Category';
 
 export const CategoryApi = {
-  // 🟢 متد جدید و مخصوص مگامنو (دریافت کل درخت دسته‌بندی‌ها)
+  // دریافت کل درخت (در صورت نیاز به منوی یکپارچه) یا فقط سطح اول
   getMenu: async () => {
     return await axiosClient.get<OperationResult<any>>(`${BASE_URL}/menu`);
+  },
+
+  // 🟢 متد جدید برای لود داینامیک زیردسته‌های یک دسته‌بندی خاص
+  getSubCategories: async (parentId: number) => {
+    return await axiosClient.get<OperationResult<any>>(`${BASE_URL}/${parentId}/subcategories`);
   },
 
   // متد صفحه‌بندی شده برای استفاده در پنل ادمین

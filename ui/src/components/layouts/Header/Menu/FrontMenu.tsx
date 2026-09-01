@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -224,6 +223,7 @@ const FrontMenu = () => {
           >
             <DropdownMenu
               categories={categories}
+              isLoading={categoryStatus === 'loading'}
             />
           </div>
         </FloatingPortal>

@@ -9,9 +9,12 @@ import {
   Grid, Settings, Zap, CarFront, Activity, Disc, GitMerge, Droplet, Loader2
 } from 'lucide-react'
 
+import { useAppDispatch } from '@/store/hooks'
+import { fetchSubCategories } from '@/store/feature/Category/categoryThunks'
+
 type Props = {
   categories: Category[]
-  isLoading?: boolean // 🟢 پراپ جدید برای مدیریت زمان هاور اولیه
+  isLoading?: boolean 
 }
 
 const getDropdownIcon = (categoryId: number) => {
@@ -28,26 +31,49 @@ const getDropdownIcon = (categoryId: number) => {
 }
 
 const DropdownMenu = ({ categories, isLoading }: Props) => {
+  const dispatch = useAppDispatch()
+  
   const rootCategories = useMemo(
     () => categories.filter(c => !c.parentCategoryId || c.parentCategoryId === 0),
     [categories]
   )
-  
-  const [active, setActive] = useState<Category | null>(null)
 
-  // 🌟 وقتی هاور انجام شد و دیتا از بک‌اند رسید، به صورت اتوماتیک تب اول فعال شود
+  // 🟢 اصلاح مهم: به جای کل آبجکت، فقط ID دسته فعال را نگه می‌داریم
+  const [activeId, setActiveId] = useState<number | null>(null)
+  
+  const [subLoading, setSubLoading] = useState(false)
+  const [fetchedCategories, setFetchedCategories] = useState<Set<number>>(new Set())
+
+  // 🟢 همیشه دسته فعال را به صورت زنده از داده‌های Redux می‌خوانیم تا اگر آپدیت شد، فوراً رندر شود
+  const activeCategory = useMemo(() => {
+    if (!activeId && rootCategories.length > 0) return rootCategories[0];
+    return rootCategories.find(c => c.categoryId === activeId) || rootCategories[0];
+  }, [activeId, rootCategories]);
+
+  // 🟢 گوش دادن به تغییر دسته اکتیو و فراخوانی API
   useEffect(() => {
-    if (rootCategories.length > 0 && !active) {
-      setActive(rootCategories[0])
+    if (activeCategory) {
+      const catId = activeCategory.categoryId;
+      const hasNoSubs = !activeCategory.subCategories || activeCategory.subCategories.length === 0;
+      const notFetchedYet = !fetchedCategories.has(catId);
+      
+      if (hasNoSubs && notFetchedYet) {
+        setSubLoading(true);
+        dispatch(fetchSubCategories(catId))
+          .unwrap()
+          .finally(() => {
+            setSubLoading(false);
+            setFetchedCategories(prev => new Set(prev).add(catId));
+          });
+      }
     }
-  }, [rootCategories, active])
+  }, [activeCategory, dispatch, fetchedCategories])
 
   function splitToColumns<T>(arr: T[]): T[][] {
     const mid = Math.ceil(arr.length / 2)
     return [arr.slice(0, mid), arr.slice(mid)]
   }
 
-  // نمایش وضعیت لودینگ هنگام هاور قبل از دریافت دیتا
   if (isLoading || categories.length === 0) {
     return (
       <div className={styles.megaMenu} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem' }}>
@@ -65,9 +91,9 @@ const DropdownMenu = ({ categories, isLoading }: Props) => {
           <div
             key={cat.categoryId}
             className={classNames(styles.mainItem, {
-              [styles.active]: cat.categoryId === active?.categoryId
+              [styles.active]: cat.categoryId === activeCategory?.categoryId
             })}
-            onMouseEnter={() => setActive(cat)}
+            onMouseEnter={() => setActiveId(cat.categoryId)}
           >
             <span className={styles.icon}>
               {getDropdownIcon(cat.categoryId)}
@@ -79,57 +105,64 @@ const DropdownMenu = ({ categories, isLoading }: Props) => {
 
       {/* بخش ساب کت ها */}
       <div className={styles.sub}>
-        {active?.subCategories?.map(sub => {
-          const children = sub.subCategories ?? [];
-          const limited = children.slice(0, 6);
-          const [col1, col2] = splitToColumns(limited);
+        {subLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', width: '100%' }}>
+             <Loader2 className="animate-spin" size={24} style={{ color: '#2563eb', marginLeft: '10px' }} />
+             <span style={{ color: '#6b7280', fontSize: '14px' }}>کمی صبر کنید...</span>
+          </div>
+        ) : (
+          activeCategory?.subCategories?.map(sub => {
+            const children = sub.subCategories ?? [];
+            const limited = children.slice(0, 6);
+            const [col1, col2] = splitToColumns(limited);
 
-          return (
-            <div className={styles.subWrapper} key={sub.categoryId}>
-              <div className={styles.subTitle}>
-                <Link href={`/products/${sub.categoryId}`}>{sub.name}</Link>
-              </div>
-
-              <div className={styles.subContent}>
-                <div className={styles.subColumn}>
-                  {col1.map(child => (
-                    <Link
-                      key={child.categoryId}
-                      href={`/products/${child.categoryId}`}
-                      className={styles.item}
-                    >
-                      {child.name}
-                    </Link>
-                  ))}
+            return (
+              <div className={styles.subWrapper} key={sub.categoryId}>
+                <div className={styles.subTitle}>
+                  <Link href={`/products/${sub.categoryId}`}>{sub.name}</Link>
                 </div>
 
-                {col2.length > 0 && <span className={styles.verticalDivider} />}
+                <div className={styles.subContent}>
+                  <div className={styles.subColumn}>
+                    {col1.map(child => (
+                      <Link
+                        key={child.categoryId}
+                        href={`/products/${child.categoryId}`}
+                        className={styles.item}
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
 
-                <div className={styles.subColumn}>
-                  {col2.map(child => (
-                    <Link
-                      key={child.categoryId}
-                      href={`/products/${ child.categoryId}`}
-                      className={styles.item}
-                    >
-                      {child.name}
-                    </Link>
-                  ))}
+                  {col2.length > 0 && <span className={styles.verticalDivider} />}
+
+                  <div className={styles.subColumn}>
+                    {col2.map(child => (
+                      <Link
+                        key={child.categoryId}
+                        href={`/products/${ child.categoryId}`}
+                        className={styles.item}
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* مشاهده همه */}
-              {children.length >= 0 && (
-                <Link
-                  href={`/products/${sub.categoryId}`}
-                  className={styles.viewAll}
-                >
-                  مشاهده همه
-                </Link>
-              )}
-            </div>
-          )
-        })}
+                {/* مشاهده همه */}
+                {children.length >= 0 && (
+                  <Link
+                    href={`/products/${sub.categoryId}`}
+                    className={styles.viewAll}
+                  >
+                    مشاهده همه
+                  </Link>
+                )}
+              </div>
+            )
+          })
+        )}
       </div>
     </div>
   )

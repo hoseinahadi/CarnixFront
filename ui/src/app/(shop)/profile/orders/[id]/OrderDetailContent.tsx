@@ -288,7 +288,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
                   </h4>
                   <div className={styles.carModel}>
                     <IconCar size={16} stroke={1.5} />
-                    <span>{item.vehicleModel || '۲۰۷'}</span>
+                    <span>{item.vehicleModel}</span>
                   </div>
                   <div className={styles.productPrice}>
                     {formatPrice(item.unitPrice)} تومان

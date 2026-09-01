@@ -97,8 +97,6 @@ const getErrorMessage = (
   return fallbackMessage;
 };
 
-// فقط این بخش از فایل categoryThunks.ts را تغییر دهید، بقیه فایل درست است:
-
 export const fetchCategories = createAsyncThunk<
   Category[],
   void,
@@ -110,7 +108,6 @@ export const fetchCategories = createAsyncThunk<
   'category/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      // 🟢 تغییر مهم: فراخوانی متد getMenu به جای getAll
       const response = await CategoryApi.getMenu();
 
       if (response.data.isSuccess === false) {
@@ -141,6 +138,33 @@ export const fetchCategories = createAsyncThunk<
       return status === 'idle';
     },
   },
+);
+
+// 🟢 Thunk جدید برای لود داینامیک زیردسته‌ها
+export const fetchSubCategories = createAsyncThunk<
+  { parentId: number; subCategories: Category[] },
+  number,
+  { rejectValue: string }
+>(
+  'category/fetchSubCategories',
+  async (parentId, { rejectWithValue }) => {
+    try {
+      const response = await CategoryApi.getSubCategories(parentId);
+
+      if (response.data.isSuccess === false) {
+        return rejectWithValue(
+          response.data.message || 'خطا در دریافت زیردسته‌ها'
+        );
+      }
+
+      const subCats = extractCategoryArray(response.data.data ?? response.data);
+      return { parentId, subCategories: subCats };
+    } catch (error: unknown) {
+      return rejectWithValue(
+        getErrorMessage(error, 'خطا در دریافت زیردسته‌ها')
+      );
+    }
+  }
 );
 
 export const fetchCategoryById = createAsyncThunk<
