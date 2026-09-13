@@ -15,6 +15,8 @@ import { fetchSubCategories } from '@/store/feature/Category/categoryThunks'
 type Props = {
   categories: Category[]
   isLoading?: boolean 
+  error?: string | null
+  onRetry?: () => void
 }
 
 const getDropdownIcon = (categoryId: number) => {
@@ -30,7 +32,7 @@ const getDropdownIcon = (categoryId: number) => {
   }
 }
 
-const DropdownMenu = ({ categories, isLoading }: Props) => {
+const DropdownMenu = ({ categories, isLoading, error, onRetry }: Props) => {
   const dispatch = useAppDispatch()
   
   const rootCategories = useMemo(
@@ -72,6 +74,10 @@ const DropdownMenu = ({ categories, isLoading }: Props) => {
   function splitToColumns<T>(arr: T[]): T[][] {
     const mid = Math.ceil(arr.length / 2)
     return [arr.slice(0, mid), arr.slice(mid)]
+  }
+
+  if (error && categories.length === 0) {
+    return <div className={styles.megaMenu} role="alert" style={{ padding: '2rem', textAlign: 'center' }}><span>{error}</span>{onRetry && <button type="button" onClick={onRetry}>تلاش دوباره</button>}</div>
   }
 
   if (isLoading || categories.length === 0) {

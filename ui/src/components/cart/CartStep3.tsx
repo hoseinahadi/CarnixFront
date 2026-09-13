@@ -14,6 +14,7 @@ import {
 
 import {
   applyCoupon,
+  fetchMyCart,
   placeOrderFromCart,
 } from '@/store/feature/cart/cartThunks';
 
@@ -28,6 +29,8 @@ import {
 import {
   CheckoutReferenceApi,
 } from '@/features/checkout/api/referenceDataApi';
+import { PaymentApi } from '@/features/checkout/api/paymentApi';
+import { WalletApi } from '@/features/wallet/walletApi';
 
 import {
   CartApi,
@@ -36,11 +39,13 @@ import {
 import {
   calculateRoundedCartDiscount,
   calculateRoundedCartSubtotal,
+  calculateTaxFreeCartTotal,
   formatPrice,
   roundPrice,
 } from '@/utils/price';
 
 import styles from './CartStep3.module.scss';
+import type { Cart } from '@/models/cart/Cart';
 
 interface PaymentMethod {
   paymentMethodId?: number;
@@ -53,10 +58,11 @@ interface PaymentMethod {
 }
 
 interface CartStep3Props {
-  cart: any;
+  cart: Cart;
   onBack: () => void;
   shippingMethod: string;
   shippingCost: number;
+  quoteFingerprint: string | null;
   selectedAddressId: number | null;
 }
 
@@ -65,6 +71,7 @@ const CartStep3: React.FC<CartStep3Props> = ({
   onBack,
   shippingMethod,
   shippingCost,
+  quoteFingerprint,
   selectedAddressId,
 }) => {
   const router = useRouter();
@@ -98,14 +105,7 @@ const CartStep3: React.FC<CartStep3Props> = ({
   const cartDiscountTotal = calculateRoundedCartDiscount(cart);
   const roundedShippingCost = roundPrice(shippingCost || 0);
 
-  /* 🟢 کسر مالیات از جمع کل بک‌اند */
-  const cartTax = Number(cart?.taxAmount || 0);
-
-  const backendCartTotal = roundPrice(
-      Number.isFinite(Number(cart?.grandTotal))
-        ? Math.max(0, Number(cart.grandTotal) - cartTax)
-        : Math.max(0, cartSubTotal - cartDiscountTotal)
-  );
+  const backendCartTotal = calculateTaxFreeCartTotal(cart);
 
   const finalAmount = Math.max(0, backendCartTotal + roundedShippingCost);
 
@@ -166,7 +166,7 @@ const CartStep3: React.FC<CartStep3Props> = ({
           if (methods.length > 0) {
             const firstMethod = methods[0];
             const firstId = firstMethod.paymentMethodId || firstMethod.id;
-            
+
             setSelectedPaymentMethodId(firstId || null);
             setSelectedPaymentType(firstMethod.methodType);
             return;
@@ -204,7 +204,7 @@ const CartStep3: React.FC<CartStep3Props> = ({
         return;
       }
 
-      const cartId = Number(cart?.cartId || cart?.id);
+      const cartId = Number(cart?.cartId);
 
       if (!Number.isFinite(cartId) || cartId <= 0) {
         setErrorMessage('سبد خرید معتبر نیست.');
@@ -290,12 +290,24 @@ const CartStep3: React.FC<CartStep3Props> = ({
         return;
       }
 
+      // هزینهٔ ارسال فقط پس از quote معتبر مرحلهٔ قبل قابل استفاده است؛
+      // مقدار پیش‌فرض یا quote قدیمی نباید وارد ثبت سفارش شود.
+      if (
+        !quoteFingerprint ||
+        !shippingMethod ||
+        !Number.isFinite(shippingCost) ||
+        shippingCost < 0
+      ) {
+        setErrorMessage('هزینه ارسال معتبر نیست. لطفاً به مرحله قبل برگشته و دوباره محاسبه کنید.');
+        return;
+      }
+
       if (!selectedPaymentMethodId || !selectedPaymentType) {
         setErrorMessage('لطفاً یک روش پرداخت معتبر انتخاب کنید.');
         return;
       }
 
-      const cartId = Number(cart?.cartId || cart?.id);
+      const cartId = Number(cart?.cartId);
 
       if (!Number.isFinite(cartId) || cartId <= 0) {
         setErrorMessage('سبد خرید معتبر نیست.');
@@ -337,6 +349,31 @@ const CartStep3: React.FC<CartStep3Props> = ({
         const orderId = result?.orderId || result?.id;
 
         if (orderId) {
+          if (selectedPaymentType.toUpperCase() === 'WALLET') {
+            await WalletApi.payOrder(orderId);
+            await dispatch(fetchMyCart({ force: true }));
+            router.push(`/profile/orders/${orderId}/success`);
+            return;
+          }
+          if (selectedPaymentType === 'ONLINE' && selectedPaymentMethodId) {
+            const callbackUrl = `${window.location.origin}/payment/callback?orderId=${orderId}`;
+            const paymentResponse = await PaymentApi.initiate({
+              orderId,
+              paymentMethodId: selectedPaymentMethodId,
+              callbackUrl,
+            });
+            const payment = paymentResponse.data?.data;
+            if (!paymentResponse.data?.isSuccess || !payment?.paymentUrl) {
+              throw new Error(paymentResponse.data?.message || 'ایجاد درگاه پرداخت ناموفق بود.');
+            }
+            sessionStorage.setItem('carnix:pending-payment', JSON.stringify({
+              paymentId: payment.paymentId,
+              orderId,
+              gatewayToken: payment.gatewayToken ?? '',
+            }));
+            window.location.assign(payment.paymentUrl);
+            return;
+          }
           router.push(`/profile/orders/${orderId}/success`);
           return;
         }
@@ -424,7 +461,7 @@ const CartStep3: React.FC<CartStep3Props> = ({
               <div className={styles.paymentMethods}>
                 {paymentMethods.map((method) => {
                   const mId = method.paymentMethodId || method.id;
-                  
+
                   return (
                     <div
                       key={mId}

@@ -111,6 +111,12 @@ $z-index-overlay: 1040;     // پس‌زمینه تاریک پشت مودال ی
 // 📱 نقاط شکست ریسپانسیو (Breakpoints)
 // ==========================================
 
+$breakpoint-xs: 360px;
+$breakpoint-vsm: 400px;
+$breakpoint-compact: 480px;
+$breakpoint-wide-mobile: 600px;
+$breakpoint-tablet-narrow: 640px;
+$breakpoint-tablet-wide: 900px;
 $breakpoint-sm: 576px;  // موبایل بزرگ
 $breakpoint-md: 768px;  // تبلت
 $breakpoint-lg: 992px;  // لپ‌تاپ‌های کوچک

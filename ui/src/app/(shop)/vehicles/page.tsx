@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { getMediaUrl } from '@/utils/media/getMediaUrl'
 import { useRouter } from 'next/navigation'
 import { Car, ArrowLeft, ChevronLeft } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -10,6 +11,7 @@ import { clearModels } from '@/store/feature/vehicle/VehicleSlice'
 import styles from './VehiclesPage.module.scss'
 import classNames from 'classnames'
 import { resolveVehicleMakeId, resolveVehicleModelId } from '@/utils/vehicleIds'
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage'
 
 // 🟢 تابع استخراج‌گر ایمن برای مدل‌ها
 const extractSafeArray = (data: any): any[] => {
@@ -24,20 +26,7 @@ const extractSafeArray = (data: any): any[] => {
 };
 
 // 🟢 تابع هوشمند برای اتصال آدرس سرور بک‌اند به عکس ماشین
-const getImageUrl = (url: string | null | undefined) => {
-  if (!url) return '';
-  if (url.startsWith('http')) return url; 
-  
-  let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7191'; 
-  
-  if (baseUrl.endsWith('/api')) {
-    baseUrl = baseUrl.substring(0, baseUrl.length - 4);
-  } else if (baseUrl.endsWith('/api/')) {
-    baseUrl = baseUrl.substring(0, baseUrl.length - 5);
-  }
-
-  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
-};
+const getImageUrl = (url: string | null | undefined) => getMediaUrl(url) ?? '';
 
 const VehiclesPage = () => {
   const dispatch = useAppDispatch()
@@ -152,11 +141,13 @@ const VehiclesPage = () => {
                     >
                       <div className={styles.carImageBox}>
                         {model.imageUrl ? (
-                          <img 
+                          <OptimizedImage 
                             src={getImageUrl(model.imageUrl)} 
                             alt={model.name} 
                             className={styles.carImage} 
-                            loading="lazy" 
+                            width={96}
+                            height={72}
+                            sizes="96px"
                           />
                         ) : (
                           <Car size={32} strokeWidth={1.5} className={styles.carIcon} />

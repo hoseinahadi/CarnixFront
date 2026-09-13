@@ -11,5 +11,9 @@
 }
 
 .logoImage {
-  object-fit: contain; /* برای جلوگیری از دفرمه شدن عکس */
+  display: block;
+  width: 150px;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
 }

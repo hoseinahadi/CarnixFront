@@ -156,6 +156,38 @@
     }
   }
 
+  .menuLink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-sm;
+    width: 100%;
+    padding: $spacing-md;
+    border: 1px solid transparent;
+    border-bottom-color: $color-gray-100;
+    border-radius: $border-radius-sm;
+    background: $color-white;
+    color: $color-text-main;
+    font-family: inherit;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    transition: all .2s ease;
+
+    svg:first-child { color: $color-primary; }
+
+    &:hover {
+      border-color: $color-primary-light;
+      background: $color-gray-50;
+      color: $color-primary;
+    }
+
+    .arrowIcon { color: $color-text-muted; }
+  }
+
+  .menuLink + .menuLink {
+    margin-top: 4px;
+  }
+
   .viewAll {
     display: flex;
     align-items: center;

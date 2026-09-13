@@ -1,4 +1,5 @@
 import { SearchSuggestion } from "@/models/search/SearchSuggestion";
+import { browserApiUrl } from '@/config/runtime';
 
 let abortController: AbortController | null = null;
 
@@ -8,8 +9,7 @@ export const fetchSuggestions = async (query: string): Promise<SearchSuggestion[
   }
   abortController = new AbortController();
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  const url = `${baseUrl}/search/suggestions?q=${encodeURIComponent(query)}&limit=5`;
+  const url = `${browserApiUrl}/search/suggestions?q=${encodeURIComponent(query)}&limit=5`;
 
   try {
     const res = await fetch(url, {

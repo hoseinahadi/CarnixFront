@@ -9,7 +9,9 @@ import { setupAuthListener } from '@/store/setupAuthListener';
 import {
   getAccessToken,
   getUserSnapshot,
+  removeLegacyTokenArtifacts,
 } from '@/services/api/common/authTokenStorage';
+import { setRequestCacheIdentity } from '@/services/api/common/requestCache';
 
 export default function StoreProvider({
   children,
@@ -27,10 +29,13 @@ export default function StoreProvider({
     if (!store) return;
 
     // فقط بعد از hydration مرورگر Storage خوانده می‌شود؛ SSR و اولین Client Render یکسان می‌مانند.
+    removeLegacyTokenArtifacts();
+    const userDetail = getUserSnapshot();
+    setRequestCacheIdentity(userDetail ? `user:${userDetail.userId}` : 'anonymous');
     store.dispatch(
       hydrateAuth({
         token: getAccessToken(),
-        userDetail: getUserSnapshot(),
+        userDetail,
       }),
     );
 

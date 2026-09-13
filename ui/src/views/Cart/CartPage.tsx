@@ -2,10 +2,10 @@
 
 import React, {
   useEffect,
-  useState,
 } from 'react';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 import {
   useAppDispatch,
@@ -27,6 +27,8 @@ import CartStepper from '@/components/cart/CartStepper';
 import CartStep1 from '@/components/cart/CartStep1';
 import CartStep2 from '@/components/cart/CartStep2';
 import CartStep3 from '@/components/cart/CartStep3';
+import { useCheckoutMachine } from '@/features/checkout/hooks/useCheckoutMachine';
+import { createQuoteFingerprint } from '@/features/checkout/model/checkoutMachine';
 
 import styles from './CartPage.module.scss';
 
@@ -61,28 +63,10 @@ const CartPage = () => {
     (state) => state.auth.isAuthenticated,
   );
 
-  const [currentStep, setCurrentStep] =
-    useState<1 | 2 | 3>(1);
-
-  /*
-   * اطلاعات انتخاب‌شده در Step 2
-   * فعلاً همان ساختار فعلی پروژه حفظ شده است.
-   * Shipping را در مرحله جداگانه اصلاح می‌کنیم.
-   */
-  const [
-    selectedAddressId,
-    setSelectedAddressId,
-  ] = useState<number | null>(null);
-
-  const [
-    selectedShippingMethod,
-    setSelectedShippingMethod,
-  ] = useState<string>('post');
-
-  const [
-    selectedShippingCost,
-    setSelectedShippingCost,
-  ] = useState<number>(220000);
+  const cartId = cart ? Number(cart.cartId) : null;
+  const { state: checkout, dispatch: checkoutDispatch } = useCheckoutMachine(
+    cartId && Number.isFinite(cartId) ? cartId : null,
+  );
 
   /*
    * Cart را فقط بعد از مشخص‌شدن وضعیت Authentication بگیر.
@@ -117,31 +101,6 @@ const CartPage = () => {
    * فقط اگر واقعاً Login باشد اجازه ورود مستقیم
    * به مرحله آدرس داده می‌شود.
    */
-  useEffect(() => {
-    if (
-      !authInitialized ||
-      !isAuthenticated ||
-      typeof window === 'undefined'
-    ) {
-      return;
-    }
-
-    const params =
-      new URLSearchParams(
-        window.location.search,
-      );
-
-    const requestedStep =
-      params.get('step');
-
-    if (requestedStep === '2') {
-      setCurrentStep(2);
-    }
-  }, [
-    authInitialized,
-    isAuthenticated,
-  ]);
-
   /*
    * Step 1 -> Step 2
    *
@@ -167,7 +126,7 @@ const CartPage = () => {
       return;
     }
 
-    setCurrentStep(2);
+    checkoutDispatch({ type: 'GO_TO_DELIVERY' });
   };
 
   /*
@@ -178,19 +137,14 @@ const CartPage = () => {
     shippingMethod: string,
     shippingCost: number,
   ) => {
-    setSelectedAddressId(
+    if (!cartId) return;
+    checkoutDispatch({
+      type: 'DELIVERY_CONFIRMED',
       addressId,
-    );
-
-    setSelectedShippingMethod(
       shippingMethod,
-    );
-
-    setSelectedShippingCost(
       shippingCost,
-    );
-
-    setCurrentStep(3);
+      quoteFingerprint: createQuoteFingerprint(cartId, addressId, shippingMethod, shippingCost),
+    });
   };
 
   /*
@@ -308,12 +262,12 @@ const CartPage = () => {
           پیدا و به سبد خرید اضافه کنید
         </p>
 
-        <a
+        <Link
           href="/products"
           className={styles.shopBtn}
         >
           مشاهده محصولات
-        </a>
+        </Link>
       </div>
     );
   }
@@ -329,11 +283,11 @@ const CartPage = () => {
       </h1>
 
       <CartStepper
-        currentStep={currentStep}
+        currentStep={checkout.step}
       />
 
       <div className={styles.content}>
-        {currentStep === 1 && (
+        {checkout.step === 1 && (
           <CartStep1
             cart={cart}
             actionLoading={
@@ -346,32 +300,33 @@ const CartPage = () => {
           />
         )}
 
-        {currentStep === 2 && (
+        {checkout.step === 2 && (
           <CartStep2
             cart={cart}
             onNext={
               handleStep2Next
             }
             onBack={() =>
-              setCurrentStep(1)
+              checkoutDispatch({ type: 'GO_TO_CART' })
             }
           />
         )}
 
-        {currentStep === 3 && (
+        {checkout.step === 3 && (
           <CartStep3
             cart={cart}
             onBack={() =>
-              setCurrentStep(2)
+              checkoutDispatch({ type: 'GO_TO_DELIVERY' })
             }
             shippingMethod={
-              selectedShippingMethod
+              checkout.shippingMethod
             }
             shippingCost={
-              selectedShippingCost
+              checkout.shippingCost ?? 0
             }
+            quoteFingerprint={checkout.quoteFingerprint}
             selectedAddressId={
-              selectedAddressId
+              checkout.addressId
             }
           />
         )}

@@ -38,14 +38,16 @@ export const HeroSection = () => (
         }}
         className={styles.swiperRoot}
       >
-        {slides.map((slide) => (
+        {slides.map((slide, index) => (
           <SwiperSlide key={slide.id}>
             <Image
               src={slide.image}
               alt={slide.alt}
               fill
               className={styles.slideImage}
-              priority
+              priority={index === 0}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              fetchPriority={index === 0 ? 'high' : 'low'}
               style={{ objectFit: 'cover' }}
             />
             <div className={styles.imageOverlay}></div>

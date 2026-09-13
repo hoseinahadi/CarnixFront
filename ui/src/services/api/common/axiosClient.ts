@@ -13,19 +13,17 @@ import {
 
 import {
   clearAuthStorage,
-  extractAuthTokens,
   getAccessToken,
   getOrCreateSessionId,
-  getRefreshToken,
-  saveAuthTokens,
+  markHttpOnlySession,
+  HTTP_ONLY_SESSION_MARKER,
   type AuthTokens,
 } from '@/services/api/common/authTokenStorage';
+import { apiTimeoutMs, backendApiUrl, browserApiUrl } from '@/config/runtime';
+import { repairMojibake } from '@/utils/text/repairMojibake';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:7191/api';
-
-const DEFAULT_TIMEOUT_MS = 15_000;
+const API_BASE_URL = typeof window === 'undefined' ? backendApiUrl : browserApiUrl;
+const DEFAULT_TIMEOUT_MS = apiTimeoutMs;
 
 interface RetryableRequestConfig
   extends InternalAxiosRequestConfig {
@@ -54,7 +52,7 @@ const axiosClient = axios.create({
  * دوباره روی Endpoint Refresh فعال نشود و Loop ایجاد نکند.
  */
 const refreshClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: '/',
   timeout: DEFAULT_TIMEOUT_MS,
   headers: {
     Accept: 'application/json',
@@ -135,6 +133,7 @@ const isAuthEndpoint = (
     '/Auth/verify-otp',
     '/Auth/register',
     '/Auth/logout',
+    '/api/auth/refresh',
   ].some((endpoint) =>
     url.includes(endpoint),
   );
@@ -159,23 +158,14 @@ const readRefreshBusinessError = (
 };
 
 const refreshAccessToken = async (): Promise<AuthTokens> => {
-  const accessToken = getAccessToken();
-  const refreshToken = getRefreshToken();
-
-  if (!accessToken || !refreshToken) {
+  if (!getAccessToken()) {
     throw new ApiBusinessError(
-      'اطلاعات ورود کامل نیست.',
+      'نشست کاربری یافت نشد.',
       401,
     );
   }
 
-  const response = await refreshClient.post(
-    '/Auth/refresh',
-    {
-      accessToken,
-      refreshToken,
-    },
-  );
+  const response = await refreshClient.post('/api/auth/refresh');
 
   const businessError =
     readRefreshBusinessError(
@@ -186,20 +176,14 @@ const refreshAccessToken = async (): Promise<AuthTokens> => {
     throw businessError;
   }
 
-  const refreshedTokens =
-    extractAuthTokens(response.data);
-
-  if (!refreshedTokens) {
-    throw new ApiBusinessError(
-      'پاسخ تمدید نشست معتبر نیست.',
-      401,
-    );
+  if (!response.data?.isSuccess) {
+    throw new ApiBusinessError('پاسخ تمدید نشست معتبر نیست.', 401);
   }
 
-  saveAuthTokens(refreshedTokens);
+  // توکن‌ها در HttpOnly cookie توسط Route Handler ذخیره شده‌اند.
+  markHttpOnlySession();
   resetAuthFailureNotification();
-
-  return refreshedTokens;
+  return { accessToken: HTTP_ONLY_SESSION_MARKER };
 };
 
 const getRefreshedTokens = (): Promise<AuthTokens> => {
@@ -244,11 +228,20 @@ axiosClient.interceptors.request.use(
 );
 
 axiosClient.interceptors.response.use(
-  (response) => response,
+  (response) => { response.data = repairMojibake(response.data); return response; },
 
   async (error: AxiosError) => {
     if (isRequestCanceled(error)) {
       return Promise.reject(error);
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[API] Request failed', {
+        method: error.config?.method?.toUpperCase(),
+        url: error.config?.url,
+        status: error.response?.status,
+        traceId: error.response?.headers?.['x-trace-id'],
+      });
     }
 
     const originalRequest =
@@ -257,7 +250,7 @@ axiosClient.interceptors.response.use(
         | undefined;
 
     if (
-      error.response?.status !== 401 ||
+      ![401, 403].includes(error.response?.status ?? 0) ||
       !originalRequest ||
       originalRequest._retry ||
       isAuthEndpoint(originalRequest.url)
@@ -265,10 +258,7 @@ axiosClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const accessToken = getAccessToken();
-    const refreshToken = getRefreshToken();
-
-    if (!accessToken || !refreshToken) {
+    if (!getAccessToken()) {
       clearAuthStorage();
       notifyAuthFailure();
       return Promise.reject(error);

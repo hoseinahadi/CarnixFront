@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Car, Tag, LayoutGrid, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Car, CircleHelp, LayoutGrid, BookOpen, Stethoscope, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './MobileMenu.module.scss';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import type { RootState } from '@/store';
 
 // ایمپورت اکشن‌ها
 import { getModelsByMakeId, getAllMakes } from '@/store/feature/vehicle/VehicleThunks';
-import { getAllBrands } from '@/store/feature/brand/BrandThunks';
 import { resolveVehicleMakeId, resolveVehicleModelId } from '@/utils/vehicleIds';
 // import { fetchCategories } from '@/store/feature/category/categoryThunks';
 
@@ -39,20 +38,15 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
 
   // خواندن دیتای خام از ریداکس
   const rawCategories = useAppSelector((state: RootState) => state.category?.categories);
-  const rawBrands = useAppSelector((state: RootState) => state.brand?.brands);
   const rawMakes = useAppSelector((state: RootState) => state.vehicle?.makes);
   const rawModels = useAppSelector((state: RootState) => state.vehicle?.models);
   const isVehicleLoading = useAppSelector((state: RootState) => state.vehicle?.loading);
-  const brandStatus = useAppSelector(
-    (state: RootState) => state.brand?.listStatus ?? 'idle',
-  );
   const makesStatus = useAppSelector(
     (state: RootState) => state.vehicle?.makesStatus ?? 'idle',
   );
 
   // 🟢 استفاده از تابع استخراج ایمن برای جلوگیری از خالی ماندن لیست‌ها
   const categories = useMemo(() => extractSafeArray(rawCategories), [rawCategories]);
-  const brands = useMemo(() => extractSafeArray(rawBrands), [rawBrands]);
   const makes = useMemo(() => extractSafeArray(rawMakes), [rawMakes]);
   const models = useMemo(() => extractSafeArray(rawModels), [rawModels]);
 
@@ -62,16 +56,11 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
       return;
     }
 
-    if (brandStatus === 'idle') {
-      void dispatch(getAllBrands());
-    }
-
     if (makesStatus === 'idle') {
       void dispatch(getAllMakes());
     }
   }, [
     isOpen,
-    brandStatus,
     makesStatus,
     dispatch,
   ]);
@@ -218,7 +207,7 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
               <div className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <LayoutGrid size={20} />
-                  <span>دسته‌بندی کالاها</span>
+                  <span>دسته‌بندی محصولات</span>
                 </div>
                 <div className={styles.sectionContent}>
                   {mainCategories.map((cat) => (
@@ -265,32 +254,27 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
               </div>
 
               <div className={styles.divider} />
-
-              {/* بخش برندها */}
               <div className={styles.section}>
-                <div className={styles.sectionHeader}>
+                <button className={styles.menuLink} onClick={() => handleNavigation('/brands')}>
                   <Tag size={20} />
                   <span>برندها</span>
-                </div>
-                <div className={styles.sectionContent}>
-                  {brands.slice(0, 10).map((brand) => (
-                    <button
-                      key={brand.brandId}
-                      onClick={() => handleNavigation(`/products?brandId=${brand.brandId}`)}
-                      className={styles.simpleLink}
-                    >
-                      {brand.name}
-                    </button>
-                  ))}
-                  {brands.length > 10 && (
-                    <button
-                      onClick={() => handleNavigation('/brands')}
-                      className={styles.viewAll}
-                    >
-                      مشاهده همه برندها <ChevronLeft size={14} />
-                    </button>
-                  )}
-                </div>
+                  <ChevronLeft size={18} className={styles.arrowIcon} />
+                </button>
+                <button className={styles.menuLink} onClick={() => handleNavigation('/diagnose')}>
+                  <Stethoscope size={20} />
+                  <span>تشخیص</span>
+                  <ChevronLeft size={18} className={styles.arrowIcon} />
+                </button>
+                <button className={styles.menuLink} onClick={() => handleNavigation('/blog')}>
+                  <BookOpen size={20} />
+                  <span>مقالات</span>
+                  <ChevronLeft size={18} className={styles.arrowIcon} />
+                </button>
+                <button className={styles.menuLink} onClick={() => handleNavigation('/faq')}>
+                  <CircleHelp size={20} />
+                  <span>سوالات متداول</span>
+                  <ChevronLeft size={18} className={styles.arrowIcon} />
+                </button>
               </div>
             </>
           )}

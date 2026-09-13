@@ -7,6 +7,8 @@ import type { AuthResponse } from '@/models/auth/AuthResponse';
 import type { UserDetail } from '@/models/user/UserDetail';
 import type { UserRole } from '@/models/user/UserRole';
 
+import { HTTP_ONLY_SESSION_MARKER } from '@/services/api/common/authTokenStorage';
+
 import {
   getMeThunk,
   getRolesThunk,
@@ -54,7 +56,7 @@ const authSlice = createSlice({
         userDetail: UserDetail | null;
       }>,
     ) => {
-      state.token = action.payload.token;
+      state.token = action.payload.token ? HTTP_ONLY_SESSION_MARKER : null;
       state.userDetail = action.payload.userDetail;
       state.isAuthenticated = Boolean(action.payload.token);
       state.initialized = true;
@@ -76,7 +78,7 @@ const authSlice = createSlice({
       state,
       action: PayloadAction<string>,
     ) => {
-      state.token = action.payload;
+      state.token = HTTP_ONLY_SESSION_MARKER;
       state.isAuthenticated = true;
       state.initialized = true;
       state.error = null;
@@ -100,7 +102,7 @@ const authSlice = createSlice({
 
         const token = action.payload.token ?? action.payload.accessToken;
         if (token) {
-          state.token = token;
+          state.token = HTTP_ONLY_SESSION_MARKER;
           state.isAuthenticated = true;
         }
       })
@@ -120,8 +122,8 @@ const authSlice = createSlice({
         (state, action: PayloadAction<AuthResponse>) => {
           state.loading = false;
           state.initialized = true;
-          state.token = action.payload.token;
-          state.isAuthenticated = true;
+          state.token = action.payload.token ? HTTP_ONLY_SESSION_MARKER : null;
+          state.isAuthenticated = Boolean(action.payload.token);
           state.error = null;
         },
       )
@@ -144,7 +146,7 @@ const authSlice = createSlice({
 
         const token = action.payload.token ?? action.payload.accessToken;
         if (token) {
-          state.token = token;
+          state.token = HTTP_ONLY_SESSION_MARKER;
           state.isAuthenticated = true;
         }
       })

@@ -16,6 +16,18 @@ type CacheEntry<T> = {
 const responseCache = new Map<string, CacheEntry<unknown>>();
 const inFlightRequests = new Map<string, Promise<unknown>>();
 const MAX_CACHE_ENTRIES = 100;
+let cacheScope = 'anonymous';
+
+/** هر پاسخ کش‌شده به هویت فعلی متصل می‌شود تا بین کاربران نشت نکند. */
+export const setRequestCacheIdentity = (identity: string | null | undefined): void => {
+  const nextScope = identity?.trim() || 'anonymous';
+  if (nextScope === cacheScope) return;
+  cacheScope = nextScope;
+  responseCache.clear();
+  inFlightRequests.clear();
+};
+
+const scopedKey = (key: string): string => `${cacheScope}:${key}`;
 
 const pruneCache = (): void => {
   const now = Date.now();
@@ -38,17 +50,18 @@ export const getCachedRequest = async <T>(
   request: () => Promise<T>,
   ttlMs: number,
 ): Promise<T> => {
+  const keyWithScope = scopedKey(key);
   pruneCache();
 
-  const cached = responseCache.get(key) as CacheEntry<T> | undefined;
+  const cached = responseCache.get(keyWithScope) as CacheEntry<T> | undefined;
   if (cached && cached.expiresAt > Date.now()) {
     // LRU سبک: entry خوانده‌شده به انتهای Map منتقل می‌شود.
-    responseCache.delete(key);
-    responseCache.set(key, cached);
+    responseCache.delete(keyWithScope);
+    responseCache.set(keyWithScope, cached);
     return cached.value;
   }
 
-  const pending = inFlightRequests.get(key) as Promise<T> | undefined;
+  const pending = inFlightRequests.get(keyWithScope) as Promise<T> | undefined;
   if (pending) {
     return pending;
   }
@@ -61,8 +74,8 @@ export const getCachedRequest = async <T>(
        * اگر بین شروع و پایان درخواست mutation باعث invalidate شده باشد،
        * inFlight entry حذف شده و پاسخ قدیمی دیگر cache نمی‌شود.
        */
-      if (inFlightRequests.get(key) === requestPromise && ttlMs > 0) {
-        responseCache.set(key, {
+      if (inFlightRequests.get(keyWithScope) === requestPromise && ttlMs > 0) {
+        responseCache.set(keyWithScope, {
           value,
           expiresAt: Date.now() + ttlMs,
         });
@@ -72,12 +85,12 @@ export const getCachedRequest = async <T>(
       return value;
     })
     .finally(() => {
-      if (inFlightRequests.get(key) === requestPromise) {
-        inFlightRequests.delete(key);
+      if (inFlightRequests.get(keyWithScope) === requestPromise) {
+        inFlightRequests.delete(keyWithScope);
       }
     });
 
-  inFlightRequests.set(key, requestPromise);
+  inFlightRequests.set(keyWithScope, requestPromise);
   return requestPromise;
 };
 
@@ -94,8 +107,9 @@ export const invalidateRequestCache = (prefix?: string): void => {
     return;
   }
 
+  const prefixWithScope = scopedKey(prefix);
   for (const key of Array.from(responseCache.keys())) {
-    if (key.startsWith(prefix)) {
+    if (key.startsWith(prefixWithScope)) {
       responseCache.delete(key);
     }
   }
@@ -106,7 +120,7 @@ export const invalidateRequestCache = (prefix?: string): void => {
    * 2) Promise قدیمی بعد از resolve نتواند cache stale ایجاد کند.
    */
   for (const key of Array.from(inFlightRequests.keys())) {
-    if (key.startsWith(prefix)) {
+    if (key.startsWith(prefixWithScope)) {
       inFlightRequests.delete(key);
     }
   }

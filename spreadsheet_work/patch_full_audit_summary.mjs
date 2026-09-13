@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import { FileBlob, SpreadsheetFile } from '@oai/artifact-tool';
+const path='D:/Project/Front/Next/New folder/outputs/full-project-audit/CARNIX_PROJECT_FULL_AUDIT.xlsx';
+const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(path));
+const s=wb.worksheets.getItem('خلاصه');
+s.getRange('A9').values=[['متوسط و کم']];
+s.getRange('B9').formulas=[["=COUNTIF('ایرادات فنی و ظاهری'!E2:E200,\"متوسط\")+COUNTIF('ایرادات فنی و ظاهری'!E2:E200,\"کم\")"]];
+wb.recalculate();
+const e=await wb.inspect({kind:'match',searchTerm:'#REF!|#DIV/0!|#VALUE!|#NAME\\?|#N/A|#NUM!|#NULL!|#SPILL!|#CALC!',options:{useRegex:true,maxResults:300},summary:'post patch formula scan'}); console.log(e.ndjson);
+const check=await wb.inspect({kind:'table',range:'خلاصه!A4:B10',include:'values,formulas',tableMaxRows:10,tableMaxCols:3,maxChars:3000}); console.log(check.ndjson);
+const out=await SpreadsheetFile.exportXlsx(wb); await out.save(path); console.log(`SAVED=${path}`);
+const render=await wb.render({sheetName:'خلاصه',range:'A1:H16',scale:1,format:'png'}); await fs.writeFile('D:/Project/Front/Next/New folder/outputs/full-project-audit/final-خلاصه.png',new Uint8Array(await render.arrayBuffer()));

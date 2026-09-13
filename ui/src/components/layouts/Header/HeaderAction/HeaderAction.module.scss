@@ -33,7 +33,7 @@
   box-shadow: $shadow-xl !important;
   border: 1px solid $color-border-light;
   overflow: hidden;
-  max-width: calc(100vw - 32px); // جلوگیری از بیرون زدن در موبایل
+  max-width: calc(100vw - 8px); // حاشیهٔ کوچک و ثابت در موبایل
 }
 
 .popoverContent {
@@ -179,7 +179,7 @@
 
 /* ============ Media Queries ============ */
 
-@media (max-width: 1199.98px) {
+@media (max-width: calc($breakpoint-xl - 0.02px)) {
   .actionsContainer {
     gap: $spacing-md;
   }
@@ -188,7 +188,7 @@
   }
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: calc($breakpoint-lg - 0.02px)) {
   .actionsContainer {
     gap: $spacing-sm;
   }
@@ -204,16 +204,19 @@
   }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: calc($breakpoint-md - 0.02px)) {
   .actionsContainer {
     gap: $spacing-xs;
   }
   .iconButton {
-    padding: 4px !important;
+    min-width: 30px !important;
+    width: 30px !important;
+    height: 30px !important;
+    padding: 3px !important;
     border: none !important;
     svg {
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
     }
   }
   .popoverContent,
@@ -223,12 +226,15 @@
   }
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: calc($breakpoint-sm - 0.02px)) {
   .iconButton {
-    padding: 3px !important;
+    min-width: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+    padding: 2px !important;
     svg {
-      width: 20px;
-      height: 20px;
+      width: 17px;
+      height: 17px;
     }
   }
   
@@ -241,7 +247,7 @@
   }
 }
 
-@media (max-width: 399.98px) {
+@media (max-width: calc($breakpoint-vsm - 0.02px)) {
   .popoverContent,
   .popoverContentSmall {
     max-width: calc(100vw - 20px);

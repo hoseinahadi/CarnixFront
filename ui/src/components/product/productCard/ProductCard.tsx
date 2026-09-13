@@ -1,16 +1,21 @@
 // src/components/product/productCard/ProductCard.tsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { getMediaUrl } from '@/utils/media/getMediaUrl';
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/models/product/Product'; 
 import { useAppDispatch, useAppSelector } from '@/store/hooks'; 
 import { addToCart, updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks'; 
 import { selectCart, selectCartActionLoading } from '@/store/feature/cart/cartSelectors'; 
-import { Plus, Minus, Trash2, Loader2, ShoppingCart } from 'lucide-react';
+import { Plus, Minus, Trash2, Loader2, ShoppingCart, Heart } from 'lucide-react';
 import styles from './ProductCard.module.scss';
 import ProductOverViewModal from '../ProductOverViewModal/ProductOverViewModal';
 import { roundPrice } from '@/utils/price';
 import toast from 'react-hot-toast'; // 🟢 اضافه شدن Toast
+import { wishlistApi } from '@/features/wishlist/api/wishlistApi';
+import { getAccessToken } from '@/services/api/common/authTokenStorage';
 
 interface ProductCardProps {
   product: Product;
@@ -18,41 +23,85 @@ interface ProductCardProps {
 
 const formatPrice = (price: number): number => roundPrice(price);
 
-const getValidImageUrl = (rawUrl?: string) => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'https://localhost:7191/uploads/products/111.png'; 
-  }
-  if (!rawUrl) return null;
-  let cleanPath = rawUrl.replace(/^wwwroot[\\/]/i, '');
-  if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:7191';
-  return `${backendBaseUrl}${cleanPath}`;
-};
+const getValidImageUrl = (rawUrl?: string) => getMediaUrl(rawUrl);
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const currentImage = getValidImageUrl(product.imageUrl);
   
   const cart = useAppSelector(selectCart);
   const isGlobalCartLoading = useAppSelector(selectCartActionLoading);
   const [isAddingThisItem, setIsAddingThisItem] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(Boolean((product as Product & { isFavorite?: boolean }).isFavorite));
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [failedImage, setFailedImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const backendFavorite = (product as Product & { isFavorite?: boolean }).isFavorite;
+    if (typeof backendFavorite === 'boolean') {
+      setIsFavorite(backendFavorite);
+      return;
+    }
+
+    if (!getAccessToken()) {
+      const guestWishlist: number[] = JSON.parse(localStorage.getItem('guest_wishlist') || '[]');
+      setIsFavorite(guestWishlist.includes(product.productId));
+    }
+  }, [product]);
 
   const cartItem = cart?.items?.find((item: any) => item.productId === product.productId);
   const isInCart = !!cartItem;
+  const isOutOfStock = product.totalStock <= 0;
 
-  const handleCardClick = () => {
-    if (window.innerWidth <= 768) {
+  const handleCardClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // ناموجودها هم باید صفحه‌ی کامل محصول را باز کنند تا کاربر بتواند
+    // مشخصات و زمان تأمین را ببیند. مشاهده سریع فقط برای کالای موجود در
+    // چیدمان موبایل استفاده می‌شود.
+    if (!isOutOfStock && window.innerWidth <= 768) {
+      event.preventDefault();
       setIsModalOpen(true);
-    } else {
-      router.push(`/product/${product.productId}`);
+    }
+  };
+
+  const handleWishlistToggle = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isWishlistLoading) return;
+
+    const previousValue = isFavorite;
+    setIsFavorite(!previousValue);
+    setIsWishlistLoading(true);
+
+    try {
+      if (getAccessToken()) {
+        if (previousValue) await wishlistApi.removeFromWishlist(product.productId);
+        else await wishlistApi.addToWishlist(product.productId);
+      } else {
+        const guestWishlist: number[] = JSON.parse(localStorage.getItem('guest_wishlist') || '[]');
+        const nextWishlist = previousValue
+          ? guestWishlist.filter((id) => id !== product.productId)
+          : Array.from(new Set([...guestWishlist, product.productId]));
+        localStorage.setItem('guest_wishlist', JSON.stringify(nextWishlist));
+      }
+      toast.success(previousValue ? 'از علاقه‌مندی‌ها حذف شد' : 'به علاقه‌مندی‌ها اضافه شد');
+    } catch {
+      setIsFavorite(previousValue);
+      toast.error('تغییر علاقه‌مندی انجام نشد');
+    } finally {
+      setIsWishlistLoading(false);
     }
   };
 
   const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product.totalStock <= 0 || isGlobalCartLoading) return;
+    if (isOutOfStock) {
+      router.push(`/product/${product.productId}`);
+      return;
+    }
+    if (isGlobalCartLoading) return;
 
     setIsAddingThisItem(true);
     try {
@@ -111,24 +160,53 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
   }
 
-  const isOutOfStock = product.totalStock <= 0;
-  const currentImage = getValidImageUrl(product.imageUrl);
-
   return (
     <>
-      <div className={styles.card} onClick={handleCardClick} dir="rtl">
+      <Link
+        className={styles.card}
+        href={`/product/${product.productId}`}
+        onClick={handleCardClick}
+        dir="rtl"
+      >
         <div className={styles.link}>
           <div className={styles.imageWrapper}>
+            <button
+              type="button"
+              className={styles.quickViewBtn}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setIsModalOpen(true);
+              }}
+            >
+              مشاهده سریع
+            </button>
+            <button
+              type="button"
+              className={`${styles.favoriteBtn} ${isFavorite ? styles.favoriteActive : ''}`}
+              aria-label={isFavorite ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
+              aria-pressed={isFavorite}
+              disabled={isWishlistLoading}
+              onClick={handleWishlistToggle}
+            >
+              {isWishlistLoading
+                ? <Loader2 size={19} className={styles.spinnerIcon} />
+                : <Heart size={19} fill={isFavorite ? 'currentColor' : 'none'} />}
+            </button>
             {hasDiscount && discountLabel && !isOutOfStock && (
               <span className={styles.discountBadge}>{discountLabel}</span>
             )}
             
-            {currentImage ? (
-              <img 
+            {currentImage && failedImage !== currentImage ? (
+              <OptimizedImage 
                 src={currentImage} 
                 alt={product.productName} 
                 className={`${styles.productImage} ${isOutOfStock ? styles.grayscale : ''}`} 
                 draggable={false} 
+                width={480}
+                height={480}
+                sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 220px"
+                onError={() => setFailedImage(currentImage)}
               />
             ) : (
               <span className={styles.placeholder}>بدون تصویر</span>
@@ -165,7 +243,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <button 
                 className={`${styles.cartBtn} ${isOutOfStock ? styles.disabledBtn : ''}`} 
                 onClick={handleAddToCart}
-                disabled={isOutOfStock || isAddingThisItem}
+                disabled={isAddingThisItem}
               >
                 {isAddingThisItem ? (
                   <Loader2 className={styles.spinnerIcon} size={18} />
@@ -188,7 +266,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             )}
           </div>
         </div>
-      </div>
+      </Link>
 
       <ProductOverViewModal 
         isOpen={isModalOpen} 

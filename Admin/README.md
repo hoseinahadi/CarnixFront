@@ -10,13 +10,20 @@ npm install
 npm run dev
 ```
 
+برای gate کیفیت و build قابل انتشار:
+
+```bash
+npm run lint
+npm run build
+```
+
 پنل به‌صورت پیش‌فرض روی `http://localhost:3001` اجرا می‌شود. CORS فعلی بک‌اند Carnix پورت 3001 را مجاز کرده است.
 
 در `.env.local` آدرس API را تنظیم کنید:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:7191
-NEXT_PUBLIC_STORE_URL=http://localhost:3000
+NEXT_PUBLIC_STORE_URL=http://localhost:7191
 ```
 
 ## Authentication
@@ -74,3 +81,5 @@ NEXT_PUBLIC_STORE_URL=http://localhost:3000
 ## نکته مهم
 
 Backend همچنان مرجع نهایی Permission، Validation و Business Rule است. پنل محدودیت‌های Authorization را دور نمی‌زند و همان API Token و PermissionFilter بک‌اند را استفاده می‌کند.
+
+مسیر رسمی پنل `/admin` است. پیاده‌سازی قدیمی `/dashboard` برای مهاجرت بعدی در `src/legacy-app` نگهداری می‌شود و در build رسمی وارد نمی‌شود تا دو معماری موازی باعث شکست انتشار نشوند.

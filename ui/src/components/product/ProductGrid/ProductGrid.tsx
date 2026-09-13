@@ -9,9 +9,11 @@ import { Product } from '@/models/product/Product'
 interface ProductGridProps {
   products: Product[]
   loading: boolean
+  error?: string | null
+  onRetry?: () => void
 }
 
-const ProductGrid = ({ products, loading }: ProductGridProps) => {
+const ProductGrid = ({ products, loading, error, onRetry }: ProductGridProps) => {
   // ⭐ اگه loading هست یا products undefined/null
   if (loading || !products) {
     return (
@@ -28,6 +30,10 @@ const ProductGrid = ({ products, loading }: ProductGridProps) => {
         ))}
       </div>
     )
+  }
+
+  if (error) {
+    return <div className={styles.empty} role="alert"><p className={styles.emptyTitle}>دریافت محصولات ناموفق بود</p><p className={styles.emptyDescription}>{error}</p>{onRetry && <button type="button" onClick={onRetry}>تلاش دوباره</button>}</div>
   }
 
   // ⭐ حالا products حتماً آرایه است

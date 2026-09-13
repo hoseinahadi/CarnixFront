@@ -141,26 +141,3 @@ export const selectProductListErrors = (
   state: RootState,
 ) =>
   state.product.listErrors;
-
-// ============================================================
-// PDP ADDITIONAL DATA
-// ============================================================
-
-export const selectEffectivePrice = (
-  state: RootState,
-) =>
-  state.product.effectivePrice;
-
-export const selectProductBundles = (
-  state: RootState,
-) =>
-  state.product.bundles;
-
-// ============================================================
-// RELATED PRODUCTS
-// ============================================================
-
-export const selectRelatedProducts = (
-  state: RootState,
-) =>
-  state.product.relatedProducts;

@@ -2,13 +2,16 @@
 @use '@/assets/styles/utils/mixins' as *;
 
 .container{
-padding: $spacing-xl $spacing-xxxl;
+width: 100%;
+max-width: 1920px;
+margin-inline: auto;
+padding: clamp(24px, 2.8vw, 44px) clamp(16px, 2.1vw, 40px) 0;
 
 @include respond-down('md') {
-    padding: $spacing-xl ;
+    padding: 20px 18px 0;
   }
 
   @include respond-down('sm') {
-    padding: $spacing-xl ;
+    padding: 12px 10px 0;
   }
 }

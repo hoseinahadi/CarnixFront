@@ -47,6 +47,13 @@ import {
 } from '@/store/hooks';
 
 import styles from './CartStep2.module.scss';
+import {
+  calculateRoundedCartDiscount,
+  calculateRoundedCartSubtotal,
+  calculateTaxFreeCartTotal,
+  formatPrice,
+  roundPrice,
+} from '@/utils/price';
 
 interface CartStep2Props {
   cart: Cart;
@@ -142,6 +149,7 @@ const CartStep2 = ({
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [selectedShippingCode, setSelectedShippingCode] = useState('');
   const [selectedShippingCost, setSelectedShippingCost] = useState(0);
+  const [showAllAddresses, setShowAllAddresses] = useState(false);
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
   const [shippingLoading, setShippingLoading] = useState(true);
   const [shippingError, setShippingError] = useState<string | null>(null);
@@ -160,19 +168,13 @@ const CartStep2 = ({
   });
 
   const itemsCount = cart.totalItemsCount || cart.items.length;
-  const cartSubTotal = Number(cart.subTotal || 0);
-  const cartDiscount = Number(cart.totalDiscount || 0);
-  
-  /* 🟢 کسر مالیات از جمع کل بک‌اند برای اطمینان ۱۰۰ درصدی */
-  const cartTax = Number(cart.taxAmount || 0);
-
-  const backendCartTotal = Number.isFinite(Number(cart.grandTotal))
-      ? Math.max(0, Number(cart.grandTotal) - cartTax)
-      : Math.max(0, cartSubTotal - cartDiscount);
+  const cartSubTotal = calculateRoundedCartSubtotal(cart);
+  const cartDiscount = calculateRoundedCartDiscount(cart);
+  const backendCartTotal = calculateTaxFreeCartTotal(cart);
 
   const finalTotal = Math.max(
       0,
-      backendCartTotal + (quoteReady ? selectedShippingCost : 0)
+      backendCartTotal + (quoteReady ? roundPrice(selectedShippingCost) : 0)
   );
 
   useEffect(() => {
@@ -380,13 +382,20 @@ const CartStep2 = ({
       void dispatch(fetchAddresses({ force: true }));
   }, [dispatch]);
 
-  const formatCurrency = (amount: number) => amount.toLocaleString('fa-IR');
+  const formatCurrency = (amount: number) => formatPrice(amount);
 
   const getDeliveryDaysText = (days: number) => {
     if (days === 0) return 'همان روز';
     if (days === 1) return '۱ روز کاری';
     return `${days.toLocaleString('fa-IR')} روز کاری`;
   };
+
+  const primaryAddress = addresses.find((address) => address.isDefault) ?? addresses[0];
+  const visibleAddresses = showAllAddresses
+    ? addresses
+    : primaryAddress
+      ? [primaryAddress]
+      : [];
 
   if (addressesLoading) {
     return (
@@ -425,7 +434,7 @@ const CartStep2 = ({
                 </button>
               </div>
             ) : (
-              addresses.map((address) => (
+              visibleAddresses.map((address) => (
                   <div
                     key={address.userAddressId}
                     className={`${styles.addressCard} ${selectedAddressId === address.userAddressId ? styles.selected : ''}`}
@@ -434,7 +443,7 @@ const CartStep2 = ({
                     <div className={styles.addressHeader}>
                       <div className={styles.addressTitleWrapper}>
                         <span className={styles.addressTitle}>{address.addressTitle}</span>
-                        {address.isDefault && (
+                        {address.userAddressId === primaryAddress?.userAddressId && (
                           <span className={styles.defaultBadge}>پیش‌فرض</span>
                         )}
                       </div>
@@ -480,14 +489,14 @@ const CartStep2 = ({
             )}
 
             {addresses.length > 0 && (
-              <button
-                type="button"
-                className={styles.addAddressBtn}
-                onClick={() => openModal('create')}
-              >
-                <Plus size={20} />
-                افزودن آدرس جدید
-              </button>
+              <div className={styles.addressListActions}>
+                {addresses.length > 1 && (
+                  <button type="button" className={styles.toggleAddressesBtn} onClick={() => setShowAllAddresses((current) => !current)}>
+                    {showAllAddresses ? 'بستن فهرست آدرس‌ها' : 'نمایش آدرس‌های دیگر'}
+                  </button>
+                )}
+                <button type="button" className={styles.addAddressBtn} onClick={() => openModal('create')}><Plus size={20} />افزودن آدرس جدید</button>
+              </div>
             )}
           </div>
 

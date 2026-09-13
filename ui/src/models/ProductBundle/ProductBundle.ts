@@ -14,5 +14,8 @@ export interface ProductBundleDto {
   name: string;
   description?: string;
   isActive: boolean;
+  price?: number;
+  isDiscounted?: boolean;
+  discountPercentage?: number;
   items?: ProductBundleItemDto[];
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useDebounce } from '@/features/search/hooks/useDebounce';
 import styles from './SearchAutocomplete.module.scss';
 import { Search, TrendingUp, ChevronLeft } from 'lucide-react';
@@ -21,6 +21,7 @@ export default function SearchAutocomplete() {
   const normalizedDebouncedQuery = debouncedQuery.trim();
   const inputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const prevPathname = useRef(pathname);
 
   // بستن دراپ‌دان هنگام تغییر مسیر
@@ -100,6 +101,14 @@ export default function SearchAutocomplete() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && query.trim().length >= 2) {
+              event.preventDefault();
+              setIsOpen(false);
+              router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+            }
+            if (event.key === 'Escape') setIsOpen(false);
+          }}
           placeholder="جستجوی نام یا کد قطعه..."
           className={isOpen ? styles.inputOpen : styles.input}
         />
@@ -174,6 +183,11 @@ export default function SearchAutocomplete() {
             <div className={styles.statusMessage}>
               قطعه‌ای یافت نشد.
             </div>
+          )}
+          {query.trim().length >= 2 && !isLoading && (
+            <Link className={styles.allResults} href={`/search?q=${encodeURIComponent(query.trim())}`} onClick={() => setIsOpen(false)}>
+              مشاهده همه نتایج برای «{query.trim()}»
+            </Link>
           )}
         </div>
       )}

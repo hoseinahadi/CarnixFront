@@ -108,7 +108,7 @@
   padding-left: $spacing-sm; // برای فاصله از اسکرول‌بار
   @include custom-scrollbar(5px, $color-gray-300, transparent);
 
-  @media (max-width: 900px) {
+  @media (max-width: $breakpoint-tablet-wide) {
     grid-template-columns: repeat(2, 1fr);
   }
 }

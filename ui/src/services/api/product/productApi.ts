@@ -2,7 +2,7 @@
 
 import { OperationResult } from "@/models/common/OperationResult";
 import axiosClient from "@/services/api/common/axiosClient";
-import { ProductFilters } from "@/models/product/ProductFilters";
+import { ProductFilters, type VehicleFilter } from "@/models/product/ProductFilters";
 import { Product } from "@/models/product/Product";
 import { ProductDetails } from "@/models/product/ProductDetails";
 import { PagedResult } from "@/models/common/PagedResult";
@@ -12,12 +12,12 @@ import { getCachedRequest } from "@/services/api/common/requestCache";
 
 export const ProductApi = {
   // 🟢 اصلاح شد: اتصال به اکشن پیشرفته filtered در بک‌اند برای پشتیبانی کامل از فیلترها و ماشین‌ها
-  getAll: (filters?: ProductFilters & { vehicleIds?: any; page?: number; pageSize?: number }) => {
-    const formattedParams: any = { ...filters };
+  getAll: (filters?: ProductFilters) => {
+    const formattedParams: Record<string, unknown> = { ...filters };
 
     if (filters?.vehicleIds && Array.isArray(filters.vehicleIds) && filters.vehicleIds.length > 0) {
       formattedParams.vehicleIds = filters.vehicleIds
-        .map((v: any) => `${v.makeId}-${v.modelId}`)
+        .map((v: VehicleFilter) => `${v.makeId}-${v.modelId}`)
         .join(',');
     } else {
       delete formattedParams.vehicleIds;
@@ -115,5 +115,19 @@ export const ProductApi = {
       'product-bundles:all',
       () => axiosClient.get<OperationResult<ProductBundleDto[]>>('/product-bundles/get-all'),
       5 * 60_000,
+    ),
+
+  getBundlesByProduct: (productId: number | string) =>
+    getCachedRequest(
+      `product-bundles:product:${productId}`,
+      () => axiosClient.get<OperationResult<ProductBundleDto[]>>(`/product-bundles/get-by-product/${productId}`),
+      5 * 60_000,
+    ),
+
+  getBundleById: (id: number | string) =>
+    getCachedRequest(
+      `product-bundle:${id}`,
+      () => axiosClient.get<OperationResult<ProductBundleDto>>(`/product-bundles/get-by-id/${id}`),
+      60_000,
     ),
 };

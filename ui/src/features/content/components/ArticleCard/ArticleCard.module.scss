@@ -18,6 +18,7 @@
 }
 
 .imageWrapper {
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
@@ -60,4 +61,21 @@
   background: #f1f5f9;
   color: #64748b;
   font-size: 1rem;
+}
+
+@media (max-width: 575px) {
+  .content {
+    padding: 10px;
+  }
+
+  .title {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .excerpt {
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
 }

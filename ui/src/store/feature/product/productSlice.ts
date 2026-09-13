@@ -8,7 +8,6 @@ import type { ProductDetails } from '@/models/product/ProductDetails';
 import type { PagedResult } from '@/models/common/PagedResult';
 
 import {
-  fetchPDPAdditionalData,
   getAllProducts,
   getBestSellingProducts,
   getDiscountedProductsPaged,
@@ -70,13 +69,6 @@ interface ProductState {
     | ProductDetails
     | null;
 
-  bundles: any[];
-
-  effectivePrice:
-    | number
-    | null;
-
-  relatedProducts: Product[];
 
   // ==========================================================
   // STATUS
@@ -179,11 +171,6 @@ const initialState: ProductState = {
 
   productDetails: null,
 
-  bundles: [],
-
-  effectivePrice: null,
-
-  relatedProducts: [],
 
   // STATUS
 
@@ -1141,70 +1128,6 @@ const productSlice =
           },
         );
 
-      // ========================================================
-      // PDP ADDITIONAL DATA
-      // ========================================================
-
-      builder
-        .addCase(
-          fetchPDPAdditionalData.pending,
-          (
-            state,
-          ) => {
-            /*
-             * عمداً detailsLoading را true نمی‌کنیم.
-             *
-             * چون صفحه اصلی Product Details ممکن است
-             * قبلاً Load شده باشد و فقط Bundle / Price
-             * در حال دریافت باشد.
-             */
-          },
-        )
-
-        .addCase(
-          fetchPDPAdditionalData.fulfilled,
-          (
-            state,
-            action,
-          ) => {
-            state.bundles =
-              action.payload
-                ?.bundles ??
-              [];
-
-            state.effectivePrice =
-              action.payload
-                ?.effectivePrice ??
-              null;
-          },
-        )
-
-        .addCase(
-          fetchPDPAdditionalData.rejected,
-          (
-            state,
-            action,
-          ) => {
-            /*
-             * خطای Additional Data نباید کل PDP را
-             * وارد حالت failed کند.
-             */
-            if (
-              action.meta.aborted
-            ) {
-              return;
-            }
-
-            if (
-              typeof action.payload ===
-                'string' &&
-              action.payload
-            ) {
-              state.error =
-                action.payload;
-            }
-          },
-        );
     },
   });
 

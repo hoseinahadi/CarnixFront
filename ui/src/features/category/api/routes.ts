@@ -3,23 +3,28 @@ import { Category } from '@/models/category/Category';
 import { CreateCategoryDto } from '@/models/category/CreateCategoryDto';
 import { UpdateCategoryDto } from '@/models/category/UpdateCategoryDto';
 import { OperationResult } from '@/models/common/OperationResult';
+import { getCachedRequest } from '@/services/api/common/requestCache';
 
 const BASE_URL = '/Category';
 
 export const CategoryApi = {
   // دریافت کل درخت (در صورت نیاز به منوی یکپارچه) یا فقط سطح اول
-  getMenu: async () => {
-    return await axiosClient.get<OperationResult<any>>(`${BASE_URL}/menu`);
-  },
+  getMenu: () => getCachedRequest<
+    Awaited<ReturnType<typeof axiosClient.get<OperationResult<Category[]>>>>
+  >(
+    'category:menu',
+    () => axiosClient.get<OperationResult<Category[]>>(`${BASE_URL}/menu`),
+    5 * 60_000,
+  ),
 
   // 🟢 متد جدید برای لود داینامیک زیردسته‌های یک دسته‌بندی خاص
   getSubCategories: async (parentId: number) => {
-    return await axiosClient.get<OperationResult<any>>(`${BASE_URL}/${parentId}/subcategories`);
+    return await axiosClient.get<OperationResult<Category[]>>(`${BASE_URL}/${parentId}/subcategories`);
   },
 
   // متد صفحه‌بندی شده برای استفاده در پنل ادمین
   getAll: async (page: number = 1, pageSize: number = 50) => {
-    return await axiosClient.get<OperationResult<any>>(`${BASE_URL}?page=${page}&pageSize=${pageSize}`);
+    return await axiosClient.get<OperationResult<Category[]>>(`${BASE_URL}?page=${page}&pageSize=${pageSize}`);
   },
 
   getById: async (id: number) => {

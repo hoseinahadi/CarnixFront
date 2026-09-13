@@ -1,14 +1,20 @@
 import Cookies from 'js-cookie';
 
 import type { UserDetail } from '@/models/user/UserDetail';
-import { invalidateRequestCache } from '@/services/api/common/requestCache';
+import {
+  invalidateRequestCache,
+  setRequestCacheIdentity,
+} from '@/services/api/common/requestCache';
 
 const ACCESS_TOKEN_KEY = 'token';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 const USER_KEY = 'user';
 const SESSION_ID_KEY = 'sessionId';
+/** فقط یک نشانگر قابل‌نمایش در state/UI؛ هرگز یک توکن واقعی نیست. */
+export const HTTP_ONLY_SESSION_MARKER = '__http_only_session__';
 
-const ACCESS_TOKEN_COOKIE_DAYS = 7;
+let accessTokenInMemory: string | null = null;
+let refreshTokenInMemory: string | null = null;
 const SESSION_COOKIE_DAYS = 30;
 
 export interface AuthTokens {
@@ -31,77 +37,42 @@ const getCookieOptions = (
 });
 
 export const getAccessToken = (): string | null => {
-  if (!canUseBrowserStorage()) {
-    return null;
-  }
-
-  return (
-    localStorage.getItem(ACCESS_TOKEN_KEY) ||
-    Cookies.get(ACCESS_TOKEN_KEY) ||
-    null
-  );
+  if (!canUseBrowserStorage()) return null;
+  return accessTokenInMemory ?? (Cookies.get('authSession') ? HTTP_ONLY_SESSION_MARKER : null);
 };
 
-export const getRefreshToken = (): string | null => {
-  if (!canUseBrowserStorage()) {
-    return null;
-  }
+export const getRefreshToken = (): string | null => refreshTokenInMemory;
 
-  /*
-   * خواندن Cookie فقط برای مهاجرت Sessionهای قدیمی نگه داشته شده است.
-   * ذخیره جدید Refresh Token فقط در localStorage انجام می‌شود تا حداقل
-   * نسخه تکراری و JavaScript-readable آن داخل Cookie ایجاد نشود.
-   * انتقال کامل Refresh Token به HttpOnly Cookie نیازمند تغییر بک‌اند است.
-   */
-  return (
-    localStorage.getItem(REFRESH_TOKEN_KEY) ||
-    Cookies.get(REFRESH_TOKEN_KEY) ||
-    null
-  );
+/** پس از تمدید از مسیر سرور، توکن خام از حافظهٔ جاوااسکریپت حذف می‌شود. */
+export const markHttpOnlySession = (): void => {
+  accessTokenInMemory = null;
+  refreshTokenInMemory = null;
 };
 
-export const saveAuthTokens = ({
-  accessToken,
-  refreshToken,
-}: AuthTokens): void => {
-  if (!canUseBrowserStorage()) {
-    return;
+export const saveAuthTokens = async ({ accessToken, refreshToken }: AuthTokens): Promise<void> => {
+  if (!canUseBrowserStorage()) return;
+  if (accessTokenInMemory !== accessToken) invalidateRequestCache();
+  accessTokenInMemory = accessToken;
+  refreshTokenInMemory = refreshToken ?? null;
+  removeLegacyTokenArtifacts();
+  const response = await fetch('/api/auth/set-tokens', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ token: accessToken, refreshToken }),
+  });
+  if (!response.ok) {
+    throw new Error('ذخیره امن نشست انجام نشد.');
   }
+};
 
-  // داده‌های cache شده کاربر قبلی نباید بین نشست‌ها نشت کنند.
-  const previousAccessToken = getAccessToken();
-  if (previousAccessToken !== accessToken) {
-    invalidateRequestCache();
-  }
-
-  localStorage.setItem(
-    ACCESS_TOKEN_KEY,
-    accessToken,
-  );
-
-  Cookies.set(
-    ACCESS_TOKEN_KEY,
-    accessToken,
-    getCookieOptions(
-      ACCESS_TOKEN_COOKIE_DAYS,
-    ),
-  );
-
-  if (refreshToken) {
-    localStorage.setItem(
-      REFRESH_TOKEN_KEY,
-      refreshToken,
-    );
-
-    /*
-     * اگر نسخه قدیمی Refresh Token داخل Cookie وجود داشته باشد، حذف می‌شود.
-     * axiosClient برای Refresh از localStorage استفاده می‌کند.
-     */
-    Cookies.remove(
-      REFRESH_TOKEN_KEY,
-      { path: '/' },
-    );
-  }
+/** مهاجرت یک‌بارهٔ نشست‌های قدیمی که توکن را در Storage قابل‌خواندن نگه می‌داشتند. */
+export const removeLegacyTokenArtifacts = (): void => {
+  if (!canUseBrowserStorage()) return;
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  Cookies.remove(ACCESS_TOKEN_KEY, { path: '/' });
+  Cookies.remove(REFRESH_TOKEN_KEY, { path: '/' });
 };
 
 export const saveUserSnapshot = (
@@ -115,6 +86,7 @@ export const saveUserSnapshot = (
     USER_KEY,
     JSON.stringify(user),
   );
+  setRequestCacheIdentity(`user:${user.userId}`);
 };
 
 export const getUserSnapshot = (): UserDetail | null => {
@@ -146,23 +118,15 @@ export const clearAuthStorage = (): void => {
 
   // cacheهای شخصی مثل wishlist/profile/address بین کاربران باقی نمانند.
   invalidateRequestCache();
+  setRequestCacheIdentity('anonymous');
+  accessTokenInMemory = null;
+  refreshTokenInMemory = null;
 
-  localStorage.removeItem(
-    ACCESS_TOKEN_KEY,
-  );
-  localStorage.removeItem(
-    REFRESH_TOKEN_KEY,
-  );
+  removeLegacyTokenArtifacts();
   localStorage.removeItem(USER_KEY);
 
-  Cookies.remove(
-    ACCESS_TOKEN_KEY,
-    { path: '/' },
-  );
-  Cookies.remove(
-    REFRESH_TOKEN_KEY,
-    { path: '/' },
-  );
+  Cookies.remove('authSession', { path: '/' });
+  void fetch('/api/auth/clear-tokens', { method: 'POST', credentials: 'same-origin' });
 };
 
 export const getOrCreateSessionId = (): string | null => {

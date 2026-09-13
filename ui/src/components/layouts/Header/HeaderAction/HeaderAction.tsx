@@ -27,13 +27,15 @@ import {
   FloatingPortal,
   useTransitionStyles,
   FloatingArrow,
-  arrow
+  arrow,
+  type Placement,
 } from '@floating-ui/react'
 
 import { fetchMyCart } from '@/store/feature/cart/cartThunks'
 import { getMeThunk, logoutThunk } from '@/store/feature/auth/authThunks'
 import CartDropdown from '@/features/cart/components/CartDropdown/CartDropdown'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { getUserSnapshot } from '@/services/api/common/authTokenStorage'
 
 /* -------------------------------------------------------------------------- */
 /* FloatingDropdown                                                           */
@@ -43,12 +45,14 @@ interface FloatingDropdownProps {
   anchorEl: HTMLElement
   onClose: () => void
   children: React.ReactNode
+  placement?: Placement
 }
 
 const FloatingDropdown = ({
   anchorEl,
   onClose,
   children,
+  placement = 'bottom-end',
 }: FloatingDropdownProps) => {
   const arrowRef = useRef<SVGSVGElement>(null)
   const { refs, floatingStyles, context } = useFloating({
@@ -60,7 +64,7 @@ const FloatingDropdown = ({
     onOpenChange: (open) => {
       if (!open) onClose()
     },
-    placement: 'bottom-end', // مناسب برای زبان فارسی (RTL) تا مدال از لبه چپ بیرون نزند
+    placement,
     whileElementsMounted: autoUpdate,
     middleware: [
       // ✅ crossAxis حذف شد تا در موبایل مدال از آیکون جدا نشود
@@ -140,7 +144,10 @@ const HeaderAction = () => {
   const [userAnchorEl, setUserAnchorEl] =
     useState<HTMLButtonElement | null>(null)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [snapshot] = useState(() => getUserSnapshot())
   const requestedMeTokenRef = useRef<string | null>(null)
+
+  const displayUser = userDetail ?? snapshot
 
   useEffect(() => {
     if (!authInitialized) return
@@ -221,23 +228,23 @@ const HeaderAction = () => {
   }
 
   const getInitials = () => {
-    if (userDetail?.firstName || userDetail?.lastName) {
-      const firstInitial = userDetail.firstName ? userDetail.firstName.charAt(0) : ''
-      const lastInitial = userDetail.lastName ? userDetail.lastName.charAt(0) : ''
+    if (displayUser?.firstName || displayUser?.lastName) {
+      const firstInitial = displayUser.firstName ? displayUser.firstName.charAt(0) : ''
+      const lastInitial = displayUser.lastName ? displayUser.lastName.charAt(0) : ''
       return `${firstInitial}${lastInitial}`.toUpperCase() || <IconUser size={24} stroke={1.5} />
     }
     return <IconUser size={24} stroke={1.5} />
   }
 
   const getUserDisplayInfo = () => {
-    if (userDetail?.phoneNumber) return userDetail.phoneNumber
-    if (userDetail?.email) return userDetail.email
+    if (displayUser?.phoneNumber) return displayUser.phoneNumber
+    if (displayUser?.email) return displayUser.email
     return meLoading ? 'در حال دریافت اطلاعات...' : 'اطلاعات تماس ثبت نشده'
   }
 
   const getUserDisplayName = () => {
-    if (userDetail?.firstName || userDetail?.lastName) {
-      return `${userDetail.firstName || ''} ${userDetail.lastName || ''}`.trim()
+    if (displayUser?.firstName || displayUser?.lastName) {
+      return `${displayUser.firstName || ''} ${displayUser.lastName || ''}`.trim()
     }
     return meLoading ? 'در حال بارگذاری...' : 'کاربر عزیز'
   }
@@ -255,12 +262,12 @@ const HeaderAction = () => {
         className={styles.iconButton}
       >
         <Badge badgeContent={cart?.totalItemsCount || 0} color="primary">
-          <IconShoppingCart size={24} stroke={1.5} />
+          <IconShoppingCart size={20} stroke={1.6} />
         </Badge>
       </IconButton>
 
       {cartAnchorEl && (
-        <FloatingDropdown anchorEl={cartAnchorEl} onClose={closeAll}>
+        <FloatingDropdown anchorEl={cartAnchorEl} onClose={closeAll} placement="bottom">
           <CartDropdown 
              cart={cart} 
              loading={cartLoading} 
@@ -278,7 +285,7 @@ const HeaderAction = () => {
         className={styles.iconButton}
         type="button"
       >
-        <IconUser size={24} stroke={1.5} />
+        <IconUser size={20} stroke={1.6} />
       </IconButton>
 
       {isAuthenticated && isUserMenuOpen && userAnchorEl && (
@@ -302,6 +309,17 @@ const HeaderAction = () => {
             <div className={styles.divider}></div>
 
             <div className={styles.menuGroup}>
+              <button
+                className={styles.menuItem}
+                onClick={() => {
+                  closeAll()
+                  router.push('/mechanics/dashboard')
+                }}
+              >
+                <IconSettings size={20} stroke={1.5} />
+                پنل مکانیک
+              </button>
+
               <button
                 className={styles.menuItem}
                 onClick={() => {

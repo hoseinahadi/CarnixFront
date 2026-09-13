@@ -9,9 +9,9 @@
   background: $color-white;
   border-radius: $border-radius-lg;
   box-shadow: $shadow-sm;
-  padding: $spacing-lg;
+  padding: 24px 16px;
   @include flex-column;
-  gap: $spacing-lg;
+  gap: 14px;
   height: fit-content;
   position: sticky;
   top: 100px;
@@ -325,7 +325,7 @@
   gap: $spacing-md;
   width: 100%;
 
-  @media (max-width: 480px) {
+  @media (max-width: $breakpoint-compact) {
     flex-direction: column;
   }
 }

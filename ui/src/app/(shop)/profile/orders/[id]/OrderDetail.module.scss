@@ -26,7 +26,7 @@
 // Mobile Header
 .mobileHeader {
   display: none;
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -69,7 +69,7 @@
   justify-content: space-between;
   align-items: center;
   
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     display: none;
   }
 }
@@ -178,7 +178,7 @@
 
   svg { stroke-width: 1.5; }
   
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     width: 44px; height: 44px;
     border-radius: 10px;
   }
@@ -226,7 +226,7 @@
   row-gap: 20px;
   column-gap: 24px;
 
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     grid-template-columns: 1fr 1fr; // در موبایل هم گرید ۲ در ۲ است (طبق عکس)
     row-gap: 16px;
     column-gap: 8px;
@@ -242,7 +242,7 @@
   .label { color: #6b7280; }
   .value { color: #1f2937; font-weight: 600; }
   
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     font-size: 16px;
     flex-wrap: wrap; // برای اینکه اگر متن طولانی بود نشکند
   }
@@ -255,7 +255,7 @@
   flex-direction: column;
   gap: 16px;
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     display: flex;
   }
 }
@@ -330,7 +330,7 @@
   border-radius: 12px;
   overflow: hidden;
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     display: none;
   }
 }
@@ -416,7 +416,7 @@
   border: 2px solid #3b82f6; 
 
   // موبایل: حاشیه طوسی نازک (مطابق عکس)
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     border: 1px solid #e5e7eb;
     padding: 16px;
   }
@@ -437,7 +437,7 @@
     .value { font-weight: 600; color: #374151; }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
@@ -457,7 +457,7 @@
     text-align: justify;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     font-size: 16px;
   }
 }
@@ -473,7 +473,7 @@
 
   .label { font-size: 16px; color: #6b7280; }
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     .label { font-size: 16px; }
   }
 }

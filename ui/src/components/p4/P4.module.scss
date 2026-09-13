@@ -1,0 +1,478 @@
+/* ===============================
+   Base / Page
+   =============================== */
+.page {
+  width: 100%;
+  direction: rtl;
+  color: #101b35;
+  font-family: inherit;
+}
+
+/* ===============================
+   Header
+   =============================== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  font-size: 30px;
+  line-height: 1.35;
+  margin: 0 0 8px;
+  font-weight: 800;
+}
+
+.header p,
+.muted {
+  color: #667895;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ===============================
+   Layout
+   =============================== */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-areas: 'content form';
+  gap: 20px;
+  align-items: start;
+}
+
+.split > section {
+  grid-area: content;
+  width: 100%;
+}
+
+.split > .form {
+  grid-area: form;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* ===============================
+   Form / Card
+   =============================== */
+.form,
+.card {
+  background: #fff;
+    border: 1px solid #dbe4f0;
+    border-radius: 16px;
+    padding: 24px;
+    width: 100%;
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+}
+
+.form h2,
+.card h2,
+.card h3 {
+  margin: 0 0 2px;
+  font-size: 20px;
+}
+
+/* ===============================
+   Fields
+   =============================== */
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field input,
+.field select,
+.field textarea,
+.card input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 50px;
+  border: 1px solid #ccd8e8;
+  border-radius: 10px;
+  padding: 0 13px;
+  background: #fff;
+  color: #101b35;
+  font: inherit;
+  outline: none;
+  transition: .2s;
+}
+
+.field textarea {
+  height: auto;
+  min-height: 148px;
+  padding-block: 12px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.card input:focus {
+  border-color: #2f68e9;
+  box-shadow: 0 0 0 3px rgba(47, 104, 233, .1);
+}
+
+/* ===============================
+   Buttons
+   =============================== */
+.primary,
+.secondary,
+.danger,
+.card button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 17px;
+  cursor: pointer;
+  font: 600 14px inherit;
+  transition: .2s;
+}
+
+.primary,
+.card button {
+  background: #2f68e9;
+  color: #fff;
+}
+
+.primary:hover,
+.card button:hover {
+  background: #245bd3;
+}
+
+.primary:disabled,
+.card button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.secondary {
+  background: #edf4ff;
+  color: #245bd3;
+}
+
+.danger {
+  background: #fff1f1;
+  color: #c52b2b;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ===============================
+   States
+   =============================== */
+.state {
+  display: grid;
+  place-items: center;
+  min-height: 122px;
+  text-align: center;
+  padding: 32px 20px;
+  background: #f7f9fc;
+  border-radius: 16px;
+  color: #667895;
+  font-size: 14px;
+}
+
+/* ===============================
+   Rows
+   =============================== */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 14px;
+  padding: 18px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.row:hover {
+  border-color: #9cbcfb;
+}
+
+.compatibility {
+  flex-basis: 100%;
+  width: 100%;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e7edf5;
+}
+
+.compatibilityGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.compatibilityItem {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.compatibilityThumb {
+  display: grid;
+  place-items: center;
+  height: 92px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #f3f6fa;
+  color: #8a97aa;
+  font-size: 12px;
+}
+
+.compatibilityThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.compatibilityItem:hover {
+  border-color: #2f68e9;
+}
+
+.row h3,
+.row p {
+  margin: 0 0 5px;
+}
+
+.vehicleIdentity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.vehicleIcon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #edf4ff;
+  font-size: 24px;
+}
+
+/* ===============================
+   Badge / Grid / Card
+   =============================== */
+.badge {
+  display: inline-flex;
+  border-radius: 99px;
+  padding: 5px 11px;
+  background: #edf4ff;
+  color: #245bd3;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 270px));
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.card {
+  box-shadow: 0 8px 25px rgba(15, 23, 42, .025);
+}
+
+.stat {
+  font-size: 28px;
+  font-weight: 800;
+  color: #2f68e9;
+  margin-top: 10px;
+}
+
+.page > h2 {
+  font-size: 21px;
+  margin: 28px 0 14px;
+}
+
+/* ===============================
+   Misc
+   =============================== */
+.unread {
+  border-color: #93b6fa;
+  background: #f8fbff;
+}
+
+.choice {
+  width: 100%;
+  text-align: right;
+  border: 1px solid #dbe4f0;
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.choice:hover,
+.selected {
+  border-color: #2f68e9;
+  background: #edf4ff;
+}
+
+.progress {
+  height: 7px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 18px 0;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: #2f68e9;
+}
+
+.link {
+  color: #2f68e9;
+  font-weight: 600;
+}
+
+.hero {
+  padding: 32px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #edf4ff, #f8fafc);
+  margin-bottom: 24px;
+}
+
+.message {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f7f9fc;
+}
+
+.messageUser {
+  background: #edf4ff;
+}
+
+.result {
+  border-inline-start: 4px solid #2f68e9;
+}
+
+.productCard {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.productImage {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 82px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f3f6fa;
+  color: #8a97aa;
+  font-size: 12px;
+}
+
+.productImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ===============================
+   Responsive
+   =============================== */
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'form'
+      'content';
+  }
+
+  .form {
+    order: -1;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 22px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form,
+  .card {
+    padding: 18px;
+  }
+
+  .row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .vehicleIdentity {
+    width: 100%;
+  }
+
+  .row .actions {
+    width: 100%;
+  }
+
+  .productCard {
+    grid-template-columns: 82px 1fr;
+  }
+
+  .productImage {
+    width: 82px;
+    height: 74px;
+  }
+
+  .row button,
+  .row a {
+    flex: 1;
+    text-align: center;
+  }
+}

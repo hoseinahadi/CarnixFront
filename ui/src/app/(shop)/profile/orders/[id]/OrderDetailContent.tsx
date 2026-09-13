@@ -16,6 +16,7 @@ import { CheckoutReferenceApi } from '@/features/checkout/api/referenceDataApi';
 import styles from './OrderDetail.module.scss';
 import { calculateTaxFreeOrderTotal, formatPrice, roundPrice } from '@/utils/price';
 import { toast } from 'react-hot-toast';
+import { addToCart } from '@/store/feature/cart/cartThunks';
 import {
   IconArrowLeft,
   IconTruck,
@@ -28,6 +29,7 @@ import {
   IconClock,
   IconCar
 } from '@tabler/icons-react';
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 
 interface ShippingMethod {
   shippingMethodId: number;
@@ -110,9 +112,18 @@ export default function OrderDetailContent({ params }: ComponentProps) {
     }
   };
 
-  const handleReorder = () => {
-    // 💡 TODO: متصل کردن به API سفارش مجدد / افزودن به سبد خرید
-    toast('در حال پردازش سفارش مجدد...');
+  const handleReorder = async () => {
+    if (!order?.items?.length || actionLoading) return;
+    try {
+      for (const item of order.items) {
+        if (!item.productId || !item.quantity) continue;
+        await dispatch(addToCart({ productId: item.productId, quantity: item.quantity })).unwrap();
+      }
+      toast.success('اقلام موجود سفارش به سبد خرید اضافه شدند.');
+      router.push('/cart');
+    } catch {
+      toast.error('برخی اقلام موجود نیستند؛ سبد خرید را بررسی کنید.');
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -194,7 +205,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
                 لغو سفارش
               </button>
             )}
-            <button onClick={handleReorder} className={styles.btnReorder}>
+            <button onClick={() => void handleReorder()} disabled={actionLoading} className={styles.btnReorder}>
               سفارش مجدد
             </button>
           </div>
@@ -280,7 +291,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
             {order.items?.map((item: any, index: number) => (
               <div key={index} className={styles.productCard}>
                 <div className={styles.productImgBox}>
-                  {item.imageUrl ? <img src={item.imageUrl} alt={item.productName} /> : <IconPackage className={styles.placeholder} />}
+                  {item.imageUrl ? <OptimizedImage src={item.imageUrl} alt={item.productName} width={80} height={80} sizes="80px" /> : <IconPackage className={styles.placeholder} />}
                 </div>
                 <div className={styles.productInfo}>
                   <h4 className={styles.productName}>
@@ -314,7 +325,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
                     <td>
                       <div className={styles.tdProduct}>
                         <div className={styles.tdImgBox}>
-                          {item.imageUrl ? <img src={item.imageUrl} alt={item.productName} /> : <IconPackage />}
+                          {item.imageUrl ? <OptimizedImage src={item.imageUrl} alt={item.productName} width={64} height={64} sizes="64px" /> : <IconPackage />}
                         </div>
                         <div className={styles.tdInfo}>
                           <span className={styles.tdName}>{item.productName}</span>

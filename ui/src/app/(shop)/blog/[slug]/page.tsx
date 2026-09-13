@@ -16,13 +16,15 @@ export async function generateStaticParams() {
       }));
     }
   } catch (error) {
-    console.warn('Could not fetch blog posts for static generation', error);
+    if (process.env.STRICT_SSG_DATA === 'true') {
+      throw new Error('Blog data is required for strict static generation', { cause: error });
+    }
+    console.warn('Could not fetch blog posts for static generation; paths will be generated on demand.', error);
   }
-
-  return [
-    { slug: 'default' },
-  ];
+  return [];
 }
+
+export const dynamicParams = true;
 
 export default function BlogDetailPage({ params }: PageProps) {
   return (

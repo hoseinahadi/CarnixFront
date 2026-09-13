@@ -147,7 +147,7 @@
   display: flex;
   gap: $spacing-xl;
   
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     flex-wrap: wrap;
     gap: $spacing-md;
   }

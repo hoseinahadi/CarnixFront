@@ -1,0 +1,291 @@
+.page{box-sizing:border-box;width:min(calc(100% - 48px),1200px);margin-inline:auto;padding:42px 0 82px}.header{margin-bottom:40px}.diagnosisLayout{display:grid;grid-template-columns:minmax(300px,430px) minmax(280px,1fr);gap:32px;align-items:start}.diagnosisLayout :global(.form){gap:20px}.diagnosisLayout :global(.choice){min-height:62px;padding:18px 20px;line-height:1.9}.carPanel{display:grid;justify-items:center;gap:14px;padding:30px;border:1px solid #dbe4ef;border-radius:16px;background:#fff;text-align:center}.carPanel h2{margin:0 0 4px;font-size:20px}.carPanel img{width:min(100%,330px);height:420px;object-fit:contain}.carPanel p{margin:0;color:#718096;font-size:13px;line-height:2}.carPanel strong{color:#1f5fca}.results{gap:26px}.results :global(.card){line-height:2}.productCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}.productCard{min-width:0;min-height:410px}.productCard>div{height:100%}@media(max-width:760px){.page{width:calc(100% - 24px);padding:28px 0 60px}.header{margin-bottom:28px}.diagnosisLayout{display:flex;flex-direction:column;gap:20px}.carPanel{box-sizing:border-box;width:100%;padding:20px}.carPanel img{width:min(100%,250px);height:300px}.diagnosisLayout>section:last-child{box-sizing:border-box;width:100%}.diagnosisLayout :global(.choice){min-height:58px;padding:16px}.productCards{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.productCard{min-height:0}.productCard :global(.card){min-height:350px}.productCard :global(.imageWrapper){height:160px}}
+@media(max-width:420px){.productCards{grid-template-columns:1fr}.productCard :global(.card){min-height:0}}
+
+.carMap {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 380px);
+  padding: 18px 16px 14px;
+  border: 1px solid #d8e5f4;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #f8fbff 0%, #eef5fc 100%);
+  box-shadow: 0 16px 34px rgba(28, 73, 125, 0.11), inset 0 1px #fff;
+  overflow: hidden;
+}
+
+.carMapGlow {
+  position: absolute;
+  z-index: -1;
+  width: 180px;
+  height: 180px;
+  top: -70px;
+  right: -54px;
+  border-radius: 50%;
+  background: rgba(108, 164, 230, 0.2);
+  filter: blur(4px);
+}
+
+.carMap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.carShadow {
+  fill: #dce8f5;
+  opacity: 0.6;
+}
+
+.carHood {
+  fill: #eef5fc;
+  stroke: #a8c2df;
+  stroke-width: 3;
+}
+
+.carCabin {
+  fill: #c6d7e9;
+  stroke: #91adcb;
+  stroke-width: 4;
+}
+
+.carDivider {
+  fill: none;
+  stroke: #8fa8c3;
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.carTrim,
+.centerMark {
+  fill: none;
+  stroke: #6f91b6;
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.engineArea,
+.radiatorArea {
+  fill: rgba(255, 255, 255, 0.22);
+  stroke: #f0b84b;
+  stroke-width: 3;
+  stroke-dasharray: 7 6;
+  opacity: 0.85;
+}
+
+.engineDetail,
+.radiatorLines {
+  fill: none;
+  stroke: #d89425;
+  stroke-width: 4;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.radiatorArea {
+  stroke: #48a5c8;
+}
+
+.radiatorLines {
+  stroke: #48a5c8;
+}
+
+.wheelOuter {
+  fill: #23354b;
+  stroke: #7398c4;
+  stroke-width: 4;
+}
+
+.wheelInner {
+  fill: #52677f;
+  stroke: #17283b;
+  stroke-width: 3;
+}
+
+.wheelTread {
+  fill: none;
+  stroke: #8ea4ba;
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.headlight path {
+  fill: #fff3bd;
+  stroke: #ddb94f;
+  stroke-width: 3;
+  transition: fill 160ms ease, stroke 160ms ease, filter 160ms ease;
+}
+
+.headlight path + path {
+  fill: #fffbea;
+  stroke: #efd36f;
+  stroke-width: 2;
+}
+
+.tailLight path {
+  fill: #ffd8dd;
+  stroke: #e58d99;
+  stroke-width: 3;
+}
+
+.tailLight path + path {
+  fill: #fff0f2;
+  stroke: #efacb5;
+  stroke-width: 2;
+}
+
+.hotspot {
+  outline: none;
+  cursor: pointer;
+  transition: opacity 160ms ease, filter 160ms ease;
+}
+
+.hotspot:hover,
+.hotspot:focus-visible {
+  filter: drop-shadow(0 0 7px rgba(37, 99, 235, 0.48));
+}
+
+.hotspotSelected {
+  filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.48));
+}
+
+.hotspotSelected .engineArea {
+  fill: rgba(255, 195, 75, 0.28);
+  stroke: #e29a18;
+}
+
+.hotspotSelected .radiatorArea {
+  fill: rgba(74, 182, 220, 0.25);
+  stroke: #1593bf;
+}
+
+.hotspotSelected .wheelOuter {
+  fill: #2d73d5;
+  stroke: #1553a8;
+}
+
+.hotspotSelected .headlight path {
+  fill: #f7b6bd;
+  stroke: #d86472;
+  filter: drop-shadow(0 0 8px rgba(220, 93, 107, 0.42));
+}
+
+.hotspotSelected .headlight path + path {
+  fill: #ffe1e4;
+  stroke: #e27c88;
+}
+
+.hotspotSelected .tailLight path {
+  fill: #ee8e9b;
+  stroke: #ca4b5b;
+}
+
+.hotspotSelected .tailLight path + path {
+  fill: #ffcbd1;
+  stroke: #db6876;
+}
+
+.hotspotDisabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.carMapHint {
+  margin-top: 2px;
+  color: #5d7694;
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.carMapLegend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  color: #7186a0;
+  font-size: 11px;
+}
+
+.carMapLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.carMapLegend i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legendBlue { background: #2d73d5; }
+.legendRed { background: #e58d98; }
+
+.roadShadow {
+  fill: rgba(38, 88, 139, 0.08);
+}
+
+.carBody {
+  fill: url(#carPaint);
+  stroke: #4776aa;
+  stroke-width: 4;
+}
+
+.frontBumper,
+.rearBumper {
+  fill: #eff6fd;
+  stroke: #85a8ce;
+  stroke-width: 3;
+}
+
+.windshield,
+.rearGlass {
+  stroke: #6f97c0;
+  stroke-width: 4;
+}
+
+.carRoof {
+  fill: #eaf3fc;
+  stroke: #8eafd0;
+  stroke-width: 4;
+}
+
+.sideWindows {
+  fill: rgba(47, 104, 161, 0.36);
+  stroke: #769cc4;
+  stroke-width: 3;
+}
+
+.doorLines,
+.bodyTrim {
+  fill: none;
+  stroke: #8caac9;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.mirrors {
+  fill: #9ebbd8;
+  stroke: #557da9;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.wheelArches {
+  fill: none;
+  stroke: #5d84ad;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+@media (max-width: 760px) {
+  .carMap {
+    width: min(100%, 330px);
+    padding: 12px 10px 10px;
+  }
+}

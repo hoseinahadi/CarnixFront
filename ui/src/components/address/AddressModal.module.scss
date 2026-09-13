@@ -12,7 +12,7 @@
   padding: 16px;
   backdrop-filter: blur(2px);
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     padding: 0;
     align-items: flex-end; // در موبایل از پایین باز شود
   }
@@ -29,7 +29,7 @@
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     max-height: 100vh;
     height: 100vh;
     border-radius: 0;
@@ -43,7 +43,7 @@
   text-align: center;
   height: auto; // برای مُدال حذف در موبایل تمام‌صفحه نشود
   
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     border-radius: 16px 16px 0 0; // در موبایل لبه‌های بالا گرد باشد
     height: auto;
   }
@@ -90,8 +90,10 @@
 .modalBody {
   padding: 20px;
   overflow-y: auto; 
+  scrollbar-width: none;
   flex: 1; // فضای باقیمانده را پر می‌کند
 }
+.modalBody::-webkit-scrollbar { display: none; }
 
 .sectionTitle {
   font-size: 1rem; 
@@ -107,7 +109,7 @@
   gap: 16px; 
   margin-bottom: 24px; 
   
-  @media (max-width: 768px) { 
+  @media (max-width: $breakpoint-md) { 
     grid-template-columns: 1fr; 
     gap: 20px;
   }
@@ -116,7 +118,7 @@
 .formGroup { position: relative; }
 .fullWidth { width: 100%; margin-bottom: 16px; }
 .fullWidthMobile { 
-  @media (max-width: 768px) { grid-column: 1 / -1; } 
+  @media (max-width: $breakpoint-md) { grid-column: 1 / -1; } 
 }
 
 .floatingLabel {
@@ -203,7 +205,7 @@ select.input {
   display: flex;
   justify-content: flex-end;
 
-  @media (max-width: 768px) { 
+  @media (max-width: $breakpoint-md) { 
     padding: 16px;
   }
 }
@@ -223,7 +225,7 @@ select.input {
 
   &:hover:not(:disabled) { opacity: 0.9; }
   
-  @media (max-width: 768px) { 
+  @media (max-width: $breakpoint-md) { 
     width: 100%; 
     padding: 14px; // دکمه بزرگتر در موبایل برای لمس راحت‌تر
   }

@@ -10,7 +10,7 @@ export interface AuthTokenPayload {
 }
 
 /**
- * شکل نرمال‌شده‌ای که داخل Redux استفاده می‌شود.
+ * شکل نرمال‌شدهٔ پاسخ احراز هویت؛ Redux فقط نشانگر نشست را نگه می‌دارد.
  */
 export interface AuthResponse {
   token: string;

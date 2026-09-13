@@ -183,3 +183,222 @@
     }
   }
 }
+
+@include respond-down('sm') {
+  .footer {
+    margin-top: $spacing-lg;
+    padding: $spacing-lg 0 $spacing-sm;
+    margin-inline: 0;
+    border-radius: 0;
+  }
+
+  .container {
+    padding: 0 $spacing-lg;
+  }
+
+  .topSection {
+    gap: $spacing-lg;
+  }
+
+  .aboutCol {
+    gap: $spacing-sm;
+
+    .brandName {
+      font-size: $font-size-lg;
+    }
+
+    .description {
+      max-width: 310px;
+      font-size: 0.8125rem;
+      line-height: 1.8;
+    }
+
+    .enamad {
+      margin-top: $spacing-xs;
+      padding: 4px;
+
+      img {
+        width: 62px;
+        height: 62px;
+      }
+    }
+  }
+
+  .linksGroup {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $spacing-md $spacing-sm;
+  }
+
+  .linksCol {
+    min-width: 0;
+
+    .listTitle {
+      font-size: 0.875rem;
+      margin-bottom: 6px;
+    }
+
+    ul {
+      gap: 2px;
+
+      li a {
+        font-size: 0.75rem;
+        line-height: 1.6;
+        padding: 2px 0;
+      }
+    }
+  }
+
+  .bottomSection {
+    margin-top: $spacing-md;
+    padding-top: $spacing-md;
+    gap: $spacing-sm;
+  }
+
+  .phoneBox {
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: 0.8125rem;
+    line-height: 1.8;
+  }
+
+  .socials {
+    gap: $spacing-sm;
+
+    a {
+      width: 36px;
+      height: 36px;
+    }
+  }
+}
+
+// چیدمان فوتر برای موبایل عریض و تبلت باریک، مطابق طرح سه‌ستونه.
+@include respond-between('vsm', 'md') {
+  .footer {
+    margin-top: $spacing-lg;
+    padding: 36px 0 32px;
+  }
+
+  .container {
+    padding: 0 20px;
+  }
+
+  .topSection {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $spacing-xl $spacing-md;
+  }
+
+  .linksGroup {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $spacing-md $spacing-lg;
+  }
+
+  .linksCol {
+    &:last-child {
+      grid-column: auto;
+    }
+
+    .listTitle {
+      margin-bottom: $spacing-md;
+      padding-bottom: $spacing-md;
+      font-size: 1.25rem;
+
+      &::after {
+        width: 100%;
+        background-color: rgba($color-white, 0.82);
+      }
+    }
+
+    ul {
+      gap: $spacing-sm;
+
+      li a {
+        font-size: 1rem;
+        line-height: 1.8;
+        padding: 2px 0;
+      }
+    }
+  }
+
+  .aboutCol {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(110px, 1fr) minmax(0, 3fr);
+    grid-template-rows: auto auto;
+    column-gap: $spacing-lg;
+    align-items: end;
+    direction: ltr;
+    text-align: right;
+
+    .brandName,
+    .description {
+      grid-column: 2;
+      direction: rtl;
+      text-align: right;
+      justify-self: stretch;
+    }
+
+    .brandName {
+      grid-row: 1;
+      font-size: 1.625rem;
+    }
+
+    .description {
+      grid-row: 2;
+      max-width: none;
+      font-size: 1rem;
+      line-height: 2;
+    }
+
+    .enamad {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      align-self: end;
+      justify-self: start;
+      margin: 0;
+      padding: $spacing-xs;
+
+      img {
+        width: 96px;
+        height: 96px;
+      }
+    }
+  }
+
+  .bottomSection {
+    display: grid;
+    grid-template-columns: minmax(110px, 1fr) minmax(0, 3fr);
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+    gap: $spacing-sm $spacing-lg;
+    direction: ltr;
+    align-items: center;
+
+    .phoneBox,
+    .socials {
+      grid-column: 2;
+      direction: rtl;
+      justify-content: flex-start;
+    }
+
+    .phoneBox {
+      grid-row: 1;
+      font-size: 1rem;
+    }
+
+    .socials {
+      grid-row: 2;
+      gap: $spacing-lg;
+
+      a {
+        width: 40px;
+        height: 40px;
+        background: transparent;
+      }
+    }
+  }
+}

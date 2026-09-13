@@ -1,0 +1,1826 @@
+{
+  "خلاصه": [
+    [
+      "ممیزی تخصصی UI کارنیکس",
+      null
+    ],
+    [
+      "فقط پروژه ui؛ بررسی کد، build/lint، تست زنده 1440×900 و 390×844 و مقایسه با Figma",
+      null
+    ],
+    [
+      "تاریخ بررسی",
+      "2026-09-10"
+    ],
+    [
+      null,
+      null
+    ],
+    [
+      "شواهد قطعی",
+      null
+    ],
+    [
+      "• Production build موفق",
+      null
+    ],
+    [
+      "• ESLint: 166 خطا و 47 هشدار",
+      null
+    ],
+    [
+      "• 23 route صفحه‌ای",
+      null
+    ],
+    [
+      "• 109 تصویر خروجی Figma",
+      null
+    ],
+    [
+      "• 167 button؛ فقط 67 مورد type صریح",
+      null
+    ],
+    [
+      "• 32 div/span دارای onClick",
+      null
+    ],
+    [
+      "• 0 modal با role=dialog/aria-modal/focus trap",
+      null
+    ],
+    [
+      "• Hydration mismatch قطعی در /products هنگام تست dev",
+      null
+    ],
+    [
+      null,
+      null
+    ],
+    [
+      "تعداد ردیف‌های ممیزی",
+      null
+    ],
+    [
+      "ایرادات فنی و منطقی",
+      36
+    ],
+    [
+      "ظاهر و ریسپانسیو",
+      35
+    ],
+    [
+      "قابلیت‌های لازم",
+      30
+    ],
+    [
+      "پوشش صفحات و جریان‌ها",
+      30
+    ],
+    [
+      "کارهای نقشه راه",
+      28
+    ],
+    [
+      null,
+      null
+    ],
+    [
+      null,
+      null
+    ],
+    [
+      "اولویت تصمیم",
+      null
+    ],
+    [
+      "۱) session و refresh token",
+      null
+    ],
+    [
+      "۲) shipping quote و پرداخت",
+      null
+    ],
+    [
+      "۳) یکپارچه‌سازی breakpointها و responsive QA",
+      null
+    ],
+    [
+      "۴) تطبیق Header، Hero، PLP، PDP و Checkout با frameهای Approved",
+      null
+    ],
+    [
+      "۵) رفع CTAهای نیمه‌کاره و لینک‌های شکسته",
+      null
+    ]
+  ],
+  "ایرادات فنی و منطقی": [
+    [
+      "شناسه",
+      "حوزه",
+      "شدت",
+      "وضعیت",
+      "شرح ایراد",
+      "اثر",
+      "راه‌حل پیشنهادی",
+      "مرجع کد/تست",
+      "برآورد"
+    ],
+    [
+      "UI-001",
+      "احراز هویت",
+      "بحرانی",
+      "قطعی",
+      "Refresh token در فرانت استفاده می‌شود ولی endpoint /Auth/refresh در API فعلی وجود ندارد.",
+      "انقضای access token باعث refresh ناموفق و خروج کاربر می‌شود.",
+      "چرخه refresh/rotation/revoke را کامل یا منطق refresh را حذف کنید.",
+      "axiosClient.ts:133",
+      "2-4 روز"
+    ],
+    [
+      "UI-002",
+      "امنیت session",
+      "بحرانی",
+      "قطعی",
+      "access token در localStorage و cookie قابل خواندن با JavaScript و refresh token در localStorage ذخیره می‌شود.",
+      "XSS می‌تواند session را سرقت کند.",
+      "refresh token را HttpOnly cookie و access token را کوتاه‌عمر کنید.",
+      "authTokenStorage.ts",
+      "3-5 روز"
+    ],
+    [
+      "UI-003",
+      "Checkout",
+      "بحرانی",
+      "قطعی",
+      "هزینه ارسال اولیه ۲۲۰٬۰۰۰ تومان هاردکد شده است.",
+      "مبلغی که کاربر می‌بیند می‌تواند با سفارش واقعی متفاوت باشد.",
+      "تا دریافت shipping quote معتبر مبلغ نهایی را قطعی نکنید.",
+      "CartPage.tsx:85",
+      "1-2 روز"
+    ],
+    [
+      "UI-004",
+      "پرداخت",
+      "بحرانی",
+      "ناقص",
+      "UI مرحله پرداخت دارد ولی initiate/callback/verify واقعی end-to-end کامل نیست.",
+      "success یا failure قابل اتکا نیست.",
+      "state machine پرداخت و verify سمت سرور را به UI متصل کنید.",
+      "CartStep3.tsx",
+      "5-8 روز"
+    ],
+    [
+      "UI-005",
+      "کیفیت کد",
+      "زیاد",
+      "قطعی",
+      "ESLint تعداد ۱۶۶ error و ۴۷ warning در UI گزارش می‌کند.",
+      "خطاهای hook، type و accessibility می‌توانند runtime bug شوند.",
+      "lint را صفر و وارد CI کنید.",
+      "npm run lint",
+      "6-10 روز"
+    ],
+    [
+      "UI-006",
+      "Route guard",
+      "زیاد",
+      "قطعی",
+      "سه پیاده‌سازی در proxy.ts، middleware.ts و src/middleware.ts وجود دارد.",
+      "رفتار routeهای protected مبهم است.",
+      "فقط proxy رسمی Next 16 را نگه دارید و route matrix تست کنید.",
+      "proxy.ts + middlewareها",
+      "1 روز"
+    ],
+    [
+      "UI-007",
+      "پیکربندی API",
+      "زیاد",
+      "قطعی",
+      "API base URL در چند فایل با fallback و /api متفاوت ساخته می‌شود.",
+      "dev/stage/prod ممکن است URL متفاوت و شکسته بسازند.",
+      "یک config typed مشترک برای client/server/media بسازید.",
+      "axiosClient.ts; axiosServer.ts",
+      "1-2 روز"
+    ],
+    [
+      "UI-008",
+      "Build و SSG",
+      "زیاد",
+      "مشاهده‌شده",
+      "در نبود API، build برای blog/category با fallback ادامه یافت.",
+      "deployment می‌تواند موفق ولی محتوای آن ناقص باشد.",
+      "برای داده ضروری build را fail و برای داده اختیاری policy روشن تعریف کنید.",
+      "products/[category]/page.tsx",
+      "1-2 روز"
+    ],
+    [
+      "UI-009",
+      "قیمت",
+      "زیاد",
+      "قطعی",
+      "utility قیمت همه مبالغ را به نزدیک‌ترین ۱۰۰٬۰۰۰ تومان گرد می‌کند.",
+      "قیمت نمایش، cart و order می‌تواند ناسازگار شود.",
+      "واحد و rounding rule رسمی را فقط در یک لایه اعمال کنید.",
+      "utils/price.ts:3",
+      "1-2 روز"
+    ],
+    [
+      "UI-010",
+      "Bundle در PDP",
+      "متوسط",
+      "قطعی",
+      "برای یک PDP همه bundleها دانلود و در client فیلتر می‌شوند.",
+      "payload و زمان بارگذاری با رشد داده زیاد می‌شود.",
+      "endpoint bundle-by-product و cache محدود استفاده کنید.",
+      "productApi.ts:112",
+      "1 روز"
+    ],
+    [
+      "UI-011",
+      "State محصول",
+      "زیاد",
+      "قطعی",
+      "product و bundle بین productSlice و productDetailSlice همپوشانی دارند.",
+      "race condition و state قدیمی محتمل است.",
+      "برای هر داده یک source of truth تعیین کنید.",
+      "store/feature/product",
+      "3-5 روز"
+    ],
+    [
+      "UI-012",
+      "پیچیدگی فایل",
+      "متوسط",
+      "قطعی",
+      "productSlice بیش از ۱۲۰۰ خط است.",
+      "تغییر کوچک دامنه اثر بزرگی دارد.",
+      "state را به list/detail/filter/review/bundle تقسیم کنید.",
+      "productSlice.ts",
+      "3-5 روز"
+    ],
+    [
+      "UI-013",
+      "انتخاب خودرو",
+      "متوسط",
+      "قطعی",
+      "VehicleSelect بیش از ۱۰۰۰ خط است.",
+      "کنترل state و responsive دشوار است.",
+      "data hook، dropdown، step و mobile UI را جدا کنید.",
+      "VehicleSelect.tsx",
+      "3-4 روز"
+    ],
+    [
+      "UI-014",
+      "Checkout architecture",
+      "زیاد",
+      "قطعی",
+      "cartThunks و CartStepها چندمسئولیتی و بسیار بزرگ‌اند.",
+      "back/refresh و خطاهای مرحله‌ای شکننده‌اند.",
+      "checkout state machine و serviceهای quote/order/payment را جدا کنید.",
+      "cartThunks.ts; CartStep*.tsx",
+      "4-7 روز"
+    ],
+    [
+      "UI-015",
+      "پشتیبانی",
+      "زیاد",
+      "قطعی",
+      "گزینه چت آنلاین در SupportFab فقط TODO است.",
+      "CTA اصلی کاربر بی‌اثر است.",
+      "چت واقعی، لینک معتبر یا حالت unavailable اضافه کنید.",
+      "SupportFab.tsx:90",
+      "1-3 روز"
+    ],
+    [
+      "UI-016",
+      "خرید عمده",
+      "زیاد",
+      "قطعی",
+      "submit فرم خرید عمده به API متصل نیست.",
+      "ممکن است success بدون ثبت واقعی نمایش داده شود.",
+      "ثبت server-side و کد پیگیری اضافه کنید.",
+      "bulk-purchase/page.tsx:143",
+      "2-3 روز"
+    ],
+    [
+      "UI-017",
+      "سفارش مجدد",
+      "متوسط",
+      "قطعی",
+      "handler سفارش مجدد TODO است.",
+      "CTA جزئیات سفارش کار نمی‌کند.",
+      "آیتم‌های معتبر را با گزارش تغییر قیمت/ناموجودی به cart اضافه کنید.",
+      "OrderDetailContent.tsx:114",
+      "2 روز"
+    ],
+    [
+      "UI-018",
+      "ثبت نظر",
+      "زیاد",
+      "قطعی",
+      "handler ارسال review در صفحه comments تعریف شده ولی استفاده نمی‌شود.",
+      "جریان نظر پس از خرید ناقص است.",
+      "eligibility و modal/form را به API متصل کنید.",
+      "profile/comments/page.tsx:105",
+      "2-3 روز"
+    ],
+    [
+      "UI-019",
+      "لینک‌های Footer",
+      "زیاد",
+      "قطعی",
+      "مسیرهای privacy، rules، about، cars/* و category/* route متناظر ندارند.",
+      "کاربر به 404 می‌رسد.",
+      "صفحات را بسازید یا لینک‌ها را به route واقعی map کنید.",
+      "Footer.tsx",
+      "1-3 روز"
+    ],
+    [
+      "UI-020",
+      "محتوای Footer",
+      "متوسط",
+      "قطعی",
+      "تلفن نمونه و لینک شبکه‌های اجتماعی # هستند.",
+      "اعتماد و conversion آسیب می‌بیند.",
+      "اطلاعات واقعی را از config یا CMS بگیرید.",
+      "Footer.tsx",
+      "0.5-1 روز"
+    ],
+    [
+      "UI-021",
+      "FAQ",
+      "متوسط",
+      "قطعی",
+      "FAQ دارای لورم و ادعاهای تجاری هاردکد است.",
+      "محتوا می‌تواند غلط یا حقوقی باشد.",
+      "محتوای تأییدشده و قابل مدیریت استفاده کنید.",
+      "faq/page.tsx:149",
+      "1-2 روز"
+    ],
+    [
+      "UI-022",
+      "Loading/Error",
+      "زیاد",
+      "مشاهده‌شده",
+      "در نبود API صفحه محصولات مدت زیادی روی skeleton می‌ماند و retry واضح ندارد.",
+      "کاربر loading بی‌پایان برداشت می‌کند.",
+      "timeout، error state، retry و cached result اضافه کنید.",
+      "تست زنده /products",
+      "1-2 روز"
+    ],
+    [
+      "UI-023",
+      "منوی Header",
+      "متوسط",
+      "قطعی",
+      "پس از failed شدن category/brand/vehicle، effect خودکار retry نمی‌کند.",
+      "منو تا reload بعدی خالی می‌ماند.",
+      "retry کنترل‌شده و CTA تلاش مجدد اضافه کنید.",
+      "FrontMenu.tsx",
+      "1 روز"
+    ],
+    [
+      "UI-024",
+      "Performance تصویر",
+      "زیاد",
+      "قطعی",
+      "images.unoptimized فعال و چند img خام استفاده شده است.",
+      "LCP و پهنای باند بدتر می‌شود.",
+      "optimization، remotePatterns، sizes و lazy loading را درست کنید.",
+      "next.config.ts; lint output",
+      "2-4 روز"
+    ],
+    [
+      "UI-025",
+      "TLS توسعه",
+      "متوسط",
+      "قطعی",
+      "NODE_TLS_REJECT_UNAUTHORIZED=0 به‌صورت process-wide تنظیم می‌شود.",
+      "خطای certificate پنهان می‌شود.",
+      "CA محلی معتبر یا HTTP کنترل‌شده dev استفاده کنید.",
+      "next.config.ts:12",
+      "0.5 روز"
+    ],
+    [
+      "UI-026",
+      "ساختار فایل",
+      "کم",
+      "قطعی",
+      "فایل اجرای Node داخل public/server.js قرار دارد.",
+      "به‌عنوان asset عمومی منتشر و lint را خراب می‌کند.",
+      "به ریشه/infra منتقل یا حذف کنید.",
+      "public/server.js",
+      "0.5 روز"
+    ],
+    [
+      "UI-027",
+      "Accessibility کارت",
+      "زیاد",
+      "قطعی",
+      "کارت محصول div دارای onClick است.",
+      "کاربر keyboard مثل mouse به PDP نمی‌رود.",
+      "کارت را link معنایی و کنترل‌های داخلی را مستقل کنید.",
+      "ProductCard.tsx:119",
+      "1 روز"
+    ],
+    [
+      "UI-028",
+      "Accessibility Modal",
+      "زیاد",
+      "قطعی",
+      "role=dialog، aria-modal و focus trap در modalهای UI پیدا نشد.",
+      "keyboard و screen reader در پس‌زمینه گم می‌شوند.",
+      "Dialog primitive مشترک با focus trap و Escape بسازید.",
+      "AddressModal و modalهای profile/order",
+      "2-4 روز"
+    ],
+    [
+      "UI-029",
+      "Buttonها",
+      "متوسط",
+      "قطعی",
+      "از ۱۶۷ button فقط ۶۷ مورد type صریح دارند.",
+      "داخل form امکان submit ناخواسته وجود دارد.",
+      "Button مشترک با type=button پیش‌فرض بسازید.",
+      "کل src/**/*.tsx",
+      "1 روز"
+    ],
+    [
+      "UI-030",
+      "Reduced motion",
+      "متوسط",
+      "قطعی",
+      "برای animationها prefers-reduced-motion وجود ندارد.",
+      "کاربران حساس به حرکت تجربه نامناسب دارند.",
+      "mixin مشترک reduced motion اضافه کنید.",
+      "کل SCSS",
+      "1 روز"
+    ],
+    [
+      "UI-031",
+      "Response parsing",
+      "زیاد",
+      "قطعی",
+      "فرانت چند شکل data/mainResults/token/accessToken را حدس می‌زند.",
+      "componentها مدل ناپایدار دریافت می‌کنند.",
+      "adapter typed و schema validation در مرز API اضافه کنید.",
+      "services/api + thunks",
+      "3-5 روز"
+    ],
+    [
+      "UI-032",
+      "Cache کاربر",
+      "زیاد",
+      "نیازمند تست",
+      "cache سفارشی وجود دارد ولی تست isolation بین دو کاربر پیدا نشد.",
+      "داده profile/wishlist/address ممکن است بین sessionها بماند.",
+      "cache key را identity-aware و login/logout را E2E تست کنید.",
+      "requestCache.ts",
+      "2 روز"
+    ],
+    [
+      "UI-033",
+      "تغییر رمز",
+      "متوسط",
+      "قطعی",
+      "ChangePassword import شده ولی در صفحه info استفاده نمی‌شود.",
+      "قابلیت برای کاربر قابل دسترس نیست.",
+      "نمایش و اتصال کامل یا حذف dead code.",
+      "profile/info/page.tsx:5",
+      "1-2 روز"
+    ],
+    [
+      "UI-034",
+      "Observability",
+      "متوسط",
+      "غایب",
+      "error boundary و error monitoring عملیاتی جامع دیده نشد.",
+      "خطاهای production سخت بازتولید می‌شوند.",
+      "error boundary، trace id و logging بدون داده حساس اضافه کنید.",
+      "کل UI",
+      "2-3 روز"
+    ],
+    [
+      "UI-035",
+      "تست",
+      "زیاد",
+      "غایب",
+      "تست unit/integration/E2E معناداری برای UI پیدا نشد.",
+      "مسیرهای auth/cart/order بدون regression guard هستند.",
+      "حداقل E2E مسیر خرید و تست reducer/service اضافه کنید.",
+      "کل UI",
+      "5-8 روز"
+    ],
+    [
+      "UI-036",
+      "Hydration / SSR",
+      "زیاد",
+      "قطعی در تست زنده",
+      "در صفحه /products، HTML سرور و client یکسان نیست و React hydration mismatch گزارش می‌کند.",
+      "بخشی از صفحه دوباره client-side render می‌شود؛ flicker، هزینه performance و state ناپایدار محتمل است.",
+      "مقدار اولیه filter/category را بین server و client یکسان کنید و branch وابسته به browser/storage را بعد از mount اعمال کنید.",
+      "ProductsContent → ProductFilters؛ لاگ dev server",
+      "1-2 روز"
+    ]
+  ],
+  "ظاهر و ریسپانسیو": [
+    [
+      "شناسه",
+      "صفحه/بخش",
+      "Viewport",
+      "شدت",
+      "مشاهده فعلی",
+      "هدف Figma/رفتار مطلوب",
+      "راه‌حل پیشنهادی",
+      "معیار پذیرش",
+      "مرجع",
+      "برآورد"
+    ],
+    [
+      "RV-001",
+      "خانه",
+      "390px",
+      "زیاد",
+      "Hero فعلی تقریباً مربع و بسیار بلند است و بخش عمده fold را می‌گیرد.",
+      "Figma بنر landscape کوتاه دارد.",
+      "aspect-ratio و art direction موبایل را مستقل کنید.",
+      "در 390×844 فرم خودرو زودتر دیده شود.",
+      "HeroSection; mobile home",
+      "1-2 روز"
+    ],
+    [
+      "RV-002",
+      "خانه",
+      "1440px",
+      "متوسط",
+      "overlay تیره و فلش‌های بزرگ روی hero با Figma فرق دارد.",
+      "Figma تصویر روشن‌تر و کنترل کم‌تأکیدتر دارد.",
+      "نور، overlay و navigation slider را تطبیق دهید.",
+      "pixel comparison بدون اختلاف عمده.",
+      "HeroSection; desktop V10",
+      "1 روز"
+    ],
+    [
+      "RV-003",
+      "Header",
+      "Desktop",
+      "زیاد",
+      "نسخه فعلی لوگوی تصویری Carnix دارد.",
+      "Figma desktop عنوان متنی قطعه فروش نشان می‌دهد.",
+      "هویت برند نهایی را تعیین و یکسان کنید.",
+      "یک wordmark approved در همه صفحات.",
+      "TopHeader; Figma desktop",
+      "0.5-1 روز"
+    ],
+    [
+      "RV-004",
+      "Header",
+      "Mobile",
+      "زیاد",
+      "ترتیب iconها، اندازه لوگو و menu با Figma متفاوت است.",
+      "Figma wordmark کارنیکس و iconهای ساده‌تر دارد.",
+      "mobile header مستقل و مطابق طرح نهایی بسازید.",
+      "ارتفاع، ترتیب و tap target مطابق 390.",
+      "TopHeader; mobile home",
+      "1-2 روز"
+    ],
+    [
+      "RV-005",
+      "Navigation",
+      "همه",
+      "زیاد",
+      "من فعلی برندها دارد ولی تشخیص و مقالات Figma را ندارد.",
+      "منوی Figma: دسته‌بندی، ماشین‌ها، تشخیص، مقالات، FAQ.",
+      "IA نهایی را از config مشترک بسازید.",
+      "Desktop و mobile اقلام و ترتیب یکسان.",
+      "FrontMenu.tsx",
+      "1 روز"
+    ],
+    [
+      "RV-006",
+      "خانه",
+      "همه",
+      "متوسط",
+      "در خطای API بین سکشن‌ها فضای سفید بزرگ ایجاد می‌شود.",
+      "Figma سکشن‌های پیوسته دارد.",
+      "minHeightهای LazyMount را در error جمع و StateView compact بسازید.",
+      "failure فضای خالی بزرگ نسازد.",
+      "Home.tsx",
+      "1 روز"
+    ],
+    [
+      "RV-007",
+      "Support FAB",
+      "Mobile",
+      "متوسط",
+      "FAB روی محتوای پایین چپ قرار می‌گیرد.",
+      "در frame اصلی overlay دائمی دیده نمی‌شود.",
+      "safe-area و collision detection اضافه کنید.",
+      "هیچ card/CTA/pagination پوشانده نشود.",
+      "SupportFab.module.scss",
+      "1 روز"
+    ],
+    [
+      "RV-008",
+      "خانه",
+      "همه",
+      "متوسط",
+      "asset و crop hero فعلی با Figma متفاوت است.",
+      "برای mobile و desktop تصاویر متفاوت مشخص شده‌اند.",
+      "source و crop هر breakpoint را نهایی کنید.",
+      "هیچ crop مخرب یا تصویر کشیده نباشد.",
+      "HeroSection + Figma home",
+      "1 روز"
+    ],
+    [
+      "RV-009",
+      "Breakpoints",
+      "همه",
+      "زیاد",
+      "بیش از ۲۰ شکل breakpoint از 359 تا 1400 در SCSS وجود دارد.",
+      "رفتار میانی مستند نیست.",
+      "۴ یا ۵ breakpoint token تعریف و مهاجرت دهید.",
+      "تمام media queryها از token مشترک.",
+      "کل SCSS",
+      "3-5 روز"
+    ],
+    [
+      "RV-010",
+      "Overflow",
+      "همه",
+      "زیاد",
+      "overflow-x:hidden روی body/root بیرون‌زدگی‌ها را پنهان می‌کند.",
+      "overflow باید در component مبدأ رفع شود.",
+      "global mask را پس از رفع علت‌ها حذف کنید.",
+      "320 تا 1920 بدون overflow ناخواسته.",
+      "globals.scss:21",
+      "2-3 روز"
+    ],
+    [
+      "RV-011",
+      "PLP",
+      "320-390",
+      "متوسط",
+      "grid دو ستونه نزدیک Figma است ولی در 320 متن و قیمت فشرده می‌شوند.",
+      "Figma فقط 390 را پوشش داده است.",
+      "min card width، clamp متن و تست 320 اضافه کنید.",
+      "متن/قیمت/دکمه overlap نکنند.",
+      "ProductGrid; ProductCard",
+      "1-2 روز"
+    ],
+    [
+      "RV-012",
+      "PLP Controls",
+      "Mobile",
+      "متوسط",
+      "فیلتر و sort icon-only و تعداد فیلتر فعال نامشخص است.",
+      "طرح دو کنترل دارد ولی state باید روشن باشد.",
+      "badge تعداد، label و tooltip اضافه کنید.",
+      "کاربر قبل بازکردن drawer state را بداند.",
+      "ProductsPage.module.scss",
+      "1 روز"
+    ],
+    [
+      "RV-013",
+      "PLP States",
+      "همه",
+      "زیاد",
+      "loading، empty و error تفکیک کامل ندارند.",
+      "برای هر state خروجی مستقل لازم است.",
+      "StateView مشترک و retry بسازید.",
+      "loading بیش از timeout به error تبدیل شود.",
+      "ProductGridSkeleton",
+      "1 روز"
+    ],
+    [
+      "RV-014",
+      "PLP Header",
+      "1440px",
+      "کم",
+      "alignment عنوان، count، sort و sidebar کمی با Figma فرق دارد.",
+      "Figma baseline منظم‌تری دارد.",
+      "grid container و spacing token را تنظیم کنید.",
+      "همه عناصر روی baseline approved.",
+      "ProductsPage.module.scss",
+      "0.5 روز"
+    ],
+    [
+      "RV-015",
+      "PDP Buy action",
+      "Mobile",
+      "زیاد",
+      "دسترسی دائمی و امن به CTA خرید در صفحه بلند روشن نیست.",
+      "Figma CTAهای خرید مشخص دارد.",
+      "sticky bottom buy bar با safe-area بسازید.",
+      "CTA با footer/modal برخورد نکند.",
+      "BuyBox.module.scss",
+      "2 روز"
+    ],
+    [
+      "RV-016",
+      "PDP Tabs",
+      "320-390",
+      "متوسط",
+      "tabs nowrap و overflow hidden دارند.",
+      "عنوان فارسی ممکن است بریده شود.",
+      "tablist اسکرولی با edge affordance بسازید.",
+      "همه tabها با keyboard و touch در دسترس.",
+      "ProductTabs.module.scss",
+      "1 روز"
+    ],
+    [
+      "RV-017",
+      "Bundle Card",
+      "همه",
+      "زیاد",
+      "presentation فعلی bundle از کارت بزرگ و تصویری Figma فاصله دارد.",
+      "Figma اقلام، تیک‌ها، قیمت و CTA واضح دارد.",
+      "BundleCard مشترک desktop/mobile بسازید.",
+      "قیمت، سازگاری و اقلام کامل دیده شوند.",
+      "BundleSection; PDP v4",
+      "2-3 روز"
+    ],
+    [
+      "RV-018",
+      "Checkout",
+      "Mobile",
+      "زیاد",
+      "sticky action و keyboard collision در سه مرحله استاندارد نشده است.",
+      "Figma برای هر مرحله shell ثابت دارد.",
+      "step shell و bottom CTA مشترک بسازید.",
+      "با keyboard باز input و CTA قابل دسترس.",
+      "CartStep1/2/3",
+      "3-4 روز"
+    ],
+    [
+      "RV-019",
+      "Cart states",
+      "همه",
+      "متوسط",
+      "empty/delete/error/loading زبان بصری یکسان ندارند.",
+      "Figma stateهای جدا دارد.",
+      "Dialog و StateView semantic مشترک بسازید.",
+      "همه stateها typography/action یکسان.",
+      "Cart components",
+      "2 روز"
+    ],
+    [
+      "RV-020",
+      "Profile navigation",
+      "Mobile",
+      "زیاد",
+      "sidebar به fullscreen menu با دکمه fixed تبدیل می‌شود و با Figma فرق دارد.",
+      "Figma mobile profile header/navigation مشخص دارد.",
+      "یک shell ثابت برای subpageها بسازید.",
+      "Back/title/menu در همه profileها ثابت.",
+      "ProfileSidebar.module.scss",
+      "2-3 روز"
+    ],
+    [
+      "RV-021",
+      "Profile",
+      "Tablet",
+      "متوسط",
+      "sidebar در md ناگهانی حذف می‌شود.",
+      "طرح تبلت وجود ندارد.",
+      "compact sidebar یا drawer برای 768-1024 تعریف کنید.",
+      "پرش layout و فضای خالی نباشد.",
+      "ProfileLayout.module.scss",
+      "1-2 روز"
+    ],
+    [
+      "RV-022",
+      "Orders tabs",
+      "Mobile",
+      "متوسط",
+      "tabs افقی هستند ولی active tab ممکن است بیرون viewport بماند.",
+      "Figma tabهای state را واضح نشان می‌دهد.",
+      "active را scrollIntoView و edge fade اضافه کنید.",
+      "active همیشه قابل مشاهده.",
+      "OrdersPage.module.scss:239",
+      "1 روز"
+    ],
+    [
+      "RV-023",
+      "Order detail",
+      "Mobile",
+      "زیاد",
+      "CSS ثابت زیاد و hierarchy نزدیک desktop است.",
+      "Figma mobile summary/timeline ساده‌تری دارد.",
+      "summary، timeline، items و actions را تفکیک کنید.",
+      "در 320 جدول افقی اجباری نباشد.",
+      "OrderDetail.module.scss",
+      "2-3 روز"
+    ],
+    [
+      "RV-024",
+      "Address",
+      "Mobile",
+      "متوسط",
+      "صفحه و modal fixed width/media rule زیاد دارند.",
+      "Figma editor ساده و mobile-friendly دارد.",
+      "bottom sheet موبایل و dialog دسکتاپ کنید.",
+      "در 320 map/form/action overflow نکنند.",
+      "AddressModal; AddressesPage",
+      "2 روز"
+    ],
+    [
+      "RV-025",
+      "MapPicker",
+      "Mobile",
+      "زیاد",
+      "absolute positioning زیاد و hook dependency ناقص است.",
+      "کنترل‌ها باید با keyboard/orientation پایدار باشند.",
+      "layout flow و ResizeObserver اضافه کنید.",
+      "هیچ کنترل با keyboard مخفی نشود.",
+      "MapPicker.tsx/scss",
+      "2-4 روز"
+    ],
+    [
+      "RV-026",
+      "Footer",
+      "320-390",
+      "متوسط",
+      "سه ستون باریک و footer بسیار بلند است.",
+      "Figma مشابه است ولی خوانایی مرزی است.",
+      "accordion یا layout adaptive و tap target بهتر بررسی شود.",
+      "هیچ لینک کوچک‌تر از 44px نباشد.",
+      "Footer.module.scss",
+      "1-2 روز"
+    ],
+    [
+      "RV-027",
+      "Typography",
+      "همه",
+      "متوسط",
+      "font-sizeهای token و مستقیم rem/px مخلوط‌اند.",
+      "Figma text style دارد.",
+      "type scale و mapping Figma↔SCSS بسازید.",
+      "اندازه خارج scale اصلی باقی نماند.",
+      "کل SCSS",
+      "2-3 روز"
+    ],
+    [
+      "RV-028",
+      "Color tokens",
+      "همه",
+      "متوسط",
+      "hex مستقیم مثل #2563eb کنار tokenها استفاده شده است.",
+      "Figma semantic palette دارد.",
+      "رنگ‌های مستقیم را به semantic token منتقل کنید.",
+      "action/error/success از token واحد.",
+      "ProductCard; variables.scss",
+      "2 روز"
+    ],
+    [
+      "RV-029",
+      "Touch targets",
+      "Mobile",
+      "متوسط",
+      "بعضی icon buttonها 32px هستند.",
+      "target لمسی باید حداقل حدود 44px باشد.",
+      "hit area را بدون بزرگ‌کردن icon افزایش دهید.",
+      "کنترل‌های اصلی 44×44.",
+      "ProductCard و Header",
+      "1 روز"
+    ],
+    [
+      "RV-030",
+      "Safe area",
+      "Mobile",
+      "متوسط",
+      "safe-area inset در fixed UI دیده نشد.",
+      "روی notch/home indicator احتمال برخورد وجود دارد.",
+      "safe-area token برای header/drawer/CTA/FAB اضافه کنید.",
+      "در دستگاه notch کنترل قطع نشود.",
+      "fixed UI components",
+      "1 روز"
+    ],
+    [
+      "RV-031",
+      "Small phones",
+      "320-375",
+      "زیاد",
+      "Figma عمدتاً 390 است و کد queryهای خاص 380/400 دارد.",
+      "acceptance widthهای کوچک تعریف نشده است.",
+      "matrix تست 320/360/375/390 ایجاد کنید.",
+      "تمام routeهای اصلی بدون overflow.",
+      "کل UI",
+      "2 روز QA"
+    ],
+    [
+      "RV-032",
+      "Tablet",
+      "768-1024",
+      "زیاد",
+      "طرح تبلت و رفتار سراسری مشخص نیست.",
+      "بین mobile و desktop پرش محتمل است.",
+      "Header/PLP/PDP/Cart/Profile را در 768/834/1024 طراحی کنید.",
+      "نسخه کشیده موبایل نباشد.",
+      "کل UI",
+      "3-5 روز"
+    ],
+    [
+      "RV-033",
+      "Large desktop",
+      "1600-1920",
+      "کم",
+      "رفتار hero و container در نمایشگر بزرگ یکسان نیست.",
+      "Figma فقط 1440 دارد.",
+      "max container/media width را مستند کنید.",
+      "در 1920 محتوا بیش از حد کشیده نشود.",
+      "globals + Hero",
+      "1 روز"
+    ],
+    [
+      "RV-034",
+      "Skeleton و CLS",
+      "همه",
+      "متوسط",
+      "skeletonها اندازه ثابت و timeout ندارند.",
+      "loading باید هم‌اندازه content واقعی باشد.",
+      "ابعاد واقعی و timeout/error تعریف کنید.",
+      "CLS پایین و failure قابل تشخیص.",
+      "ProductGridSkeleton",
+      "1 روز"
+    ],
+    [
+      "RV-035",
+      "Focus states",
+      "همه",
+      "زیاد",
+      "بیشتر styleها hover دارند و focus-visible system یکپارچه نیست.",
+      "Figma هم focus state مستقل ندارد.",
+      "focus ring semantic برای link/button/input/card بسازید.",
+      "مسیر اصلی فقط با keyboard قابل استفاده.",
+      "کل SCSS",
+      "2 روز"
+    ]
+  ],
+  "قابلیت‌های لازم": [
+    [
+      "شناسه",
+      "قابلیت",
+      "وضعیت فعلی",
+      "اولویت",
+      "کار لازم در UI",
+      "مرجع Figma/کد",
+      "برآورد"
+    ],
+    [
+      "FT-001",
+      "حریم خصوصی",
+      "غایب",
+      "زیاد",
+      "ساخت route، محتوای حقوقی و metadata",
+      "Privacy Policy.png",
+      "1 روز"
+    ],
+    [
+      "FT-002",
+      "قوانین و مقررات",
+      "غایب",
+      "زیاد",
+      "ساخت route یا حذف لینک شکسته",
+      "Footer",
+      "1 روز"
+    ],
+    [
+      "FT-003",
+      "درباره ما",
+      "غایب",
+      "متوسط",
+      "ساخت صفحه با محتوای واقعی",
+      "Footer",
+      "1 روز"
+    ],
+    [
+      "FT-004",
+      "جست‌وجوی کامل",
+      "ناقص؛ autocomplete موجود",
+      "زیاد",
+      "route، query URL، pagination، empty/error",
+      "Search Active/Empty",
+      "3-4 روز"
+    ],
+    [
+      "FT-005",
+      "Quick view محصول",
+      "غایب",
+      "متوسط",
+      "modal جزئیات سریع و add-to-cart",
+      "quick view v2",
+      "2-3 روز"
+    ],
+    [
+      "FT-006",
+      "مقایسه محصولات",
+      "غایب",
+      "زیاد",
+      "selection tray، compare page و جدول ویژگی",
+      "COMPARE v1",
+      "4-6 روز"
+    ],
+    [
+      "FT-007",
+      "لیست bundleها",
+      "غایب",
+      "زیاد",
+      "route، grid، filter و pagination",
+      "bundles list",
+      "3-4 روز"
+    ],
+    [
+      "FT-008",
+      "جزئیات bundle",
+      "غایب",
+      "زیاد",
+      "اقلام، قیمت، سازگاری و CTA",
+      "bundles details",
+      "4-5 روز"
+    ],
+    [
+      "FT-009",
+      "سازگاری قطعه با خودرو",
+      "ناقص",
+      "زیاد",
+      "نمایش match و انتخاب خودرو/garage",
+      "Figma compatibility note",
+      "4-6 روز"
+    ],
+    [
+      "FT-010",
+      "گاراژ شخصی",
+      "غایب",
+      "زیاد",
+      "CRUD خودروهای کاربر و انتخاب پیش‌فرض",
+      "my garage",
+      "4-6 روز"
+    ],
+    [
+      "FT-011",
+      "جزئیات خودرو در گاراژ",
+      "غایب",
+      "متوسط",
+      "مشخصات، کیلومتر، ویرایش و حذف",
+      "garage car details",
+      "2-3 روز"
+    ],
+    [
+      "FT-012",
+      "اعلان‌ها",
+      "غایب",
+      "متوسط",
+      "لیست، unread، mark read و empty",
+      "Notifications",
+      "3-4 روز"
+    ],
+    [
+      "FT-013",
+      "تنظیمات اعلان",
+      "غایب",
+      "متوسط",
+      "SMS/email/push و موضوعات",
+      "Figma annotation",
+      "2-3 روز"
+    ],
+    [
+      "FT-014",
+      "تیکت پشتیبانی",
+      "غایب",
+      "زیاد",
+      "لیست، detail، new ticket و attachment",
+      "user ticket",
+      "5-7 روز"
+    ],
+    [
+      "FT-015",
+      "پیام/چت",
+      "TODO نمایشی",
+      "زیاد",
+      "modal واقعی، history و send state",
+      "message FAB/modal",
+      "4-8 روز"
+    ],
+    [
+      "FT-016",
+      "کیف پول",
+      "لینک شکسته/غایب",
+      "زیاد",
+      "balance، transactions و payment option",
+      "payment with wallet",
+      "5-8 روز"
+    ],
+    [
+      "FT-017",
+      "کدهای تخفیف فعال",
+      "غایب",
+      "متوسط",
+      "لیست coupon و نمایش شرایط",
+      "promo note",
+      "2-3 روز"
+    ],
+    [
+      "FT-018",
+      "رهگیری سفارش",
+      "نسبی",
+      "زیاد",
+      "timeline، carrier و refresh state",
+      "Track Order",
+      "2-3 روز"
+    ],
+    [
+      "FT-019",
+      "نظر پس از خرید",
+      "ناقص",
+      "متوسط",
+      "eligibility، form و success/error",
+      "Write a review",
+      "2-3 روز"
+    ],
+    [
+      "FT-020",
+      "سفارش مجدد",
+      "TODO",
+      "متوسط",
+      "افزودن مجدد با بررسی قیمت/موجودی",
+      "OrderDetail TODO",
+      "2 روز"
+    ],
+    [
+      "FT-021",
+      "خرید عمده واقعی",
+      "UI بدون API",
+      "زیاد",
+      "ثبت واقعی، validation و کد پیگیری",
+      "Bulk purchase SUCCESS",
+      "2-3 روز"
+    ],
+    [
+      "FT-022",
+      "عیب‌یاب سه‌مرحله‌ای",
+      "غایب",
+      "زیاد",
+      "wizard، resume و نتیجه قابل توضیح",
+      "symptom steps 1-3",
+      "8-12 روز"
+    ],
+    [
+      "FT-023",
+      "لیست مکانیک‌ها",
+      "غایب",
+      "زیاد",
+      "list/map/filter/open-now",
+      "mechanic list",
+      "6-9 روز"
+    ],
+    [
+      "FT-024",
+      "پروفایل مکانیک",
+      "غایب",
+      "زیاد",
+      "اطلاعات، خدمات، ساعت، review و CTA",
+      "mechanic profile v5",
+      "5-7 روز"
+    ],
+    [
+      "FT-025",
+      "ثبت نظر مکانیک",
+      "غایب",
+      "متوسط",
+      "eligibility و form",
+      "mechanic review",
+      "2-3 روز"
+    ],
+    [
+      "FT-026",
+      "ناحیه مکانیک",
+      "غایب",
+      "زیاد",
+      "dashboard/referral/points/profile/shop",
+      "mechanic dashboard",
+      "12-20 روز"
+    ],
+    [
+      "FT-027",
+      "Empty cart نهایی",
+      "نیازمند تطبیق",
+      "کم",
+      "StateView و CTA بازگشت",
+      "basket no product",
+      "0.5 روز"
+    ],
+    [
+      "FT-028",
+      "Checkout مهمان + OTP",
+      "نسبی",
+      "زیاد",
+      "حفظ cart و بازگشت دقیق به step",
+      "basket guest/OTP",
+      "3-4 روز"
+    ],
+    [
+      "FT-029",
+      "نتیجه پرداخت failure/cancel/pending",
+      "غایب/ناقص",
+      "زیاد",
+      "صفحه و stateهای callback",
+      "payment screens",
+      "3-4 روز"
+    ],
+    [
+      "FT-030",
+      "صفحه برند پویا",
+      "نسبی",
+      "متوسط",
+      "SEO، empty/error و محصولات برند",
+      "Brands page",
+      "2 روز"
+    ]
+  ],
+  "پوشش صفحات": [
+    [
+      "صفحه/جریان",
+      "Route فعلی",
+      "پوشش UI",
+      "Figma Desktop",
+      "Figma Mobile",
+      "وضعیت Responsive",
+      "اقدام اصلی"
+    ],
+    [
+      "خانه",
+      "/",
+      "نسبی",
+      "بله",
+      "بله",
+      "متوسط",
+      "Hero/header/spacing و state خطا"
+    ],
+    [
+      "PLP",
+      "/products",
+      "نسبی",
+      "بله",
+      "بله",
+      "متوسط",
+      "فیلتر/sort/error و عرض‌های کوچک"
+    ],
+    [
+      "PDP",
+      "/product/[slug]",
+      "نسبی",
+      "بله",
+      "بله",
+      "متوسط",
+      "PDP v4، bundle و compatibility"
+    ],
+    [
+      "Cart مشاهده کالا",
+      "/cart step 1",
+      "نسبی",
+      "بله",
+      "بله",
+      "متوسط",
+      "stateها و مبلغ"
+    ],
+    [
+      "Cart آدرس",
+      "/cart step 2",
+      "موجود",
+      "بله",
+      "بله",
+      "متوسط",
+      "shipping quote و bottom sheet"
+    ],
+    [
+      "Cart پرداخت",
+      "/cart step 3",
+      "نمایشی",
+      "بله",
+      "بله",
+      "ضعیف",
+      "پرداخت واقعی"
+    ],
+    [
+      "ورود و OTP",
+      "/login, /verify-otp",
+      "موجود",
+      "بله",
+      "بله",
+      "متوسط",
+      "session امن و return URL"
+    ],
+    [
+      "ثبت‌نام",
+      "/register",
+      "موجود",
+      "بله",
+      "بله",
+      "متوسط",
+      "ساده‌سازی و validation"
+    ],
+    [
+      "پروفایل اطلاعات",
+      "/profile/info",
+      "نسبی",
+      "بله",
+      "بله",
+      "متوسط",
+      "change password و stateها"
+    ],
+    [
+      "آدرس‌ها",
+      "/profile/addresses",
+      "موجود",
+      "بله",
+      "بله",
+      "متوسط",
+      "دسترسی‌پذیری modal"
+    ],
+    [
+      "سفارش‌ها",
+      "/profile/orders",
+      "نسبی",
+      "بله",
+      "بله",
+      "متوسط",
+      "tabs/tracking/review"
+    ],
+    [
+      "جزئیات سفارش",
+      "/profile/orders/[id]",
+      "نسبی",
+      "بله",
+      "بله",
+      "ضعیف-متوسط",
+      "mobile hierarchy و reorder"
+    ],
+    [
+      "Wishlist",
+      "/profile/wishlist",
+      "موجود",
+      "نامشخص",
+      "نامشخص",
+      "متوسط",
+      "QA و cache isolation"
+    ],
+    [
+      "نظرات کاربر",
+      "/profile/comments",
+      "نسبی",
+      "بله",
+      "بله",
+      "متوسط",
+      "اتصال submit"
+    ],
+    [
+      "وبلاگ",
+      "/blog",
+      "موجود",
+      "بله",
+      "نامشخص",
+      "متوسط",
+      "CMS/error/SEO"
+    ],
+    [
+      "جزئیات وبلاگ",
+      "/blog/[slug]",
+      "موجود",
+      "بله",
+      "نامشخص",
+      "متوسط",
+      "schema و type"
+    ],
+    [
+      "FAQ",
+      "/faq",
+      "موجود",
+      "بله",
+      "نامشخص",
+      "متوسط",
+      "حذف محتوای نمونه"
+    ],
+    [
+      "خرید عمده",
+      "/bulk-purchase",
+      "UI موجود",
+      "بله",
+      "نامشخص",
+      "متوسط",
+      "API واقعی"
+    ],
+    [
+      "خودروها",
+      "/vehicles",
+      "موجود",
+      "بله",
+      "نامشخص",
+      "نیازمند اصلاح",
+      "refactor و responsive"
+    ],
+    [
+      "404",
+      "not-found",
+      "موجود",
+      "بله",
+      "احتمالاً",
+      "متوسط",
+      "pixel QA"
+    ],
+    [
+      "Privacy",
+      "/privacy",
+      "غایب",
+      "بله",
+      "نامشخص",
+      "غایب",
+      "ساخت صفحه"
+    ],
+    [
+      "Search full",
+      "ندارد",
+      "غایب",
+      "بله",
+      "بله",
+      "غایب",
+      "ساخت route"
+    ],
+    [
+      "Bundle list/detail",
+      "ندارد",
+      "غایب",
+      "بله",
+      "بله",
+      "غایب",
+      "ساخت صفحات"
+    ],
+    [
+      "Compare",
+      "ندارد",
+      "غایب",
+      "بله",
+      "نامشخص",
+      "غایب",
+      "ساخت feature"
+    ],
+    [
+      "Notification",
+      "ندارد",
+      "غایب",
+      "بله",
+      "بله",
+      "غایب",
+      "ساخت feature"
+    ],
+    [
+      "Ticket/Message",
+      "ندارد",
+      "غایب/TODO",
+      "بله",
+      "بله/نامشخص",
+      "غایب",
+      "ساخت feature"
+    ],
+    [
+      "Wallet",
+      "/profile/wallet لینک شکسته",
+      "غایب",
+      "بله",
+      "بله",
+      "غایب",
+      "ساخت مالی امن"
+    ],
+    [
+      "Garage",
+      "ندارد",
+      "غایب",
+      "بله",
+      "بله",
+      "غایب",
+      "ساخت feature"
+    ],
+    [
+      "Mechanics",
+      "ندارد",
+      "غایب",
+      "بله",
+      "بله",
+      "غایب",
+      "فاز مستقل"
+    ],
+    [
+      "Symptom checker",
+      "ندارد",
+      "غایب",
+      "بله",
+      "بله",
+      "غایب",
+      "فاز مستقل"
+    ]
+  ],
+  "نقشه راه": [
+    [
+      "ترتیب",
+      "فاز",
+      "کار",
+      "خروجی/معیار پایان",
+      "برآورد",
+      "کار",
+      "تست"
+    ],
+    [
+      1,
+      "P0",
+      "تعیین frameهای Approved برای Home/PLP/PDP/Cart",
+      "مبنای بصری یکتا",
+      "0.5 روز",
+      1,
+      null
+    ],
+    [
+      2,
+      "P0",
+      "یکپارچه‌کردن breakpoint و design tokenها",
+      "token و mixin واحد",
+      "3-5 روز",
+      1,
+      null
+    ],
+    [
+      3,
+      "P0",
+      "یکپارچه‌کردن API config",
+      "config typed",
+      "1-2 روز",
+      1,
+      null
+    ],
+    [
+      4,
+      "P0",
+      "حذف middlewareهای تکراری",
+      "proxy واحد",
+      "1 روز",
+      1,
+      null
+    ],
+    [
+      5,
+      "P0",
+      "اصلاح token/session",
+      "auth امن و تست‌شده",
+      "3-5 روز",
+      1,
+      null
+    ],
+    [
+      6,
+      "P1",
+      "shipping quote بدون fallback پولی",
+      "مبلغ UI برابر quote سرور",
+      "2-3 روز",
+      1,
+      null
+    ],
+    [
+      7,
+      "P1",
+      "state machine checkout",
+      "back/refresh امن",
+      "4-6 روز",
+      1,
+      null
+    ],
+    [
+      8,
+      "P1",
+      "اتصال پرداخت callback/verify",
+      "نتیجه پرداخت واقعی",
+      "4-6 روز",
+      1,
+      null
+    ],
+    [
+      9,
+      "P1",
+      "guest OTP و حفظ cart",
+      "conversion flow پایدار",
+      "3 روز",
+      1,
+      null
+    ],
+    [
+      10,
+      "P1",
+      "error/empty/loading مشترک",
+      "بدون loading بی‌پایان",
+      "2 روز",
+      1,
+      null
+    ],
+    [
+      11,
+      "P2",
+      "تطبیق Header desktop/mobile",
+      "header نهایی",
+      "2 روز",
+      1,
+      null
+    ],
+    [
+      12,
+      "P2",
+      "تطبیق Hero و فرم خودرو",
+      "home fold نهایی",
+      "2-3 روز",
+      1,
+      null
+    ],
+    [
+      13,
+      "P2",
+      "تطبیق سکشن‌های Home",
+      "خانه کامل",
+      "3-5 روز",
+      1,
+      null
+    ],
+    [
+      14,
+      "P2",
+      "PLP responsive و filter drawer",
+      "PLP نهایی در 320 تا 1440",
+      "3-4 روز",
+      1,
+      null
+    ],
+    [
+      15,
+      "P2",
+      "PDP و sticky buy bar",
+      "PDP نهایی",
+      "4-6 روز",
+      1,
+      null
+    ],
+    [
+      16,
+      "P2",
+      "Cart/Profile mobile shells",
+      "safe-area و keyboard",
+      "4-5 روز",
+      1,
+      null
+    ],
+    [
+      17,
+      "P2",
+      "Dialog primitive accessible",
+      "focus trap/Escape/ARIA",
+      "2-3 روز",
+      1,
+      null
+    ],
+    [
+      18,
+      "P2",
+      "رفع lint hook/type/accessibility",
+      "صفر error",
+      "6-10 روز",
+      1,
+      null
+    ],
+    [
+      19,
+      "P3",
+      "Privacy/Rules/About و footer links",
+      "بدون لینک شکسته",
+      "2 روز",
+      1,
+      null
+    ],
+    [
+      20,
+      "P3",
+      "Search results و Quick view",
+      "جست‌وجوی کامل",
+      "4-6 روز",
+      1,
+      null
+    ],
+    [
+      21,
+      "P3",
+      "Bundle list/detail/compatibility",
+      "bundle end-to-end",
+      "6-9 روز",
+      1,
+      null
+    ],
+    [
+      22,
+      "P3",
+      "Review/reorder/bulk TODOها",
+      "هیچ CTA کاربری بی‌اثر",
+      "5-7 روز",
+      1,
+      null
+    ],
+    [
+      23,
+      "P4",
+      "Garage/notification/ticket",
+      "پروفایل کامل",
+      "10-16 روز",
+      1,
+      null
+    ],
+    [
+      24,
+      "P4",
+      "Mechanics ecosystem",
+      "لیست تا dashboard",
+      "20-30 روز",
+      1,
+      null
+    ],
+    [
+      25,
+      "P4",
+      "Symptom checker",
+      "wizard و نتیجه",
+      "8-12 روز",
+      1,
+      null
+    ],
+    [
+      26,
+      "P5",
+      "تست 320/360/375/390/768/1024/1440/1920",
+      "responsive matrix سبز",
+      "3-5 روز",
+      1,
+      null
+    ],
+    [
+      27,
+      "P5",
+      "E2E auth/cart/checkout/order",
+      "suite حیاتی در CI",
+      "5-8 روز",
+      1,
+      null
+    ],
+    [
+      28,
+      "P5",
+      "Image optimization و LCP/CLS",
+      "بودجه performance",
+      "3-4 روز",
+      null,
+      null
+    ]
+  ],
+  "راهنمای استفاده": [
+    [
+      "راهنمای استفاده از فایل",
+      null
+    ],
+    [
+      null,
+      null
+    ],
+    [
+      "فیلتر",
+      "ردیف اول هر شیت Auto Filter دارد."
+    ],
+    [
+      "شدت بحرانی",
+      "قرمز؛ قبل از انتشار باید حل شود."
+    ],
+    [
+      "شدت زیاد",
+      "نارنجی؛ روی conversion، امنیت یا تجربه اصلی اثر دارد."
+    ],
+    [
+      "شدت متوسط",
+      "زرد؛ در فاز polish/refactor انجام شود."
+    ],
+    [
+      "شدت کم",
+      "سبز؛ بدهی کم‌خطر یا اصلاح ظاهری محدود."
+    ],
+    [
+      "برآورد",
+      "تقریبی برای یک توسعه‌دهنده آشنا با پروژه است و وابستگی API را کامل حساب نمی‌کند."
+    ],
+    [
+      "محدوده",
+      "پنل Admin عمداً در این فایل بررسی نشده است."
+    ],
+    [
+      "شواهد",
+      "تست زنده بدون backend فعال انجام شد؛ بنابراین quality حالت error/loading نیز قابل مشاهده بود."
+    ]
+  ]
+}

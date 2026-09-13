@@ -9,7 +9,7 @@ export default function ProfileInfoPage() {
   return (
     <div className={styles.page}>
       <ProfileInfo />
-      {/* <ChangePassword /> */}
+      <ChangePassword />
     </div>
   )
 }

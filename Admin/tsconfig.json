@@ -36,6 +36,15 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/legacy-app",
+    "src/app/(ui)",
+    "src/api",
+    "src/core",
+    "src/guard",
+    "src/layout",
+    "src/models",
+    "src/redux",
+    "src/utils"
   ]
 }

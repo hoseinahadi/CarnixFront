@@ -609,7 +609,7 @@
 }
 
 // ========== Responsive ==========
-@media (max-width: 768px) {
+@media (max-width: $breakpoint-md) {
   .container {
     padding: $spacing-md;
     border-radius: $border-radius-md;
@@ -711,7 +711,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: $breakpoint-compact) {
   .container {
     padding: $spacing-sm;
     box-shadow: none;

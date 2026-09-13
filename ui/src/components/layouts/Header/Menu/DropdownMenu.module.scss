@@ -139,7 +139,7 @@
 }
 
 /* ============ Media Queries برای دراپ‌داون ============ */
-@media (max-width: 1399.98px) {
+@media (max-width: calc($breakpoint-xxl - 0.02px)) {
   .main {
     width: 260px;
     height: 400px;
@@ -151,7 +151,7 @@
   }
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: calc($breakpoint-xl - 0.02px)) {
   .megaMenu {
     padding: $spacing-md;
   }
@@ -170,7 +170,7 @@
   }
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: calc($breakpoint-lg - 0.02px)) {
   .main {
     width: 180px;
     height: 360px;
@@ -200,7 +200,7 @@
   }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: calc($breakpoint-md - 0.02px)) {
   .megaMenu {
     display: none; 
   }

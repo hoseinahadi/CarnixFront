@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 
 import styles from './ArticlesSection.module.scss';
@@ -22,21 +22,11 @@ const ArticlesSection = () => {
   // دریافت لیست مقالات و وضعیت لودینگ از Redux Store
   const articles = useAppSelector(selectLatestContents);
   const loading = useAppSelector(selectContentManagerLoading);
-  const [pageSize, setPageSize] = useState<number>(3);
+  const pageSize = 3;
 
   useEffect(() => {
-    const determinePageSize = () => {
-      const width = window.innerWidth;
-      if (width < 768) return 1;
-      if (width < 992) return 2;
-      return 3; // در تصویر دسکتاپ 3 مقاله کنار هم هستند
-    };
-
-    const size = determinePageSize();
-    setPageSize(size);
-
     // فراخوانی API از طریق Redux Thunk
-    dispatch(getLatestContents(size));
+    dispatch(getLatestContents(pageSize));
   }, [dispatch]);
 
   if (loading) {

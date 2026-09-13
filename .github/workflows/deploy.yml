@@ -55,10 +55,10 @@ jobs:
           Write-Host "Installing Frontend Packages"
           Write-Host "=========================================="
 
-          npm install
+          npm ci
 
           if ($LASTEXITCODE -ne 0) {
-              throw "npm install failed."
+              throw "npm ci failed."
           }
 
           $global:LASTEXITCODE = 0
@@ -70,6 +70,15 @@ jobs:
       # ==========================================================
       # BUILD NEXT.JS
       # ==========================================================
+      - name: Check Frontend Quality
+        working-directory: ./ui
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          npm run lint -- --quiet
+          if ($LASTEXITCODE -ne 0) { throw "Frontend lint failed." }
+          $global:LASTEXITCODE = 0
+
       - name: Build Next.js Application
         working-directory: ./ui
         shell: powershell
@@ -518,6 +527,22 @@ jobs:
       #
       # Windows PowerShell considers those duplicate keys.
       # ==========================================================
+      - name: Verify Frontend HTTP Health
+        if: ${{ always() && steps.stop_pm2.outcome == 'success' }}
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $healthUrl = "http://localhost:3000/"
+          $healthy = $false
+          for ($attempt = 1; $attempt -le 30; $attempt++) {
+            try {
+              $response = Invoke-WebRequest -Uri $healthUrl -UseBasicParsing -TimeoutSec 5
+              if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) { $healthy = $true; break }
+            } catch { Start-Sleep -Seconds 2 }
+          }
+          if (!$healthy) { throw "Carnix frontend did not respond at $healthUrl." }
+          Write-Host "Frontend HTTP health check passed."
+
       - name: Verify Carnix Frontend
         if: ${{ always() && steps.stop_pm2.outcome == 'success' }}
         shell: powershell

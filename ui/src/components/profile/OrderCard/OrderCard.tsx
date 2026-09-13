@@ -2,9 +2,11 @@
 'use client'
 
 import React, { useRef } from 'react';
+import { getMediaUrl } from '@/utils/media/getMediaUrl';
 import { useRouter } from 'next/navigation';
 import { OrderDto } from '@/models/order/OrderDto';
 import styles from './OrderCard.module.scss';
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 import { calculateTaxFreeOrderTotal, formatPrice } from '@/utils/price';
 import { 
   IconChevronLeft, 
@@ -18,16 +20,7 @@ interface OrderCardProps {
   order: OrderDto;
 }
 
-const getValidImageUrl = (rawUrl?: string) => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'https://localhost:7191/uploads/products/111.png'; 
-  }
-  if (!rawUrl) return null;
-  let cleanPath = rawUrl.replace(/^wwwroot[\\/]/i, '');
-  if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:7191';
-  return `${backendBaseUrl}${cleanPath}`;
-};
+const getValidImageUrl = (rawUrl?: string) => getMediaUrl(rawUrl);
 
 const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
   const router = useRouter();
@@ -114,11 +107,14 @@ const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
               return (
                 <div key={idx} className={styles.imageWrapper}>
                   {currentImage ? (
-                    <img 
+                    <OptimizedImage 
                       src={currentImage} 
                       alt={item.productName || 'محصول'} 
                       className={styles.productImage} 
                       draggable={false} 
+                      width={88}
+                      height={88}
+                      sizes="88px"
                     />
                   ) : (
                     <span className={styles.placeholder}>بدون تصویر</span>

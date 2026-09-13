@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { CircularProgress } from '@mui/material'
 import { IconX, IconMinus, IconPlus, IconTrash } from '@tabler/icons-react'
-import Image from 'next/image'
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch } from '@/store/hooks'
 import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks'
@@ -95,11 +95,12 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
                 <div key={`cart-item-${currentItemId}-${index}`} className={styles.cartItem}>
                   <div className={styles.imageContainer}>
                     {item.product?.imageUrl ? (
-                      <Image
+                      <OptimizedImage
                         src={item.product.imageUrl}
                         alt={item.product.productName || 'بدون نام'}
                         width={60}
                         height={60}
+                        sizes="60px"
                       />
                     ) : (
                       <div className={styles.noImage}>بدون عکس</div>

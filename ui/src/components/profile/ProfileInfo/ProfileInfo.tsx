@@ -13,6 +13,7 @@ import { clearProfileMessages } from '@/store/feature/profile/profileSlice'
 import styles from './ProfileInfo.module.scss'
 import { IconCheck } from '@tabler/icons-react'
 import BackToSidebar from '../BackToSidebar/BackToSidebar'
+import JalaliDatePicker from '@/components/common/JalaliDatePicker/JalaliDatePicker'
 
 const ProfileInfo = () => {
   const dispatch = useAppDispatch()
@@ -144,7 +145,7 @@ const ProfileInfo = () => {
         <div className={styles.row}>
           <div className={styles.field}>
             <label>جنسیت</label>
-            <select name="gender" value={formData.gender} onChange={handleChange}>
+            <select name="gender" value={formData.gender} onChange={handleChange} className="unifiedSelect">
               <option value="">انتخاب کنید</option>
               <option value="male">مرد</option>
               <option value="female">زن</option>
@@ -152,11 +153,12 @@ const ProfileInfo = () => {
           </div>
           <div className={styles.field}>
             <label>تاریخ تولد</label>
-            <input
-              type="date"
-              name="birthDate"
+            <JalaliDatePicker
+              id="birth-date"
               value={formData.birthDate}
-              onChange={handleChange}
+              onChange={(value) => setFormData((previous) => ({ ...previous, birthDate: value }))}
+              pastYears={100}
+              daysAhead={0}
             />
           </div>
         </div>

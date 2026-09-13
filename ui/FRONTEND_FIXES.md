@@ -18,3 +18,6 @@ Binary font files are intentionally not included in this ZIP. Keep/copy the orig
 - مثال: `7,385,840` → `7,400,000` تومان.
 - قیمت محصولات، قیمت تخفیفی، سبد خرید، هزینه ارسال، کوپن، سفارش‌های پروفایل، علاقه‌مندی و فیلتر قیمت یکپارچه شدند.
 - utility مرکزی در `src/utils/price.ts` اضافه شد.
+
+
+--d8Hwl3TstzLtwr1g

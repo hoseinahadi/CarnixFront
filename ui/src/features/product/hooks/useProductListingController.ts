@@ -25,6 +25,7 @@ import {
   selectActiveFilters,
   selectFilteredCurrentPage,
   selectFilteredLoading,
+  selectFilteredError,
   selectFilteredProducts,
   selectFilteredTotalCount,
   selectFilteredTotalPages,
@@ -78,6 +79,7 @@ export const useProductListingController = (
 
   const products = useAppSelector(selectFilteredProducts);
   const loading = useAppSelector(selectFilteredLoading);
+  const error = useAppSelector(selectFilteredError);
   const totalCount = useAppSelector(selectFilteredTotalCount);
   const currentPage = useAppSelector(selectFilteredCurrentPage);
   const totalPages = useAppSelector(selectFilteredTotalPages);
@@ -322,6 +324,11 @@ export const useProductListingController = (
     [navigateToFilters],
   );
 
+  const retry = useCallback(() => {
+    const request = dispatch(fetchFilteredProducts(filtersFromUrl));
+    void request.finally(() => setIsFirstLoad(false));
+  }, [dispatch, filtersFromUrl]);
+
   const displayTitle = useMemo(() => {
     if (!categorySlug) {
       return 'محصولات';
@@ -349,6 +356,7 @@ export const useProductListingController = (
   return {
     products,
     loading,
+    error,
     totalCount,
     currentPage,
     totalPages,
@@ -366,5 +374,6 @@ export const useProductListingController = (
     clearFilters,
     changePage,
     changeSort,
+    retry,
   };
 };

@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   useEffect,
@@ -34,6 +33,7 @@ import { fetchProductBundles } from '@/store/feature/product/productThunks';
 
 import styles from './RelatedProducts.module.scss';
 import { formatPrice } from '@/utils/price';
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 
 interface RelatedProductsProps {
   productId: number;
@@ -355,7 +355,7 @@ export default function RelatedProducts({
     >
       <div className={styles.imageSection}>
         {item.imageUrl ? (
-          <Image
+          <OptimizedImage
             src={item.imageUrl}
             alt={item.name}
             fill

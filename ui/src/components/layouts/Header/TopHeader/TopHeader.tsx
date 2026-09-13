@@ -6,6 +6,7 @@ import styles from './TopHeader.module.scss'
 import SearchAutocomplete from '@/features/search/components/SearchAutocomplete/SearchAutocomplete'
 import HeaderAction from '../HeaderAction/HeaderAction'
 import { IconSearch, IconX, IconMenu2 } from '@tabler/icons-react'
+import Dialog from '@/components/common/Dialog/Dialog'
 
 interface TopHeaderProps {
   onMenuClick: () => void;
@@ -22,12 +23,15 @@ const TopHeader = ({ onMenuClick, isMenuOpen }: TopHeaderProps) => {
         <button 
           className={styles.mobileMenuBtn}
           onClick={onMenuClick}
+          type="button"
+          aria-label={isMenuOpen ? 'بستن منوی اصلی' : 'باز کردن منوی اصلی'}
+          aria-expanded={isMenuOpen}
         >
-          <IconMenu2 size={24} />
+          <IconMenu2 size={20} />
         </button>
 
         <div className={styles.logoContainer}>
-          <Logo/>
+          <Logo className={styles.headerLogo}/>
         </div>
         
         <div className={styles.searchContainer}>
@@ -40,26 +44,26 @@ const TopHeader = ({ onMenuClick, isMenuOpen }: TopHeaderProps) => {
           <button 
           className={styles.mobileSearchBtn}
           onClick={() => setIsSearchModalOpen(true)}
+          type="button"
+          aria-label="باز کردن جستجو"
         >
-          <IconSearch size={20} />
+          <IconSearch size={18} />
         </button>
           <HeaderAction/>
         </div>
       </div>
 
-      {isSearchModalOpen && (
-        <div className={styles.searchModal}>
+      <Dialog open={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} title="جستجو" overlayClassName={styles.searchModal} contentClassName={styles.searchDialog}>
           <div className={styles.searchModalHeader}>
             <h3>جستجو</h3>
-            <button onClick={() => setIsSearchModalOpen(false)}>
+            <button type="button" aria-label="بستن جستجو" onClick={() => setIsSearchModalOpen(false)}>
               <IconX size={24} />
             </button>
           </div>
           <div className={styles.searchModalContent}>
             <SearchAutocomplete />
           </div>
-        </div>
-      )}
+      </Dialog>
     </>
   )
 }

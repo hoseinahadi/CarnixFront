@@ -15,6 +15,15 @@
   }
 }
 
+.allResults {
+  display: flex;
+  justify-content: center;
+  padding: 14px 16px;
+  border-top: 1px solid #e2e8f0;
+  color: #2563eb;
+  font-weight: 600;
+}
+
 .overlay {
   position: fixed;
   top: 0;
@@ -94,18 +103,21 @@
 
 .dropdown {
   position: absolute;
+  top: calc(100% + 4px);
   left: 0;
   width: 100%;
   background-color: $color-white;
-  border-radius: 0 0 $border-radius-md $border-radius-md;
+  border-radius: 8px;
   box-shadow: $shadow-xl;
   z-index: $z-index-modal;
   border: 1px solid $color-gray-100;
   overflow-y: auto;
-  @include custom-scrollbar(6px, $color-gray-300, transparent);
+  scrollbar-width: none;
   animation: fadeIn 0.15s ease-out;
   max-height: 400px;
 }
+
+.dropdown::-webkit-scrollbar { display: none; }
 
 .defaultState {
   padding: $spacing-md;
@@ -234,7 +246,7 @@
 }
 
 /* ============ Media Queries برای سرچ ============ */
-@media (max-width: 991.98px) {
+@media (max-width: calc($breakpoint-lg - 0.02px)) {
   .searchContainer {
     max-width: 100%;
   }
@@ -248,7 +260,7 @@
   }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: calc($breakpoint-md - 0.02px)) {
   .searchBox {
     height: 44px;
     border-radius: $border-radius-md;
@@ -273,7 +285,7 @@
   }
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: calc($breakpoint-sm - 0.02px)) {
   .searchBox {
     height: 40px;
     padding: 4px $spacing-sm;

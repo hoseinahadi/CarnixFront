@@ -1,4 +1,6 @@
 .next
+.next-legacy
 node_modules
 .env*.local
 *.log
+*.tsbuildinfo

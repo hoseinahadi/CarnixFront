@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
+import { FreeMode, Navigation } from 'swiper/modules';
 import { Category } from '@/models/category/Category';
 import { CategoryItem } from './CategoryItem';
 
@@ -23,9 +23,25 @@ export const CategorySlider: React.FC<CategorySliderProps> = ({ categories }) =>
   return (
     <div className={styles.sliderContainer}>
       <Swiper
-        modules={[Navigation]}
+        modules={[Navigation, FreeMode]}
         spaceBetween={8}
-        slidesPerView="auto"
+        slidesPerView={3}
+        freeMode={{
+          enabled: true,
+          momentum: true,
+          momentumRatio: 0.75,
+          momentumVelocityRatio: 0.8,
+          minimumVelocity: 0.02,
+        }}
+        grabCursor
+        threshold={8}
+        preventClicks={false}
+        preventClicksPropagation={false}
+        resistance
+        resistanceRatio={0.65}
+        watchOverflow
+        observer
+        observeParents
         navigation={{
           nextEl: '.category-next',
           prevEl: '.category-prev',
@@ -42,7 +58,7 @@ export const CategorySlider: React.FC<CategorySliderProps> = ({ categories }) =>
         }}
       >
         {mainCategories.map((category) => (
-          <SwiperSlide key={category.categoryId} style={{ width: 'auto' }}>
+          <SwiperSlide key={category.categoryId}>
             <CategoryItem category={category} />
           </SwiperSlide>
         ))}

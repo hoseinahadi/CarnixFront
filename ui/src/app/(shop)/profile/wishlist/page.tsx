@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage'
 import { IconHeart, IconTrash, IconCar } from '@tabler/icons-react'
 
 import styles from './WishlistPage.module.scss'
@@ -176,7 +176,7 @@ export default function WishlistPage() {
               <div key={item.userWishlistId ?? `product-${productId}`} className={styles.productCard}>
                 <div className={styles.imageWrapper}>
                   {product.imageUrl ? (
-                    <Image
+                    <OptimizedImage
                       src={product.imageUrl}
                       alt={product.name || 'محصول'}
                       fill

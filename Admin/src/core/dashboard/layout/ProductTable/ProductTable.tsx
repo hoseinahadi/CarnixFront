@@ -1,5 +1,3 @@
-// features/products/components/ProductTable/ProductTable.tsx
-
 import React from 'react';
 import type { Product } from '@/models/product/Product';
 import styles from './ProductTable.module.scss';
@@ -28,8 +26,6 @@ const ProductTable: React.FC<ProductTableProps> = ({
       </div>
     );
   }
-
-  // console.log("Products Data:", products); // در صورت نیاز برای دیباگ می‌توانید فعال بگذارید
 
   if (!products || products.length === 0) {
     return (
@@ -65,7 +61,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                 {product.imageUrl ? (
                   <img
                     src={product.imageUrl}
-                    alt={product.productName} // 👈 اصلاح شد
+                    alt={product.productName} 
                     className={styles.thumbnail}
                   />
                 ) : (
@@ -74,7 +70,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
               </td>
 
               <td>
-                <div className={styles.boldText}>{product.productName}</div> {/* 👈 اصلاح شد */}
+                <div className={styles.boldText}>{product.productName}</div> 
                 {product.fullDescription && (
                   <div style={{ fontSize: '0.8rem', color: '#6c757d', marginTop: '4px' }}>
                     {product.fullDescription.length > 40
@@ -96,7 +92,6 @@ const ProductTable: React.FC<ProductTableProps> = ({
               </td>
 
               <td>
-                {/* 👈 استفاده یکپارچه از totalStock */}
                 <span style={{ fontWeight: 500, color: product.totalStock === 0 ? '#dc3545' : 'inherit' }}>
                   {product.totalStock === 0
                     ? 'ناموجود'
@@ -116,11 +111,11 @@ const ProductTable: React.FC<ProductTableProps> = ({
                 </button>
               </td>
 
-              <td>
+              <td className={styles.actionCell}>
                 <div className={styles.actions}>
                   <button
                     type="button"
-                    className={styles.viewBtn} // کلاس جدیدی که باید در فایل SCSS استایل‌دهی شود
+                    className={`${styles.actionBtn} ${styles.viewBtn}`}
                     onClick={() => onView(product)}
                     title="مشاهده جزئیات کامل"
                   >
@@ -128,7 +123,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   </button>
                   <button
                     type="button"
-                    className={styles.editBtn}
+                    className={`${styles.actionBtn} ${styles.editBtn}`}
                     onClick={() => onEdit(product)}
                     title="ویرایش محصول"
                   >
@@ -136,7 +131,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   </button>
                   <button
                     type="button"
-                    className={styles.deleteBtn}
+                    className={`${styles.actionBtn} ${styles.deleteBtn}`}
                     onClick={() => onDelete(product)}
                     title="حذف محصول"
                   >

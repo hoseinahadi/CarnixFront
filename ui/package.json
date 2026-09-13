@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:p0": "node scripts/verify-p0.mjs",
+    "check:critical": "node scripts/verify-critical.mjs",
+    "check:p1": "node scripts/verify-p1.mjs",
+    "check:p2": "node scripts/verify-p2.mjs && eslint . --quiet",
+    "check:p3": "node scripts/verify-p3.mjs && eslint . --quiet",
+    "check:p4": "node scripts/verify-p4.mjs && eslint . --quiet"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

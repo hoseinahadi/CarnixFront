@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import CategoryProductsContent from './CategoryProductsContent'
+import type { Category } from '@/models/category/Category'
 
 interface PageProps {
   params: Promise<{ category: string }>
@@ -13,19 +14,20 @@ export async function generateStaticParams() {
     const res = await CategoryApi.getAll()
     
     if (res.data?.isSuccess && Array.isArray(res.data.data)) {
-      return res.data.data.map((cat: any) => ({
+      return res.data.data.map((cat: Category) => ({
         category: cat.slug || String(cat.categoryId),
       }))
     }
   } catch (error) {
-    console.warn('Could not fetch categories for static generation, fallbacking to default params.', error)
+    if (process.env.STRICT_SSG_DATA === 'true') {
+      throw new Error('Category data is required for strict static generation', { cause: error })
+    }
+    console.warn('Could not fetch categories for static generation; paths will be generated on demand.', error)
   }
-
-  // مقدار رزرو در صورت قطع بودن API در زمان بیلد یا برای تست اولیه
-  return [
-    { category: 'all' },
-  ]
+  return []
 }
+
+export const dynamicParams = true
 
 export default function CategoryProductsPage({ params }: PageProps) {
   return (

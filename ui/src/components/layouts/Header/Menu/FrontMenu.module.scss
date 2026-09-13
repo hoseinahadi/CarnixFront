@@ -59,7 +59,7 @@
 }
 
 /* ============ Media Queries برای منو ============ */
-@media (max-width: 1399.98px) {
+@media (max-width: calc($breakpoint-xxl - 0.02px)) {
   .container {
     padding: $spacing-xl 3rem;
     gap: 30px;
@@ -70,7 +70,7 @@
   }
 }
 
-@media (max-width: 1199.98px) {
+@media (max-width: calc($breakpoint-xl - 0.02px)) {
   .container {
     padding: $spacing-lg 2rem;
     gap: 24px;
@@ -86,7 +86,7 @@
   }
 }
 
-@media (max-width: 991.98px) {
+@media (max-width: calc($breakpoint-lg - 0.02px)) {
   .container {
     padding: $spacing-md $spacing-lg;
     gap: 20px;
@@ -104,7 +104,7 @@
 }
 
 /* ============ موبایل (در هدر موبایل جابجا می‌شود) ============ */
-@media (max-width: 767.98px) {
+@media (max-width: calc($breakpoint-md - 0.02px)) {
   .container {
     display: none;
   }
@@ -116,4 +116,8 @@
   .overlay {
     display: none;
   }
+}
+
+.categoryTrigger {
+  margin-left: 20px;
 }

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import classNames from 'classnames';
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 
 import type {
   VehicleMake,
@@ -789,8 +790,7 @@ export default function VehicleSelect({
 
                           {make.logoUrl ? (
 
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <OptimizedImage
                               src={
                                 make.logoUrl
                               }
@@ -798,6 +798,9 @@ export default function VehicleSelect({
                               className={
                                 styles.logo
                               }
+                              width={40}
+                              height={40}
+                              sizes="40px"
                             />
 
                           ) : (

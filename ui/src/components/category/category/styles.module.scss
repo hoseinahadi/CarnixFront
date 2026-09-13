@@ -3,15 +3,22 @@
 
 .sliderContainer {
   width: 100%;
-  touch-action: pan-y; // 👈 اجازه اسکرول عمودی
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+
+  &:active { cursor: grabbing; }
   
   // مطمئن شو Swiper داخلی هم اسکرول رو قورت نده
   :global(.swiper-wrapper) {
-    touch-action: pan-y; // فقط عمودی
+    align-items: stretch;
+    touch-action: pan-y;
   }
   
   :global(.swiper-slide) {
     touch-action: pan-y;
+    height: auto;
+    user-select: none;
   }
 }
 
@@ -27,24 +34,20 @@
   }
 
   // لپ‌تاپ
-  @include respond-to('lg') {
-    margin-top: 16px;
-  }
+  @include respond-to('lg') { margin-top: 0; }
 
   // تبلت
-  @include respond-to('md') {
-    margin-top: 48px;
-  }
+  @include respond-to('md') { margin-top: 0; }
 
   // موبایل
   @include respond-down('md') {
-    margin-top: 400px;
+    margin-top: 0;
     margin-bottom: $spacing-md;
   }
 
   // موبایل کوچک
   @include respond-down('sm') {
-    margin-top: 400px;
+    margin-top: 0;
 
     margin-bottom: $spacing-sm;
   }
@@ -99,8 +102,8 @@
   }
 
   @include respond-down('sm') {
-    width: 28px;
-    height: 28px;
+    width: 27px;
+    height: 27px;
   }
 
   &:hover:not(:disabled) {
@@ -127,8 +130,8 @@
     }
 
     @include respond-down('sm') {
-      width: 14px;
-      height: 14px;
+      width: 13px;
+      height: 13px;
     }
   }
 }
@@ -161,8 +164,8 @@
 
 .iconBox {
   @include flex-center;
-  width: 80px;
-  height: 80px;
+  width: 104px;
+  height: 104px;
   border-radius: $border-radius-full;
   background-color: $color-white;
   color: $color-primary;
@@ -179,14 +182,14 @@
   }
 
   @include respond-down('sm') {
-    width: 48px;
-    height: 48px;
+    width: 68px;
+    height: 68px;
   }
 }
 
 .logoImage {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
 
   @include respond-down('lg') {
@@ -200,8 +203,8 @@
   }
 
   @include respond-down('sm') {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 }
 
@@ -221,8 +224,8 @@
   }
 
   @include respond-down('sm') {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 }
 
@@ -245,6 +248,6 @@
   }
 
   @include respond-down('sm') {
-    font-size: 16px;
+    font-size: 15px;
   }
 }

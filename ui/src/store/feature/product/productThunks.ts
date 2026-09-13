@@ -1,6 +1,14 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { ProductFilters } from '@/models/product/ProductFilters';
+import type { Product } from '@/models/product/Product';
+import type { ProductDetails } from '@/models/product/ProductDetails';
+import type { PagedResult } from '@/models/common/PagedResult';
+import type { ProductBundleDto } from '@/models/ProductBundle/ProductBundle';
 import { ProductApi } from '@/services/api/product/productApi';
+import {
+  getApiErrorMessage,
+  unwrapApiData,
+} from '@/services/api/common/apiError';
 
 interface ProductHomeThunkState {
   product: {
@@ -22,25 +30,32 @@ const getCollectionSize = (value: unknown): number => {
   const candidates = [record.mainResults, record.data, record.items];
   for (const candidate of candidates) {
     if (Array.isArray(candidate)) return candidate.length;
-    if (candidate && typeof candidate === 'object' && Array.isArray((candidate as any).items)) {
-      return (candidate as any).items.length;
+    if (candidate && typeof candidate === 'object' && Array.isArray((candidate as { items?: unknown }).items)) {
+      return (candidate as { items: unknown[] }).items.length;
     }
   }
   return 0;
 };
 
 
-export const getAllProducts = createAsyncThunk(
+const rejectApiError = (error: unknown, fallback: string): string =>
+  getApiErrorMessage(error, fallback);
+
+const readApiData = <T>(payload: unknown): T =>
+  unwrapApiData<T>(payload);
+
+export const getAllProducts = createAsyncThunk<
+  PagedResult<Product>,
+  ProductFilters | undefined,
+  { rejectValue: string }
+>(
   'product/getAll',
   async (filters: ProductFilters | undefined, { rejectWithValue }) => {
     try {
       const response = await ProductApi.getAll(filters);
-      if (response.data.isSuccess) {
-        return (response.data as any).data || (response.data as any).mainResults || response.data;
-      }
-      return rejectWithValue(response.data.message);
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'خطا در دریافت محصولات');
+      return readApiData<PagedResult<Product>>(response.data);
+    } catch (error: unknown) {
+      return rejectWithValue(rejectApiError(error, 'خطا در دریافت محصولات'));
     }
   }
 );
@@ -53,7 +68,7 @@ interface GetBestSellersArgs {
 }
 
 export const getBestSellingProducts = createAsyncThunk<
-  any,
+  PagedResult<Product>,
   GetBestSellersArgs,
   { state: ProductHomeThunkState; rejectValue: string }
 >(
@@ -62,12 +77,9 @@ export const getBestSellingProducts = createAsyncThunk<
     try {
       const { pageNumber = 1, pageSize = 5, includeAll = true } = args;
       const response = await ProductApi.getBestSellers(pageNumber, pageSize, includeAll);
-      if (response.data.isSuccess) {
-        return (response.data as any).data || (response.data as any).mainResults || response.data;
-      }
-      return rejectWithValue(response.data.message || 'خطا در دریافت پرفروش‌ترین‌ها');
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'خطا در دریافت پرفروش‌ترین‌ها');
+      return readApiData<PagedResult<Product>>(response.data);
+    } catch (error: unknown) {
+      return rejectWithValue(rejectApiError(error, 'خطا در دریافت پرفروش‌ترین‌ها'));
     }
   },
   {
@@ -86,18 +98,15 @@ interface GetPagedArgs {
   force?: boolean;
 }
 
-export const getNewestProductsPaged = createAsyncThunk<any, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
+export const getNewestProductsPaged = createAsyncThunk<PagedResult<Product>, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
   'product/getNewestPaged',
   async (args, { rejectWithValue }) => {
     try {
       const { pageNumber = 1, pageSize = 5 } = args;
       const response = await ProductApi.getFiltered({ sortBy: 'newest', page: pageNumber, pageSize });
-      if (response.data.isSuccess) {
-        return (response.data as any).data || (response.data as any).mainResults || response.data;
-      }
-      return rejectWithValue(response.data.message || 'خطا در دریافت جدیدترین محصولات');
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'خطا در دریافت جدیدترین محصولات');
+      return readApiData<PagedResult<Product>>(response.data);
+    } catch (error: unknown) {
+      return rejectWithValue(rejectApiError(error, 'خطا در دریافت جدیدترین محصولات'));
     }
   },
   {
@@ -110,18 +119,15 @@ export const getNewestProductsPaged = createAsyncThunk<any, GetPagedArgs, { stat
   },
 );
 
-export const getFeaturedProductsPaged = createAsyncThunk<any, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
+export const getFeaturedProductsPaged = createAsyncThunk<PagedResult<Product>, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
   'product/getFeaturedPaged',
   async (args, { rejectWithValue }) => {
     try {
       const { pageNumber = 1, pageSize = 5 } = args;
       const response = await ProductApi.getFeaturedPaged(pageNumber, pageSize);
-      if (response.data.isSuccess) {
-        return (response.data as any).data || (response.data as any).mainResults || response.data;
-      }
-      return rejectWithValue(response.data.message || 'خطا در دریافت محصولات ویژه');
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'خطا در دریافت محصولات ویژه');
+      return readApiData<PagedResult<Product>>(response.data);
+    } catch (error: unknown) {
+      return rejectWithValue(rejectApiError(error, 'خطا در دریافت محصولات ویژه'));
     }
   },
   {
@@ -134,18 +140,15 @@ export const getFeaturedProductsPaged = createAsyncThunk<any, GetPagedArgs, { st
   },
 );
 
-export const getDiscountedProductsPaged = createAsyncThunk<any, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
+export const getDiscountedProductsPaged = createAsyncThunk<PagedResult<Product>, GetPagedArgs, { state: ProductHomeThunkState; rejectValue: string }>(
   'product/getDiscountedPaged',
   async (args, { rejectWithValue }) => {
     try {
       const { pageNumber = 1, pageSize = 5 } = args;
       const response = await ProductApi.getDiscountedPaged(pageNumber, pageSize);
-      if (response.data.isSuccess) {
-        return (response.data as any).data || (response.data as any).mainResults || response.data;
-      }
-      return rejectWithValue(response.data.message || 'خطا در دریافت محصولات تخفیف‌دار');
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'خطا در دریافت محصولات تخفیف‌دار');
+      return readApiData<PagedResult<Product>>(response.data);
+    } catch (error: unknown) {
+      return rejectWithValue(rejectApiError(error, 'خطا در دریافت محصولات تخفیف‌دار'));
     }
   },
   {
@@ -158,77 +161,39 @@ export const getDiscountedProductsPaged = createAsyncThunk<any, GetPagedArgs, { 
   },
 );
 
-export const getProductDetails = createAsyncThunk(
+export const getProductDetails = createAsyncThunk<
+  ProductDetails,
+  number | string,
+  { rejectValue: string }
+>(
   'product/getDetails',
   async (id: number | string, { rejectWithValue }) => {
     try {
       const response = await ProductApi.getDetails(id);
-      if (response.data.isSuccess) {
-        return (response.data as any).data || (response.data as any).mainResults || response.data;
-      }
-      return rejectWithValue(response.data.message);
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'خطا در دریافت جزئیات محصول');
+      return readApiData<ProductDetails>(response.data);
+    } catch (error: unknown) {
+      return rejectWithValue(rejectApiError(error, 'خطا در دریافت جزئیات محصول'));
     }
   }
 );
 
 // src/store/feature/product/productThunks.ts
-export const getProductBySlug = createAsyncThunk(
+export const getProductBySlug = createAsyncThunk<
+  ProductDetails,
+  string,
+  { rejectValue: string }
+>(
   'product/getBySlug',
   async (slug: string, { rejectWithValue }) => {
     try {
       const response = await ProductApi.getBySlug(slug);
-      
-      // ✅ این را اضافه کنید
-      
-      if (response.data.isSuccess) {
-        const data = (response.data as any).data || (response.data as any).mainResults || response.data;
-        
-        // ✅ این را اضافه کنید  
-        
-        return data;
-      }
-      return rejectWithValue(response.data.message);
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'خطا در دریافت اطلاعات محصول');
+      return readApiData<ProductDetails>(response.data);
+    } catch (error: unknown) {
+      return rejectWithValue(rejectApiError(error, 'خطا در دریافت اطلاعات محصول'));
     }
   }
 );
 
-export const fetchPDPAdditionalData = createAsyncThunk(
-  'product/fetchPDPAdditionalData',
-  async (productId: number, { rejectWithValue }) => {
-    try {
-      const [priceRes, bundlesRes] = await Promise.all([
-        ProductApi.getEffectivePrice(productId),
-        ProductApi.getAllBundles() 
-      ]);
-
-      let effectivePrice = null;
-      if (priceRes.data.isSuccess) {
-        effectivePrice = (priceRes.data as any).data || (priceRes.data as any).mainResults || priceRes.data;
-      }
-
-      let productBundles: any[] = [];
-      if (bundlesRes.data.isSuccess) {
-        const bData = (bundlesRes.data as any).data || (bundlesRes.data as any).mainResults || bundlesRes.data;
-        if (bData && Array.isArray(bData)) {
-          productBundles = bData.filter((b: any) => 
-            b.items?.some((item: any) => item.productId === productId)
-          );
-        }
-      }
-
-      return {
-        effectivePrice,
-        bundles: productBundles
-      };
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'خطا در دریافت اطلاعات تکمیلی');
-    }
-  }
-);
 interface ProductPdpThunkState {
   productDetail: {
     currentProductId: number | null;
@@ -276,11 +241,9 @@ export const fetchEffectivePrice = createAsyncThunk<
           .mainResults ??
         null
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          'خطا در دریافت قیمت محصول',
+        rejectApiError(error, 'خطا در دریافت قیمت محصول'),
       );
     }
   },
@@ -340,8 +303,7 @@ export const fetchProductBundles = createAsyncThunk<
     { rejectWithValue },
   ) => {
     try {
-      const response =
-        await ProductApi.getAllBundles();
+      const response = await ProductApi.getBundlesByProduct(productId);
 
       if (!response.data.isSuccess) {
         return rejectWithValue(
@@ -350,27 +312,18 @@ export const fetchProductBundles = createAsyncThunk<
         );
       }
 
-      const allBundles =
-        response.data.data ??
-        (response.data as {
-          mainResults?: import('@/models/ProductBundle/ProductBundle').ProductBundleDto[];
-        }).mainResults ??
-        [];
+      const allBundles = readApiData<ProductBundleDto[]>(
+        response.data,
+      );
 
       if (!Array.isArray(allBundles)) {
         return [];
       }
 
-      return allBundles.filter((bundle) =>
-        bundle.items?.some(
-          (item) => item.productId === productId,
-        ),
-      );
-    } catch (error: any) {
+      return allBundles.filter((bundle) => bundle.items?.some((item) => item.productId === productId));
+    } catch (error: unknown) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          'خطا در دریافت بسته‌های محصول',
+        rejectApiError(error, 'خطا در دریافت بسته‌های محصول'),
       );
     }
   },

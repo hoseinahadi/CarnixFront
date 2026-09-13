@@ -1,0 +1,11 @@
+import{existsSync,readFileSync}from'node:fs';const root=new URL('../',import.meta.url);const exists=p=>existsSync(new URL(p,root));const read=p=>readFileSync(new URL(p,root),'utf8');const failures=[];
+const routes=['src/app/(shop)/profile/garage/page.tsx','src/app/(shop)/profile/notifications/page.tsx','src/app/(shop)/profile/tickets/page.tsx','src/app/(shop)/profile/tickets/[id]/page.tsx','src/app/(shop)/profile/wallet/page.tsx','src/app/(shop)/mechanics/page.tsx','src/app/(shop)/mechanics/[id]/page.tsx','src/app/(shop)/mechanics/dashboard/page.tsx','src/app/(shop)/diagnose/page.tsx'];for(const route of routes)if(!exists(route))failures.push(`Missing route: ${route}`);
+if(!read('src/features/p4/p4Api.ts').includes("'/p4/garage'"))failures.push('P4 backend API adapter missing');
+if(!read('src/components/profile/ProfileSidebar/ProfileSidebar.tsx').includes('/profile/tickets'))failures.push('Profile navigation missing');
+if(!read('src/app/(shop)/diagnose/page.tsx').includes('مشاهده قطعات مرتبط'))failures.push('Symptom result action missing');
+if(!read('src/app/(shop)/mechanics/[id]/page.tsx').includes('p4Api.bookings.add'))failures.push('Mechanic booking flow missing');
+if(!read('src/features/p4/p4Api.ts').includes('compatibility:async'))failures.push('Garage compatibility API adapter missing');
+if(!read('src/features/p4/p4Api.ts').includes('evaluate:async'))failures.push('Diagnostic evaluation API adapter missing');
+if(!read('src/app/(shop)/profile/garage/page.tsx').includes('ویرایش خودرو'))failures.push('Garage edit flow missing');
+for(const removed of ['src/features/p4/localRepository.ts','src/features/p4/mechanics.ts','src/features/p4/symptoms.ts'])if(exists(removed))failures.push(`Static P4 source remains: ${removed}`);
+if(failures.length){console.error(failures.join('\n'));process.exit(1)}console.log('P4 checks passed.');

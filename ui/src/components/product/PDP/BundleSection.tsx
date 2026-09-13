@@ -5,7 +5,7 @@ import { ShoppingBag, Plus, LoaderCircle } from 'lucide-react';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { addToCart, fetchMyCart } from '@/store/feature/cart/cartThunks';
-import { selectProductBundles } from '@/store/feature/product/productSelectors';
+import { selectProductBundles } from '@/store/feature/product/productDetailSelectors';
 
 import styles from './BundleSection.module.scss';
 

@@ -7,6 +7,7 @@ import { Trash2, Minus, Plus } from 'lucide-react';
 import styles from './CartStep1.module.scss';
 import { calculateRoundedCartSubtotal, calculateTaxFreeCartTotal, formatPrice } from '@/utils/price';
 import toast from 'react-hot-toast'; // 🟢
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 
 interface CartStep1Props {
   cart: any;
@@ -54,9 +55,12 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
             return (
               <div key={currentItemId} className={styles.cartItem}>
                 <div className={styles.image}>
-                  <img 
+                  <OptimizedImage 
                     src={item.imageUrl || item.product?.imageUrl} 
                     alt={item.productName || item.product?.productName} 
+                    width={96}
+                    height={96}
+                    sizes="96px"
                   />
                 </div>
                 <div className={styles.itemContent}>

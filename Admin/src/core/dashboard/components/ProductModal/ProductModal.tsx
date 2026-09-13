@@ -7,6 +7,7 @@ import type { Category } from '@/models/category/Category';
 import type { Brand } from '@/models/Brand/Brand';
 import ProductMediaManager, { type MediaItem } from '../ProductMediaManager/ProductMediaManager';
 import styles from './ProductModal.module.scss';
+import { Loader2 } from 'lucide-react';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ interface ProductModalProps {
   editingProduct?: Product | null;
   categories: Category[];
   brands?: Brand[];
+  loading?: boolean;
+  isCategoriesLoading?: boolean;
 }
 
 type TabType = 'basic' | 'details' | 'seo' | 'media';
@@ -48,12 +51,13 @@ const ProductModal: React.FC<ProductModalProps> = ({
   editingProduct,
   categories,
   brands = [],
+  loading = false,
+  isCategoriesLoading = false
 }) => {
-  // ✅ همه هوک‌ها اینجا — قبل از هر return
-  const [activeTab,   setActiveTab]   = useState<TabType>('basic');
-  const [formData,    setFormData]    = useState(initialFormState);
-  const [errors,      setErrors]      = useState<Record<string, string>>({});
-  const [mediaItems,  setMediaItems]  = useState<MediaItem[]>([]);  // ← اضافه شد
+  const [activeTab, setActiveTab] = useState<TabType>('basic');
+  const [formData, setFormData] = useState(initialFormState);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]); 
 
   useEffect(() => {
     if (isOpen) {
@@ -82,14 +86,15 @@ const ProductModal: React.FC<ProductModalProps> = ({
       } else {
         setFormData(initialFormState);
       }
-      setMediaItems([]);   // ← reset رسانه‌ها
+      setMediaItems([]); 
       setErrors({});
       setActiveTab('basic');
     }
   }, [isOpen, editingProduct]);
 
-  // ✅ حالا می‌تونیم return null بذاریم — بعد از همه هوک‌ها
   if (!isOpen) return null;
+
+  const isNewProduct = !editingProduct;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -138,7 +143,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
       isActive        : formData.isActive,
       isFeatured      : formData.isFeatured,
       displayOrder    : Number(formData.displayOrder),
-      mediaItems,   // ← رسانه‌ها هم ارسال می‌شن
+      mediaItems, 
     };
 
     onSubmit(
@@ -147,6 +152,18 @@ const ProductModal: React.FC<ProductModalProps> = ({
         : payload
     );
   };
+
+  const TABS: { key: TabType; label: string; disabled?: boolean; tooltip?: string }[] = [
+    { key: 'basic',   label: 'اطلاعات پایه' },
+    { key: 'details', label: 'جزئیات' },
+    { key: 'seo',     label: 'سئو' },
+    { 
+      key: 'media',   
+      label: 'رسانه', 
+      disabled: isNewProduct, 
+      tooltip: isNewProduct ? 'لطفا ابتدا اطلاعات پایه محصول را ذخیره کنید تا امکان افزودن تصویر فراهم شود' : '' 
+    },
+  ];
 
   return (
     <BaseModal
@@ -157,28 +174,23 @@ const ProductModal: React.FC<ProductModalProps> = ({
     >
       <form onSubmit={handleSubmit} className={styles.modalForm}>
 
-        {/* ── Tabs ────────────────────────────────────── */}
         <div className={styles.tabs}>
-          {([
-            { key: 'basic',   label: 'اطلاعات پایه' },
-            { key: 'details', label: 'جزئیات'        },
-            { key: 'seo',     label: 'سئو'            },
-            { key: 'media',   label: 'رسانه'          },
-          ] as { key: TabType; label: string }[]).map(({ key, label }) => (
+          {TABS.map(({ key, label, disabled, tooltip }) => (
             <button
               key={key}
               type="button"
-              className={`${styles.tab} ${activeTab === key ? styles.activeTab : ''}`}
-              onClick={() => setActiveTab(key)}
+              className={`${styles.tab} ${activeTab === key ? styles.activeTab : ''} ${disabled ? styles.disabledTab : ''}`}
+              onClick={() => !disabled && setActiveTab(key)}
+              disabled={disabled}
+              title={tooltip}
             >
               {label}
+              {disabled && <span className={styles.lockIcon}>🔒</span>}
             </button>
           ))}
         </div>
 
         <div className={styles.tabContent}>
-
-          {/* ── TAB 1: اطلاعات پایه ─────────────────── */}
           {activeTab === 'basic' && (
             <>
               <div className={styles.formRow}>
@@ -193,10 +205,9 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     onChange={handleChange}
                     placeholder="مثال: گوشی سامسونگ S24"
                     className={`${styles.input} ${errors.productName ? styles.inputError : ''}`}
+                    disabled={loading}
                   />
-                  {errors.productName && (
-                    <span className={styles.errorMsg}>{errors.productName}</span>
-                  )}
+                  {errors.productName && <span className={styles.errorMsg}>{errors.productName}</span>}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -208,6 +219,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     onChange={handleChange}
                     placeholder="مثال: PROD-001"
                     className={styles.input}
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -222,17 +234,16 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     value={formData.categoryId}
                     onChange={handleChange}
                     className={`${styles.select} ${errors.categoryId ? styles.inputError : ''}`}
+                    disabled={loading || isCategoriesLoading}
                   >
-                    <option value="">انتخاب کنید...</option>
+                    <option value="">{isCategoriesLoading ? 'در حال بارگذاری...' : 'انتخاب کنید...'}</option>
                     {categories.map((cat) => (
                       <option key={cat.categoryId} value={cat.categoryId}>
                         {cat.name}
                       </option>
                     ))}
                   </select>
-                  {errors.categoryId && (
-                    <span className={styles.errorMsg}>{errors.categoryId}</span>
-                  )}
+                  {errors.categoryId && <span className={styles.errorMsg}>{errors.categoryId}</span>}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -242,6 +253,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     value={formData.brandId}
                     onChange={handleChange}
                     className={styles.select}
+                    disabled={loading}
                   >
                     <option value="">بدون برند</option>
                     {brands.map((brand) => (
@@ -263,12 +275,11 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     name="basePrice"
                     value={formData.basePrice}
                     onChange={handleChange}
-                    placeholder="مثال: 50000000"
+                    placeholder="مثال: 5000000"
                     className={`${styles.input} ${errors.basePrice ? styles.inputError : ''}`}
+                    disabled={loading}
                   />
-                  {errors.basePrice && (
-                    <span className={styles.errorMsg}>{errors.basePrice}</span>
-                  )}
+                  {errors.basePrice && <span className={styles.errorMsg}>{errors.basePrice}</span>}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -282,10 +293,9 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     onChange={handleChange}
                     placeholder="تعداد در انبار"
                     className={`${styles.input} ${errors.totalStock ? styles.inputError : ''}`}
+                    disabled={loading}
                   />
-                  {errors.totalStock && (
-                    <span className={styles.errorMsg}>{errors.totalStock}</span>
-                  )}
+                  {errors.totalStock && <span className={styles.errorMsg}>{errors.totalStock}</span>}
                 </div>
               </div>
 
@@ -299,12 +309,13 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     onChange={handleChange}
                     placeholder="0"
                     className={styles.input}
+                    disabled={loading}
                   />
                 </div>
 
                 <div className={styles.formGroup}>
                   <label className={styles.label}>وضعیت</label>
-                  <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div className={styles.checkboxGroup}>
                     <label className={styles.checkboxLabel}>
                       <input
                         type="checkbox"
@@ -312,6 +323,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                         checked={formData.isActive}
                         onChange={handleChange}
                         className={styles.checkbox}
+                        disabled={loading}
                       />
                       محصول فعال باشد
                     </label>
@@ -322,6 +334,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                         checked={formData.isFeatured}
                         onChange={handleChange}
                         className={styles.checkbox}
+                        disabled={loading}
                       />
                       محصول ویژه
                     </label>
@@ -331,7 +344,6 @@ const ProductModal: React.FC<ProductModalProps> = ({
             </>
           )}
 
-          {/* ── TAB 2: جزئیات ───────────────────────── */}
           {activeTab === 'details' && (
             <>
               <div className={styles.formGroup}>
@@ -343,6 +355,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   rows={3}
                   placeholder="خلاصه‌ای از محصول..."
                   className={styles.textarea}
+                  disabled={loading}
                 />
               </div>
               <div className={styles.formGroup}>
@@ -354,116 +367,65 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   rows={6}
                   placeholder="توضیحات کامل محصول..."
                   className={styles.textarea}
+                  disabled={loading}
                 />
               </div>
             </>
           )}
 
-          {/* ── TAB 3: سئو ──────────────────────────── */}
           {activeTab === 'seo' && (
             <>
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                   <label className={styles.label}>عنوان صفحه</label>
-                  <input
-                    type="text"
-                    name="pageTitle"
-                    value={formData.pageTitle}
-                    onChange={handleChange}
-                    placeholder="عنوان برای موتورهای جستجو"
-                    className={styles.input}
-                  />
+                  <input type="text" name="pageTitle" value={formData.pageTitle} onChange={handleChange} className={styles.input} disabled={loading} />
                 </div>
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Slug</label>
-                  <input
-                    type="text"
-                    name="slug"
-                    value={formData.slug}
-                    onChange={handleChange}
-                    placeholder="product-name-slug"
-                    className={styles.input}
-                  />
+                  <input type="text" name="slug" value={formData.slug} onChange={handleChange} className={styles.input} disabled={loading} />
                 </div>
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.label}>Meta Description</label>
-                <textarea
-                  name="metaDescription"
-                  value={formData.metaDescription}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="توضیح کوتاه برای نتایج جستجو..."
-                  className={styles.textarea}
-                />
+                <textarea name="metaDescription" value={formData.metaDescription} onChange={handleChange} rows={3} placeholder="توضیح کوتاه برای نتایج جستجو..." className={styles.textarea} disabled={loading} />
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.label}>Meta Keywords</label>
-                <input
-                  type="text"
-                  name="metaKeywords"
-                  value={formData.metaKeywords}
-                  onChange={handleChange}
-                  placeholder="کلمه1، کلمه2، کلمه3"
-                  className={styles.input}
-                />
+                <input type="text" name="metaKeywords" value={formData.metaKeywords} onChange={handleChange} placeholder="کلمه1، کلمه2، کلمه3" className={styles.input} disabled={loading} />
               </div>
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                   <label className={styles.label}>تگ H1</label>
-                  <input
-                    type="text"
-                    name="h1Tag"
-                    value={formData.h1Tag}
-                    onChange={handleChange}
-                    placeholder="عنوان اصلی صفحه"
-                    className={styles.input}
-                  />
+                  <input type="text" name="h1Tag" value={formData.h1Tag} onChange={handleChange} placeholder="عنوان اصلی صفحه" className={styles.input} disabled={loading} />
                 </div>
                 <div className={styles.formGroup}>
                   <label className={styles.label}>تگ H2</label>
-                  <input
-                    type="text"
-                    name="h2Tag"
-                    value={formData.h2Tag}
-                    onChange={handleChange}
-                    placeholder="عنوان فرعی"
-                    className={styles.input}
-                  />
+                  <input type="text" name="h2Tag" value={formData.h2Tag} onChange={handleChange} placeholder="عنوان فرعی" className={styles.input} disabled={loading} />
                 </div>
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.label}>Alt Text تصویر اصلی</label>
-                <input
-                  type="text"
-                  name="mainImageAltText"
-                  value={formData.mainImageAltText}
-                  onChange={handleChange}
-                  placeholder="توضیح تصویر برای دسترسی‌پذیری"
-                  className={styles.input}
-                />
+                <input type="text" name="mainImageAltText" value={formData.mainImageAltText} onChange={handleChange} placeholder="توضیح تصویر برای دسترسی‌پذیری" className={styles.input} disabled={loading} />
               </div>
             </>
           )}
 
-          {/* ── TAB 4: رسانه ────────────────────────── */}
-          {activeTab === 'media' && (
+          {activeTab === 'media' && !isNewProduct && (
             <ProductMediaManager
               productId={editingProduct?.productId ?? null}
               initialMedia={mediaItems}
               onChange={setMediaItems}
             />
           )}
-
         </div>
 
-        {/* ── Footer ──────────────────────────────────── */}
         <div className={styles.modalFooter}>
-          <button type="button" className={styles.cancelButton} onClick={onClose}>
+          <button type="button" className={styles.cancelButton} onClick={onClose} disabled={loading}>
             انصراف
           </button>
-          <button type="submit" className={styles.submitButton}>
-            {editingProduct ? 'ذخیره تغییرات' : 'ثبت محصول'}
+          <button type="submit" className={styles.submitButton} disabled={loading}>
+            {loading && <Loader2 className={styles.buttonSpinner} size={16} />}
+            {editingProduct ? 'ذخیره تغییرات' : 'ثبت و رفتن به رسانه'}
           </button>
         </div>
 

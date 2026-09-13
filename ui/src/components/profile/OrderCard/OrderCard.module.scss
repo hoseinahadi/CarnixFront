@@ -17,7 +17,7 @@
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
   }
 
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     padding: 16px;
   }
 }
@@ -29,7 +29,7 @@
   align-items: center;
   margin-bottom: 24px;
 
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     margin-bottom: 16px;
   }
 }
@@ -41,7 +41,7 @@
   font-size: 16px;
   font-weight: 600;
 
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     font-size: 16px;
   }
 }
@@ -67,7 +67,7 @@
     text-decoration: underline;
   }
 
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     font-size: 16px;
   }
 }
@@ -79,13 +79,13 @@
   gap: 16px;
   margin-bottom: 24px;
 
-  @media (max-width: 992px) {
+  @media (max-width: $breakpoint-lg) {
     grid-template-columns: repeat(2, 1fr);
     row-gap: 16px;
   }
   
   // 🟢 استایل اختصاصی موبایل مطابق عکس
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -101,19 +101,19 @@
 
 // تغییر ترتیب قرارگیری در حالت موبایل
 .mobileAmount {
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     order: 1; // مبلغ کل در ردیف اول قرار می‌گیرد
   }
 }
 
 .mobileDate {
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     order: 2; // تاریخ در ردیف دوم قرار می‌گیرد
   }
 }
 
 .desktopOnly {
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     display: none; // کد سفارش و نوع ارسال در موبایل مخفی می‌شوند
   }
 }
@@ -122,7 +122,7 @@
 .mobileDivider {
   display: none;
 
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     display: block;
     width: 100%;
     height: 1px;
@@ -139,7 +139,7 @@
   padding-top: 16px;
   border-top: 1px dashed #e5e7eb;
 
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     padding-top: 0;
     border-top: none; // در موبایل چون خط جداکننده کامل داریم این خط نقطه‌چین حذف می‌شود
   }
@@ -164,7 +164,7 @@
     color: #111827;
   }
 
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     display: none;
   }
 }
@@ -178,7 +178,7 @@
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     max-width: 100%; 
     gap: 8px; 
   }
@@ -204,7 +204,7 @@
   align-items: center;
   justify-content: center;
   
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     width: 60px; // سایز عکس‌ها در موبایل مطابق عکس کمی جمع‌وجورتر
     height: 60px;
     border-radius: 6px;

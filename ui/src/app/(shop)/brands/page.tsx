@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { getMediaUrl } from '@/utils/media/getMediaUrl'
 import Link from 'next/link'
 import { ShieldCheck, Tag, Search, X } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -8,6 +9,7 @@ import { getAllBrands } from '@/store/feature/brand/BrandThunks'
 import { selectBrands } from '@/store/feature/brand/BrandSelectors'
 import styles from './BrandsPage.module.scss'
 import type { RootState } from '@/store' 
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage'
 
 // تابع استخراج‌گر ایمن
 const extractSafeArray = (data: any): any[] => {
@@ -22,20 +24,7 @@ const extractSafeArray = (data: any): any[] => {
 };
 
 // تابع هوشمند برای اتصال آدرس سرور بک‌اند به آدرس عکس
-const getImageUrl = (url: string | null | undefined) => {
-  if (!url) return '';
-  if (url.startsWith('http')) return url; 
-  
-  let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7191'; 
-  
-  if (baseUrl.endsWith('/api')) {
-    baseUrl = baseUrl.substring(0, baseUrl.length - 4);
-  } else if (baseUrl.endsWith('/api/')) {
-    baseUrl = baseUrl.substring(0, baseUrl.length - 5);
-  }
-
-  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
-};
+const getImageUrl = (url: string | null | undefined) => getMediaUrl(url) ?? '';
 
 const BrandsPage = () => {
   const dispatch = useAppDispatch()
@@ -122,7 +111,7 @@ const BrandsPage = () => {
             >
               <div className={styles.iconBox}>
                 {brand.logoUrl ? (
-                  <img src={getImageUrl(brand.logoUrl)} alt={brand.name} className={styles.logoImage} loading="lazy" />
+                  <OptimizedImage src={getImageUrl(brand.logoUrl)} alt={brand.name} className={styles.logoImage} width={64} height={64} sizes="64px" />
                 ) : (
                   <ShieldCheck size={28} strokeWidth={1.5} className={styles.defaultIcon} />
                 )}

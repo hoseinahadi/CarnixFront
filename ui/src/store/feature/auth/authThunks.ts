@@ -38,6 +38,7 @@ import {
 import {
   clearAuthStorage,
   extractAuthTokens,
+  HTTP_ONLY_SESSION_MARKER,
   saveAuthTokens,
   saveUserSnapshot,
 } from '@/services/api/common/authTokenStorage';
@@ -255,7 +256,7 @@ export const loginThunk = createAsyncThunk<
        * Token باید قبل از Merge ذخیره شود،
        * چون /Cart/merge به Authentication نیاز دارد.
        */
-      saveAuthTokens(
+      await saveAuthTokens(
         tokens,
       );
 
@@ -265,10 +266,10 @@ export const loginThunk = createAsyncThunk<
 
       return {
         token:
-          tokens.accessToken,
+          HTTP_ONLY_SESSION_MARKER,
 
         refreshToken:
-          tokens.refreshToken,
+          undefined,
 
         message:
           typeof payload === 'object' &&
@@ -401,7 +402,7 @@ export const registerThunk = createAsyncThunk<
        * Authenticated می‌شود.
        */
       if (tokens) {
-        saveAuthTokens(
+        await saveAuthTokens(
           tokens,
         );
 
@@ -419,13 +420,13 @@ export const registerThunk = createAsyncThunk<
         ...(tokens
           ? {
               token:
-                tokens.accessToken,
+                HTTP_ONLY_SESSION_MARKER,
 
               accessToken:
-                tokens.accessToken,
+                HTTP_ONLY_SESSION_MARKER,
 
               refreshToken:
-                tokens.refreshToken,
+                undefined,
             }
           : {}),
       };
@@ -540,7 +541,7 @@ export const verifyOtpThunk = createAsyncThunk<
        * Fetch User Cart
        */
       if (tokens) {
-        saveAuthTokens(
+        await saveAuthTokens(
           tokens,
         );
 
@@ -555,13 +556,13 @@ export const verifyOtpThunk = createAsyncThunk<
         ...(tokens
           ? {
               token:
-                tokens.accessToken,
+                HTTP_ONLY_SESSION_MARKER,
 
               accessToken:
-                tokens.accessToken,
+                HTTP_ONLY_SESSION_MARKER,
 
               refreshToken:
-                tokens.refreshToken,
+                undefined,
             }
           : {}),
       };

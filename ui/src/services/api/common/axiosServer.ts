@@ -5,12 +5,12 @@ import axios, {
 } from 'axios';
 
 import { cookies } from 'next/headers';
+import { apiTimeoutMs, backendApiUrl } from '@/config/runtime';
+import { repairMojibake } from '@/utils/text/repairMojibake';
+import { localHttpsAgent } from '@/services/api/common/localHttpsAgent';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:7191/api';
-
-const DEFAULT_TIMEOUT_MS = 15_000;
+const API_BASE_URL = backendApiUrl;
+const DEFAULT_TIMEOUT_MS = apiTimeoutMs;
 
 interface TimedRequestConfig
   extends InternalAxiosRequestConfig {
@@ -20,8 +20,10 @@ interface TimedRequestConfig
 }
 
 const axiosServer = axios.create({
+  adapter: 'http',
   baseURL: API_BASE_URL,
   timeout: DEFAULT_TIMEOUT_MS,
+  httpsAgent: localHttpsAgent,
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
@@ -99,6 +101,7 @@ axiosServer.interceptors.request.use(
 
 axiosServer.interceptors.response.use(
   (response) => {
+    response.data = repairMojibake(response.data);
     if (
       process.env.NODE_ENV ===
       'development'

@@ -77,7 +77,7 @@ export const CategorySliderWidget = () => {
   }
 
   return (
-    <section className="container-max-width my-xxxl">
+    <section>
       <div className={styles.header}>
         <h2 className={styles.titleCat}>
           دسته بندی ها

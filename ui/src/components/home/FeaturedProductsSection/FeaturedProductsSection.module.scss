@@ -5,7 +5,7 @@
 .featuredSection {
   background-color: white;
   padding: $spacing-xl 0 $spacing-xxl 0;
-  margin-top: $spacing-xxxl;
+  margin-top: 0;
   overflow: hidden;
   direction: rtl;
   font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif !important;
@@ -77,6 +77,27 @@
   }
 }
 
+@include respond-down('sm') {
+  .header {
+    gap: 10px;
+    padding-bottom: 10px;
+  }
+
+  .title {
+    font-size: 0.95rem;
+  }
+
+  .viewAllLink {
+    font-size: 0.82rem;
+    gap: 2px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
 .tabsWrapper {
   width: 100%;
   
@@ -95,6 +116,24 @@
   background: #f8fafc;
   padding: 4px;
   border-radius: 12px;
+}
+
+@include respond-down('sm') {
+  .tabs {
+    gap: 2px;
+    padding: 2px;
+    border-radius: 8px;
+  }
+
+  .tabBtn {
+    width: 94px;
+    min-height: 30px;
+    padding: 3px 4px;
+    border-radius: 6px;
+    font-size: 0.61rem;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
 }
 
 .tabBtn {
@@ -123,6 +162,25 @@
   }
 }
 
+// باید بعد از استایل پایه باشد تا padding و font دسکتاپ در موبایل override نشود.
+@include respond-down('sm') {
+  .tabs {
+    gap: 2px;
+    padding: 2px;
+    border-radius: 8px;
+  }
+
+  .tabBtn {
+    width: 94px;
+    min-height: 30px;
+    padding: 3px 4px;
+    border-radius: 6px;
+    font-size: 0.61rem;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+}
+
 // 🟢 تبدیل گرید قدیمی به اسکرول افقی با کشیدن کارت‌ها
 .scrollContainer {
   display: flex;
@@ -131,7 +189,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y; 
+  touch-action: pan-x pan-y;
   scrollbar-width: none;
   -ms-overflow-style: none;
   &::-webkit-scrollbar { display: none; }
@@ -139,6 +197,8 @@
   padding: 8px $spacing-sm 24px $spacing-sm; 
   margin: 0;
   cursor: grab;
+  user-select: none;
+  overscroll-behavior-x: contain;
   
   * {
     -webkit-user-drag: none;
@@ -152,7 +212,12 @@
   }
 
   @include respond-to('md') {
+    // Keep the row horizontally scrollable at every viewport size so desktop
+    // users can grab and drag cards just like on touch screens.
+    display: flex;
     gap: 16px;
+    justify-content: flex-start;
+    overflow-x: auto;
     padding: 8px 0 24px 0; 
   }
 }
@@ -163,18 +228,22 @@
   flex-direction: column;
   align-items: stretch;
   height: auto; 
-  width: 240px; 
+  width: 100%;
 
   > div {
     flex: 1; 
   }
 
   @include respond-down('md') {
-    width: 190px; 
+    width: clamp(150px, 42vw, 180px);
+  }
+
+  @include respond-to('md') {
+    width: clamp(220px, 21vw, 270px);
   }
 
   @include respond-down('sm') {
-    width: 160px; 
+    width: clamp(180px, 58vw, 205px);
   }
 }
 
@@ -201,8 +270,8 @@
   }
 
   @include respond-down('sm') {
-    width: 160px;  
-    height: 280px; 
+    width: clamp(210px, 66vw, 230px);
+    height: 300px;
   }
 }
 

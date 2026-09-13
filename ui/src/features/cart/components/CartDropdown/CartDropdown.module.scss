@@ -5,7 +5,8 @@
   direction: rtl;
   text-align: right;
   font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif;
-  width: 380px;
+  width: min(380px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
   background-color: $color-white;
   border-radius: $border-radius-lg;
   overflow: hidden;
@@ -135,6 +136,9 @@
       .quantityBtn {
         width: 28px;
         height: 28px;
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0;
         @include flex-center;
         background-color: $color-white;
         border: 1px solid $color-border-dark;
@@ -171,12 +175,14 @@
       font-weight: $font-weight-medium;
     }
 
-    .removeBtn {
+      .removeBtn {
       background: none;
       border: none;
       color: $color-danger;
       cursor: pointer;
-      padding: $spacing-xs;
+        padding: $spacing-xs;
+        min-width: 32px;
+        min-height: 32px;
       border-radius: $border-radius-full;
       @include flex-center;
       @include transition-ease;
@@ -316,4 +322,56 @@
 .danger {
   color: $color-danger !important;
   border-color: rgba($color-danger, 0.3) !important;
+}
+
+@media (max-width: 480px) {
+  .cartDropdownContainer {
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+    border-radius: 14px;
+    overflow-x: hidden;
+    margin-inline: 0;
+  }
+
+  .header { padding: 10px 12px; }
+  .itemsList { max-height: min(52vh, 360px); padding-inline: 10px; }
+
+  .cartItem {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+
+    .imageContainer { width: 52px; height: 52px; }
+    .itemDetails { gap: 2px; }
+    .itemDetails .productName { font-size: 13px; line-height: 1.5; }
+    .itemDetails .priceWrapper .price { font-size: 12px; }
+    .itemDetails .priceWrapper .currency { font-size: 10px; }
+
+    .quantityControls { align-items: center; }
+    .quantityControls .quantityBox {
+      gap: 2px;
+      padding: 2px;
+      border-radius: 8px;
+    }
+    .quantityControls .quantityBox .quantityBtn {
+      width: 31px;
+      height: 31px;
+      min-width: 31px;
+      min-height: 31px;
+    }
+    .quantityControls .quantityBox .quantityValue {
+      min-width: 18px;
+      font-size: 12px;
+    }
+  }
+
+  .footer { padding: 12px; }
+  .footer .actionButtons { gap: 8px; }
+  .footer .actionButtons button {
+    min-height: 38px;
+    padding: 7px 10px;
+    font-size: 12px;
+  }
 }

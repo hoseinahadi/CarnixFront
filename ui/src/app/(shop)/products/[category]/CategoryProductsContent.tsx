@@ -10,6 +10,7 @@ import ProductGrid from '@/components/product/ProductGrid/ProductGrid';
 import ProductSort from '@/components/product/ProductSort/ProductSort';
 import { useProductListingController } from '@/features/product/hooks/useProductListingController';
 import styles from '../ProductsPage.module.scss';
+import Dialog from '@/components/common/Dialog/Dialog';
 
 interface CategoryProductsContentProps {
   params: Promise<{
@@ -37,12 +38,11 @@ export default function CategoryProductsContent({
     clearFilters,
     changePage,
     changeSort,
+    error,
+    retry,
   } = useProductListingController({
     categorySlug: category,
   });
-console.log("FFFFFFFFFFFFFFFFFFF")
-console.log(products)
-
   return (
     <div className={styles.page}>
       <div className={styles.breadcrumb}>
@@ -122,6 +122,8 @@ console.log(products)
             <ProductGrid
               products={products}
               loading={showSkeleton}
+              error={error}
+              onRetry={retry}
             />
           )}
 
@@ -194,24 +196,14 @@ console.log(products)
         </main>
       </div>
 
-      {mobileFilterOpen && (
-        <div
-          className={styles.filterOverlay}
-          onClick={() => setMobileFilterOpen(false)}
-        >
-          <div
-            className={styles.filterDrawer}
-            onClick={(event) => event.stopPropagation()}
-          >
+      <Dialog open={mobileFilterOpen} onClose={() => setMobileFilterOpen(false)} title="فیلتر محصولات" overlayClassName={styles.filterOverlay} contentClassName={styles.filterDrawer}>
             <ProductFilters
               isMobile
               onClose={() => setMobileFilterOpen(false)}
               onFiltersChange={navigateToFilters}
               onClearAll={clearFilters}
             />
-          </div>
-        </div>
-      )}
+      </Dialog>
     </div>
   );
 }

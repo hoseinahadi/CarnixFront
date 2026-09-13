@@ -624,6 +624,8 @@ export const placeOrderFromCart =
         province: string;
 
         shippingMethod: string;
+
+        paymentMethod?: string;
       },
 
       {

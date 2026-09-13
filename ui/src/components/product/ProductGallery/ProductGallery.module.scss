@@ -105,6 +105,50 @@
   animation: gallerySpinner 0.8s linear infinite;
 }
 
+@media (max-width: $breakpoint-md) {
+  .galleryContainer {
+    width: 100%;
+    gap: $spacing-sm;
+  }
+
+  .mainImageWrapper {
+    width: 100%;
+    min-height: 190px;
+    max-height: min(48dvh, 280px);
+    aspect-ratio: 4 / 3;
+    border-radius: $border-radius-md;
+    background-color: $color-gray-100;
+  }
+
+  .mainImage,
+  .noImageFallback {
+    min-height: 190px;
+  }
+
+  .actionIcons {
+    top: $spacing-sm;
+    right: $spacing-sm;
+  }
+
+  .thumbnailList {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .thumbnailItem {
+    flex: 0 0 64px;
+    width: 64px;
+  }
+}
+
 @keyframes gallerySpinner {
   to { transform: rotate(360deg); }
 }

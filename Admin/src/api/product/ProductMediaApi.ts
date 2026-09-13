@@ -1,16 +1,37 @@
 // features/products/api/ProductMediaApi.ts
 
-import axiosInstance from '@/api/common/axiosInstance';
+import axiosInstance from '@/services/api/common/axiosInstance';
 import type { 
   ProductImageDto, 
   ProductVideoDto, 
   Product360ViewDto,
   AddProductMediaDto
 } from '@/models/product/ProductMedia';
-import type { OperationResult } from '@/models/common/OperationResult'; // مسیر فرضی
+import type { OperationResult } from '@/models/common/OperationResult';
 
 export const ProductMediaApi = {
-  // ─── Images ────────────────────────────────────────────────────────
+  // ─── آپلود فایل واقعی (IFormFile) ──────────────────────────────────
+  uploadMedia: async (formData: FormData) =>
+    await axiosInstance.post<OperationResult<any>>('/product-medias/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
+
+  // ─── دریافت و حذف مدیاها ───────────────────────────────────────────
+  getMediaByProductId: async (productId: number | string) =>
+    await axiosInstance.get<OperationResult<any[]>>(`/product-medias/get-by-product/${productId}`),
+
+  deleteMedia: async (id: number | string) =>
+    await axiosInstance.delete<OperationResult<boolean>>(`/product-medias/delete/${id}`),
+
+  setPrimary: async (productMediaId: number, productId: number) =>
+    await axiosInstance.put<OperationResult<boolean>>('/product-medias/set-primary', {
+      productMediaId,
+      productId
+    }),
+
+  // ─── متدهای قدیمی (در صورت نیاز برای ویدیو یا URL) ────────────────
   getImagesByProductId: async (productId: number | string) =>
     await axiosInstance.get<OperationResult<ProductImageDto[]>>(`/product-images/get-by-product/${productId}`),
   
@@ -20,7 +41,6 @@ export const ProductMediaApi = {
   deleteImage: async (id: number | string) =>
     await axiosInstance.delete<OperationResult<boolean>>(`/product-images/Delete/${id}`),
 
-  // ─── Videos ────────────────────────────────────────────────────────
   getVideosByProductId: async (productId: number | string) =>
     await axiosInstance.get<OperationResult<ProductVideoDto[]>>(`/product-videos/get-by-product/${productId}`),
 
@@ -29,14 +49,4 @@ export const ProductMediaApi = {
 
   deleteVideo: async (id: number | string) =>
     await axiosInstance.delete<OperationResult<boolean>>(`/product-videos/Delete/${id}`),
-
-  // ─── 360 Views ─────────────────────────────────────────────────────
-  get360ViewsByProductId: async (productId: number | string) =>
-    await axiosInstance.get<OperationResult<Product360ViewDto[]>>(`/product-360-views/get-by-product/${productId}`),
-
-  add360View: async (data: AddProductMediaDto) =>
-    await axiosInstance.post<OperationResult<Product360ViewDto>>('/product-360-views/Create', data),
-
-  delete360View: async (id: number | string) =>
-    await axiosInstance.delete<OperationResult<boolean>>(`/product-360-views/Delete/${id}`),
 };

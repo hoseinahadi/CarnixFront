@@ -104,6 +104,24 @@ export const isOperationResult = <T>(
   typeof value.isSuccess === 'boolean' &&
   'data' in value;
 
+/** پاسخ‌های قدیمی API را به یک payload ثابت در مرز سرویس تبدیل می‌کند. */
+export const unwrapApiData = <T>(payload: unknown, fallbackMessage = 'پاسخ سرویس معتبر نیست.'): T => {
+  let current = payload;
+  for (let depth = 0; depth < 3; depth += 1) {
+    if (!isRecord(current)) return current as T;
+    if (current.isSuccess === false) {
+      throw new ApiBusinessError(readString(current.message) ?? fallbackMessage, readStatusCode(current.statusCode), isValidationErrors(current.errors) ? current.errors : null);
+    }
+    if ('data' in current && current.data !== undefined) {
+      current = current.data;
+      continue;
+    }
+    if ('mainResults' in current && current.mainResults !== undefined) return current.mainResults as T;
+    return current as T;
+  }
+  return current as T;
+};
+
 /**
  * بعضی Endpointهای فعلی OperationResult<T> برمی‌گردانند و بعضی دیگر
  * داده را مستقیم برمی‌گردانند. این تابع هر دو قرارداد را پشتیبانی می‌کند.

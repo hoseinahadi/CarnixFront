@@ -1,9 +1,9 @@
 /**
  * قوانین نمایش قیمت در فرانت:
- * - همه مبلغ‌ها به نزدیک‌ترین ۱۰۰٬۰۰۰ تومان گرد می‌شوند.
+ * - مبلغ‌ها با واحد واقعی تومان نمایش داده می‌شوند و گرد کردن درشت ندارند.
  * - مالیات در جمع‌های سمت فرانت لحاظ نمی‌شود.
  */
-export const PRICE_ROUNDING_STEP = 100_000;
+export const PRICE_ROUNDING_STEP = 1;
 
 export const roundPrice = (value: number | null | undefined): number => {
   const numericValue = Number(value ?? 0);

@@ -4,7 +4,7 @@
 
 .section {
   width: 100%;
-  margin-top: $spacing-xxl;
+  margin-top: 0;
   overflow: hidden; 
   direction: rtl;
   font-family: 'IRANYEKAN', Tahoma, Arial, sans-serif !important;
@@ -47,6 +47,26 @@
   }
 }
 
+@include respond-down('sm') {
+  .header {
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 0.95rem;
+  }
+
+  .link {
+    font-size: 0.82rem;
+    gap: 2px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
 // 🟢 تبدیل به اسکرول افقی (مانند بخش پرفروش‌ها)
 .scrollContainer {
   display: flex;
@@ -55,7 +75,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y; 
+  touch-action: pan-x pan-y;
   scrollbar-width: none;
   -ms-overflow-style: none;
   &::-webkit-scrollbar { display: none; }
@@ -63,6 +83,8 @@
   padding: 8px $spacing-sm 24px $spacing-sm; 
   margin: 0;
   cursor: grab;
+  user-select: none;
+  overscroll-behavior-x: contain;
   
   * {
     -webkit-user-drag: none;
@@ -87,18 +109,18 @@
   flex-direction: column;
   align-items: stretch;
   height: auto; 
-  width: 240px; 
+  width: clamp(220px, 21vw, 270px);
 
   > div {
     flex: 1; 
   }
 
   @include respond-down('md') {
-    width: 190px; 
+    width: clamp(150px, 42vw, 180px);
   }
 
   @include respond-down('sm') {
-    width: 160px; 
+    width: clamp(180px, 58vw, 205px);
   }
 }
 
@@ -117,8 +139,8 @@
   }
 
   @include respond-down('sm') {
-    width: 160px;  
-    height: 280px; 
+    width: clamp(210px, 66vw, 230px);
+    height: 300px;
   }
 }
 

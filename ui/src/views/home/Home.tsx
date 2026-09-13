@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { HeroSection } from '@/components/home/HeroSection/HeroSection';
 import LazyMount from '@/components/utils/lazy/LazyMount';
 import { FadeInScroll } from '@/components/utils/scroll/FadeInScroll';
+import styles from './Home.module.scss';
 
 interface SectionSkeletonProps {
   type?: 'cards' | 'banner' | 'categories';
@@ -114,7 +115,6 @@ const SectionSkeleton = ({
 const CategorySliderWidget = dynamic(
   () => import('@/components/category/category'),
   {
-    ssr: false,
     loading: () => <SectionSkeleton type="categories" />,
   },
 );
@@ -125,7 +125,6 @@ const BestSellersSection = dynamic(
       '@/components/home/BestSellersSection/BestSellersSection'
     ),
   {
-    ssr: false,
     loading: () => <SectionSkeleton type="cards" />,
   },
 );
@@ -142,7 +141,6 @@ const NewestProductsSection = dynamic(
       '@/components/home/NewestProductsSection/NewestProductsSection'
     ),
   {
-    ssr: false,
     loading: () => <SectionSkeleton type="cards" />,
   },
 );
@@ -153,7 +151,6 @@ const BulkPurchaseBanner = dynamic(
       '@/components/home/BulkPurchaseBanner/BulkPurchaseBanner'
     ),
   {
-    ssr: false,
     loading: () => <SectionSkeleton type="banner" />,
   },
 );
@@ -164,7 +161,6 @@ const FeaturedProductsSection = dynamic(
       '@/components/home/FeaturedProductsSection/FeaturedProductsSection'
     ),
   {
-    ssr: false,
     loading: () => <SectionSkeleton type="cards" />,
   },
 );
@@ -175,19 +171,18 @@ const ArticlesSection = dynamic(
       '@/components/home/ArticlesSection/ArticlesSection'
     ),
   {
-    ssr: false,
     loading: () => <SectionSkeleton type="cards" />,
   },
 );
 
 const Home = () => {
   return (
-    <div>
+    <div className={styles.home}>
       <HeroSection />
 
-      <section className="container-max-width my-xxxl">
+      <section className={styles.section}>
         <LazyMount
-          rootMargin="700px 0px"
+          rootMargin="250px 0px"
           minHeight={180}
           fallback={<SectionSkeleton type="categories" />}
         >
@@ -197,9 +192,9 @@ const Home = () => {
         </LazyMount>
       </section>
 
-      <section className="container-max-width my-xxxl">
+      <section className={styles.section}>
         <LazyMount
-          rootMargin="600px 0px"
+          rootMargin="250px 0px"
           minHeight={420}
           fallback={<SectionSkeleton type="cards" />}
         >
@@ -209,9 +204,9 @@ const Home = () => {
         </LazyMount>
       </section>
 
-      <section className="container-max-width my-xxxl">
+      <section className={styles.section}>
         <LazyMount
-          rootMargin="500px 0px"
+          rootMargin="200px 0px"
           minHeight={240}
           fallback={<SectionSkeleton type="banner" />}
         >
@@ -221,9 +216,9 @@ const Home = () => {
         </LazyMount>
       </section>
 
-      <section className="container-max-width my-xxxl">
+      <section className={`${styles.section} ${styles.featured}`}>
         <LazyMount
-          rootMargin="500px 0px"
+          rootMargin="200px 0px"
           minHeight={420}
           fallback={<SectionSkeleton type="cards" />}
         >
@@ -233,9 +228,9 @@ const Home = () => {
         </LazyMount>
       </section>
 
-      <section className="container-max-width my-xxxl">
+      <section className={styles.section}>
         <LazyMount
-          rootMargin="500px 0px"
+          rootMargin="200px 0px"
           minHeight={420}
           fallback={<SectionSkeleton type="cards" />}
         >
@@ -245,9 +240,9 @@ const Home = () => {
         </LazyMount>
       </section>
 
-      <section className="container-max-width my-xxxl">
+      <section className={styles.section}>
         <LazyMount
-          rootMargin="500px 0px"
+          rootMargin="150px 0px"
           minHeight={360}
           fallback={<SectionSkeleton type="cards" />}
         >

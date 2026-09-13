@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import styles from './ArticleCard.module.scss';
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 
 // این تایپ باید بر اساس خروجی لیست مقالات از بک‌اند تنظیم شود
 export interface ArticleSummary {
@@ -20,7 +21,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
     <Link href={`/blog/${article.slug}`} className={styles.card}>
       <div className={styles.imageWrapper}>
         {article.imageUrl ? (
-          <img src={article.imageUrl} alt={article.title} className={styles.image} />
+          <OptimizedImage
+            src={article.imageUrl}
+            alt={article.title}
+            className={styles.image}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
+          />
         ) : (
           <div className={styles.placeholder}>بدون تصویر</div>
         )}

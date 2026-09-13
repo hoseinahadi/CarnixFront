@@ -8,8 +8,8 @@ import {
   selectProductsLoading,
   selectProductsActionLoading,
   selectProductsError,
-  selectProductDetails, // 👈 اضافه شد
-  selectDetailsLoading  // 👈 اضافه شد
+  selectProductDetails,
+  selectDetailsLoading 
 } from '@/redux/features/product/ProductSelectors';
 import {
   getAllProducts,
@@ -17,12 +17,12 @@ import {
   updateProduct,
   deleteProduct,
   toggleProductStatus,
-  getProductDetails, // 👈 اضافه شد
+  getProductDetails,
 } from '@/redux/features/product/ProductThunks';
 import { 
   setSelectedProduct, 
   clearError,
-  clearProductDetails // 👈 اضافه شد
+  clearProductDetails 
 } from '@/redux/features/product/ProductSlice';
 import type { Product, CreateProductDto, UpdateProductDto } from '@/models/product/Product';
 
@@ -33,24 +33,23 @@ import ConfirmModal from '../../../../layout/components/dasboard/ConfirmModal/Co
 import ProductDetailsModal from '../../components/ProductDetailsModal/ProductDetailsModal';
 
 import { CategoryApi } from '@/api/category/routes'; 
+import { ProductMediaApi } from '@/api/product/ProductMediaApi';
 import type { Category } from '@/models/category/Category'; 
 
 import styles from './ProductList.module.scss';
+import toast from 'react-hot-toast';
 
 const ProductList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
-  // ─── Selectors ────────────────────────────────────────
   const products = useSelector(selectProducts);
   const loading = useSelector(selectProductsLoading);
   const actionLoading = useSelector(selectProductsActionLoading);
   const error = useSelector(selectProductsError);
-  console.log("products",products)
-  // سلکتورهای مربوط به مدال جزئیات
+  
   const productDetails = useSelector(selectProductDetails);
   const detailsLoading = useSelector(selectDetailsLoading);
 
-  // ─── Local State ──────────────────────────────────────
   const [searchValue, setSearchValue] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -59,11 +58,12 @@ const ProductList: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  // ─── استیت‌های دسته‌بندی ─────────────────────────────
   const [categories, setCategories] = useState<Category[]>([]);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
 
-  // ─── بارگذاری اولیه (محصولات و دسته‌بندی‌ها) ───────────
+  // 🟢 استیت مخصوص آپلود عکس در زمان ایجاد محصول (لودینگ جانبی)
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   useEffect(() => {
     dispatch(getAllProducts(undefined));
 
@@ -82,16 +82,13 @@ const ProductList: React.FC = () => {
     fetchCategories();
   }, [dispatch]);
 
-  // ─── نمایش خطا ───────────────────────────────────────
   useEffect(() => {
     if (error) {
-      console.error('Product Error:', error);
-      const timer = setTimeout(() => dispatch(clearError()), 4000);
-      return () => clearTimeout(timer);
+      toast.error(error, { duration: 4000 });
+      dispatch(clearError());
     }
   }, [error, dispatch]);
 
-  // ─── فیلتر جستجو (Client-side) ───────────────────────
   const filteredProducts = useMemo(() => {
     if (!searchValue.trim()) return products;
     const query = searchValue.toLowerCase();
@@ -103,7 +100,6 @@ const ProductList: React.FC = () => {
     );
   }, [products, searchValue]);
 
-  // ─── Handlers ─────────────────────────────────────────
   const handleAddNew = () => {
     setEditingProduct(null);
     setIsModalOpen(true);
@@ -122,13 +118,23 @@ const ProductList: React.FC = () => {
 
   const handleDeleteConfirm = async () => {
     if (!deletingProduct) return;
-    await dispatch(deleteProduct(deletingProduct.productId));
-    setIsConfirmOpen(false);
-    setDeletingProduct(null);
+    try {
+      await dispatch(deleteProduct(deletingProduct.productId)).unwrap();
+      toast.success('محصول با موفقیت حذف شد', { duration: 3000 });
+      setIsConfirmOpen(false);
+      setDeletingProduct(null);
+    } catch (err) {
+      toast.error(err as string, { duration: 4000 });
+    }
   };
 
-  const handleToggleStatus = (product: Product) => {
-    dispatch(toggleProductStatus(product.productId));
+  const handleToggleStatus = async (product: Product) => {
+    try {
+      await dispatch(toggleProductStatus(product.productId)).unwrap();
+      toast.success(`وضعیت محصول به ${!product.isActive ? 'فعال' : 'غیرفعال'} تغییر یافت`);
+    } catch (err) {
+      toast.error(err as string);
+    }
   };
 
   const handleModalClose = () => {
@@ -137,46 +143,66 @@ const ProductList: React.FC = () => {
     dispatch(setSelectedProduct(null));
   };
 
-  const handleModalSubmit = async (data: CreateProductDto | UpdateProductDto) => {
-    if (editingProduct) {
-      const result = await dispatch(updateProduct(data as UpdateProductDto));
-      if (updateProduct.fulfilled.match(result)) handleModalClose();
-    } else {
-      const result = await dispatch(createProduct(data as CreateProductDto));
-      if (createProduct.fulfilled.match(result)) handleModalClose();
+  // 🟢 هندل کردن سابمیت محصول و آپلود همزمان عکس
+  const handleModalSubmit = async (data: CreateProductDto | UpdateProductDto, file?: File | null) => {
+    try {
+      if (editingProduct) {
+        // برای ویرایش فقط دیتا رو میفرستیم (عکس از تب رسانه مدیریت میشه)
+        await dispatch(updateProduct(data as UpdateProductDto)).unwrap();
+        toast.success('محصول با موفقیت ویرایش شد');
+        handleModalClose();
+      } else {
+        // ۱. اول محصول رو میسازیم
+        const result: any = await dispatch(createProduct(data as CreateProductDto)).unwrap();
+        
+        // پیدا کردن ID محصول جدید از توی خروجی
+        const newProductId = result?.productId || result?.id || result?.data?.productId;
+
+        // ۲. اگر فایلی انتخاب شده بود و ID محصول رو داشتیم، آپلود می‌کنیم
+        if (file && newProductId) {
+          setIsUploadingImage(true);
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('MediaType', 'Image');
+          formData.append('ProductId', newProductId.toString());
+          formData.append('IsPrimary', 'true');
+          formData.append('DisplayOrder', '0');
+
+          await ProductMediaApi.uploadMedia(formData);
+          setIsUploadingImage(false);
+          toast.success('محصول و تصویر اصلی با موفقیت ذخیره شدند');
+          // بعد از آپلود عکس، رفرش میکنیم تا عکس توی لیست بیاد
+          dispatch(getAllProducts(undefined)); 
+        } else {
+          toast.success('محصول با موفقیت ایجاد شد');
+        }
+        handleModalClose();
+      }
+    } catch (err) {
+      toast.error(err as string, { duration: 5000 }); 
+      setIsUploadingImage(false);
     }
   };
 
-  // ─── Handlers برای مدال جزئیات ────────────────────────
   const handleView = (product: Product) => {
     setIsDetailsModalOpen(true);
-    // دریافت اطلاعات کامل محصول از سرور
     dispatch(getProductDetails(product.productId));
   };
 
   const handleCloseDetails = () => {
     setIsDetailsModalOpen(false);
-    // پاک کردن دیتای قبلی برای جلوگیری از نمایش لحظه‌ای آن در دفعات بعد
     dispatch(clearProductDetails());
   };
 
-  // ─── Render ───────────────────────────────────────────
   return (
     <div className={styles.container}>
-      {error && (
-        <div className={styles.errorBanner}>
-          <span>⚠️ {error}</span>
-          <button onClick={() => dispatch(clearError())}>✕</button>
-        </div>
-      )}
-
       <ProductHeader
         searchValue={searchValue}
         onSearchChange={setSearchValue}
         onAddNew={handleAddNew}
         onRefresh={() => dispatch(getAllProducts(undefined))}
         totalCount={filteredProducts.length} 
-        loading={loading} 
+        loading={loading || isUploadingImage} 
       />
 
       <ProductTable
@@ -193,7 +219,7 @@ const ProductList: React.FC = () => {
         onClose={handleModalClose}
         onSubmit={handleModalSubmit}
         editingProduct={editingProduct}
-        loading={actionLoading}
+        loading={actionLoading || isUploadingImage} // 🟢
         categories={categories}
         isCategoriesLoading={isCategoriesLoading}
       />
@@ -203,17 +229,18 @@ const ProductList: React.FC = () => {
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDeleteConfirm}
         title="حذف محصول"
-        message={`آیا از حذف "${deletingProduct?.productName}" اطمینان دارید؟`}
+        message={`آیا از حذف محصول "${deletingProduct?.productName}" اطمینان دارید؟`}
         confirmText="بله، حذف شود"
         cancelText="انصراف"
-        variant="danger"
+        type="danger"
+        isLoading={actionLoading} 
       />
 
       <ProductDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={handleCloseDetails}
-        product={productDetails} // 👈 دیتای کامل که از Redux می‌آید
-        loading={detailsLoading} // 👈 برای نمایش اسپینر لودینگ درون مدال (اگر پشتیبانی می‌کند)
+        product={productDetails} 
+        loading={detailsLoading} 
       />
     </div>
   );

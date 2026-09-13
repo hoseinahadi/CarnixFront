@@ -1,33 +1,23 @@
 @use 'sass:color';
+@use 'sass:map';
 
 /* =========================================
    1. Media Queries (مدیا کوئری‌های ریسپانسیو)
    ========================================= */
 // موبایل فرست (Mobile First) - اعمال استایل از این سایز به بالا
 @mixin respond-to($breakpoint) {
-  @if $breakpoint == 'vsm' {
-    @media (min-width: 400px) { @content; }
-  }
-  @else if $breakpoint == 'sm' {
-    @media (min-width: 576px) { @content; }
-  } @else if $breakpoint == 'md' {
-    @media (min-width: 768px) { @content; }
-  } @else if $breakpoint == 'lg' {
-    @media (min-width: 992px) { @content; }
-  } @else if $breakpoint == 'xl' {
-    @media (min-width: 1200px) { @content; }
-  } @else if $breakpoint == 'xxl' {
-    @media (min-width: 1400px) { @content; }
-  }
+  $values: ('xs': 360px, 'vsm': 400px, 'sm': 576px, 'md': 768px, 'lg': 992px, 'xl': 1200px, 'xxl': 1400px);
+  @media (min-width: map.get($values, $breakpoint)) { @content; }
 }
 
-// برای استایل‌هایی که فقط مخصوص موبایل هستند
 @mixin respond-down($breakpoint) {
-  @if $breakpoint == 'md' {
-    @media (max-width: 767.98px) { @content; }
-  } @else if $breakpoint == 'lg' {
-    @media (max-width: 991.98px) { @content; }
-  }
+  $values: ('xs': 360px, 'vsm': 400px, 'sm': 576px, 'md': 768px, 'lg': 992px, 'xl': 1200px, 'xxl': 1400px);
+  @media (max-width: calc(map.get($values, $breakpoint) - 0.02px)) { @content; }
+}
+
+@mixin respond-between($from, $until) {
+  $values: ('xs': 360px, 'vsm': 400px, 'sm': 576px, 'md': 768px, 'lg': 992px, 'xl': 1200px, 'xxl': 1400px);
+  @media (min-width: map.get($values, $from)) and (max-width: calc(map.get($values, $until) - 0.02px)) { @content; }
 }
 
 /* =========================================

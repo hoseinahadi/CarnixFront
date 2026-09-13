@@ -5,6 +5,7 @@ import type { Brand } from '@/models/brand/Brand'
 import { Link } from '@/components/common/Link/Link'
 import styles from './BrandDropdown.module.scss'
 import { ShieldCheck, Tag, ChevronLeft } from 'lucide-react'
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 
 type Props = {
   brands: Brand[]
@@ -43,7 +44,7 @@ const BrandDropdown = ({ brands }: Props) => {
             {/* باکس آیکون/لوگو با پس‌زمینه آبی */}
             <div className={styles.iconBox}>
               {brand.logoUrl ? (
-                <img src={brand.logoUrl} alt={brand.name} className={styles.logoImage} />
+                <OptimizedImage src={brand.logoUrl} alt={brand.name} className={styles.logoImage} width={48} height={48} sizes="48px" />
               ) : (
                 <ShieldCheck size={24} strokeWidth={1.5} className={styles.defaultIcon} />
               )}

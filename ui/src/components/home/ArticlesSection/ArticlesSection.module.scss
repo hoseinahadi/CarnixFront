@@ -3,7 +3,7 @@
 
 .section {
   width: 100%;
-  margin-top: $spacing-xxl;
+  margin-top: 0;
 }
 
 .header {
@@ -41,6 +41,15 @@
   }
 
   // 3 ستون برای مقالات
+}
+@media (max-width: 767px) {
+  .header { margin-bottom: 12px; }
+  .title { font-size: 1rem; }
+  .grid { display: flex; overflow-x: auto; gap: 10px; scrollbar-width: none; }
+  .grid::-webkit-scrollbar { display: none; }
+  .grid > * { flex: 0 0 76%; }
+  .link { width: auto; white-space: nowrap; font-size: 0.82rem; gap: 2px; }
+  .link svg { width: 14px; height: 14px; }
 }
 .skeletonCard {
   min-height: 260px;

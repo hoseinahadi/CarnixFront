@@ -8,24 +8,24 @@
   gap: $spacing-md;
 
   // لپ‌تاپ‌های کوچک و تبلت‌های بزرگ
-  @media (max-width: 1200px) {
+  @media (max-width: $breakpoint-xl) {
     grid-template-columns: repeat(3, 1fr);
   }
 
   // تبلت‌ها (معمولی و آیپد)
-  @media (max-width: 992px) {
+  @media (max-width: $breakpoint-lg) {
     grid-template-columns: repeat(3, 1fr);
     gap: $spacing-sm;
   }
 
   // تبلت‌های کوچک و موبایل‌های بزرگ (فبلت‌ها)
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-md) {
     grid-template-columns: repeat(2, 1fr);
     gap: $spacing-sm;
   }
 
   // موبایل‌های معمولی
-  @media (max-width: 576px) {
+  @media (max-width: $breakpoint-sm) {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     padding: 4px;

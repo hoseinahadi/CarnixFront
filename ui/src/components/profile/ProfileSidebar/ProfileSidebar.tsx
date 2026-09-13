@@ -13,14 +13,23 @@ import {
   IconLogout,
   IconChevronLeft,
   IconArrowRight,
+  IconCar,
+  IconBell,
+  IconTicket,
+  IconSettings,
 } from '@tabler/icons-react'
 import { logoutThunk } from '@/store/feature/auth/authThunks'
 import { selectUserFullName, selectProfile } from '@/store/feature/profile/profileSelectors'
+import { fetchMyProfile } from '@/store/feature/profile/profileThunks'
 import styles from './ProfileSidebar.module.scss'
 import classNames from 'classnames'
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
 const menuItems = [
+  { title: 'گاراژ من', icon: IconCar, path: '/profile/garage' },
+  { title: 'پنل مکانیک', icon: IconSettings, path: '/mechanics/dashboard' },
+  { title: 'اعلان‌ها', icon: IconBell, path: '/profile/notifications' },
+  { title: 'تیکت‌های پشتیبانی', icon: IconTicket, path: '/profile/tickets' },
   {
     title: 'اطلاعات حساب کاربری',
     icon: IconUser,
@@ -62,6 +71,10 @@ const ProfileSidebar = () => {
   const fullName = useAppSelector(selectUserFullName)
   const profile = useAppSelector(selectProfile)
   const phoneNumber = profile?.phoneNumber || ''
+
+  useEffect(() => {
+    void dispatch(fetchMyProfile(undefined))
+  }, [dispatch])
 
   // گوش دادن به event برای مخفی کردن دکمه شناور هنگام باز شدن مدال
   useEffect(() => {
@@ -138,10 +151,10 @@ const ProfileSidebar = () => {
           <IconUser size={32} stroke={1.5} />
         </div>
         <div className={styles.userName}>
-          {fullName || 'کاربر عزیز'}
+          {fullName || 'کاربر کارنیکس'}
         </div>
         <div className={styles.userPhone}>
-          {phoneNumber || '۰۹۱۲۳۴۵۶۷۸۹'}
+          {phoneNumber || 'شماره همراه ثبت نشده'}
         </div>
       </div>
 

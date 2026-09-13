@@ -23,6 +23,8 @@ export default function ProductsContent() {
     clearFilters,
     changePage,
     changeSort,
+    error,
+    retry,
   } = useProductListingController();
 
 
@@ -81,6 +83,8 @@ export default function ProductsContent() {
           <ProductGrid
             products={products}
             loading={showSkeleton}
+            error={error}
+            onRetry={retry}
           />
 
           {!showSkeleton && totalPages > 1 && (

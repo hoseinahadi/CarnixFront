@@ -8,6 +8,12 @@
   background-color: $color-white;
   min-height: 60vh;
   font-family: $font-family-main;
+  padding-bottom: max($spacing-xl, env(safe-area-inset-bottom));
+}
+
+@include respond-down('sm') {
+  .pageContainer { padding: $spacing-md $spacing-sm calc($spacing-xl + env(safe-area-inset-bottom)); }
+  .content { margin-top: $spacing-md; }
 }
 
 .title {

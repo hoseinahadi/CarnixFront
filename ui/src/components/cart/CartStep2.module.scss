@@ -161,6 +161,22 @@
   }
 }
 
+.addressListActions {
+  display: grid;
+  gap: $spacing-sm;
+}
+
+.toggleAddressesBtn {
+  width: 100%;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $color-primary;
+  border-radius: $border-radius-md;
+  background: $color-primary-light;
+  color: $color-primary-dark;
+  cursor: pointer;
+  font: inherit;
+}
+
 /* ========== روش ارسال ========== */
 .shippingSection {
   margin-top: $spacing-xl;
@@ -399,4 +415,68 @@
   height: 1px;
   margin: $spacing-md 0;
   background: $color-border-light;
+}
+
+@include respond-down('sm') {
+  .sectionHeader {
+    h3 { font-size: $font-size-xl; }
+    .sectionSubtitle { line-height: 1.8; }
+  }
+
+  .step2Container {
+    gap: $spacing-md;
+  }
+
+  .addressCard {
+    padding: $spacing-sm;
+
+    .addressHeader {
+      align-items: flex-start;
+      gap: $spacing-sm;
+    }
+
+    .addressTitleWrapper {
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .addressBody .addressText {
+      align-items: flex-start;
+      line-height: 1.8;
+    }
+
+    .addressBody .addressFooter {
+      flex-wrap: wrap;
+      gap: $spacing-sm;
+      line-height: 1.8;
+    }
+  }
+
+  .shippingSection {
+    margin-top: $spacing-md;
+  }
+
+  .shippingMethod {
+    align-items: flex-start;
+    gap: $spacing-sm;
+    padding: $spacing-sm;
+
+    .methodInfo { min-width: 0; flex: 1; }
+    .methodName { display: flex; align-items: center; gap: $spacing-xs; }
+    .methodDetails { flex-wrap: wrap; gap: $spacing-xs $spacing-md; line-height: 1.8; }
+    .methodDescription { line-height: 1.8; }
+  }
+
+  .summary {
+    padding: $spacing-md;
+
+    .actions {
+      gap: $spacing-sm;
+      flex-direction: column-reverse;
+      margin-top: $spacing-md;
+
+      .backBtn,
+      .nextBtn { width: 100%; min-height: 48px; }
+    }
+  }
 }

@@ -55,16 +55,16 @@ font-family: 'IRANYEKAN';
 
 // ==================== دراپ‌داون دسکتاپ ====================
 .dropdown {
-  @include custom-scrollbar(4px, $color-primary, $color-gray-50);
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
   min-width: 200px;
   max-height: 280px;
   overflow-y: auto;
+  scrollbar-width: none;
   background: $color-white;
   border: 1px solid $color-border-light;
-  border-radius: $border-radius-md;
+  border-radius: 8px;
   box-shadow: $shadow-lg;
   z-index: $z-index-dropdown;
   animation: fadeInDown 0.2s ease;
@@ -76,14 +76,16 @@ font-family: 'IRANYEKAN';
   }
 }
 
+.dropdown::-webkit-scrollbar { display: none; }
+
 .dropdownItem {
   @include flex-between;
   width: 100%;
-  padding: $spacing-sm $spacing-md;
+  padding: 0.75rem 1rem;
   background: none;
   border: none;
-  border-bottom: 1px solid $color-border-light;
-  font-size: $font-size-sm;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 16px;
   color: $color-text-main;
   cursor: pointer;
   font-family: 'IRANYEKAN';
@@ -94,13 +96,13 @@ font-family: 'IRANYEKAN';
   }
 
   &:hover {
-    background: $color-gray-50;
+    background: #f9fafb;
   }
 
   &.active {
     color: $color-primary;
     font-weight: $font-weight-medium;
-    background: $color-primary-light;
+    background: #eff6ff;
   }
 }
 

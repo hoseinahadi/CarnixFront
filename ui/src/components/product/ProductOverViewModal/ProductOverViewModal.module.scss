@@ -355,6 +355,33 @@
     animation: spin 1s linear infinite;
 }
 
+@media (max-width: $breakpoint-md) {
+    .contentContainer {
+        width: calc(100% - 24px);
+        max-width: 420px;
+        max-height: calc(100dvh - 24px);
+        padding: $spacing-md;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    .gridContainer {
+        gap: $spacing-md;
+    }
+
+    .productGalleryContainer {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .closeBtn {
+        top: 10px;
+        left: 10px;
+        z-index: 20;
+    }
+}
+.contentContainer::-webkit-scrollbar { display: none; }
+
 @keyframes spin {
     from {
         transform: rotate(0deg);

@@ -8,7 +8,23 @@ import { selectAddressActionLoading, selectAddressError } from '@/store/feature/
 import { X, ChevronLeft, Trash2, AlertCircle, Loader2 } from 'lucide-react'
 import MapPicker from '@/components/common/MapPicker/MapPicker'
 import styles from './AddressModal.module.scss'
-import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
+import Dialog from '@/components/common/Dialog/Dialog'
+
+interface AddressModalData {
+  userAddressId: number
+  addressTitle?: string
+  recipientName?: string
+  phoneNumber?: string
+  landlineNumber?: string
+  fullAddress?: string
+  city?: string
+  province?: string
+  postalCode?: string
+  isDefault?: boolean
+  isActive?: boolean
+  latitude?: number | null
+  longitude?: number | null
+}
 
 interface AddressFormData {
   addressTitle: string
@@ -27,7 +43,7 @@ interface AddressFormData {
 interface AddressModalProps {
   isOpen: boolean
   onClose: () => void
-  initialData?: any
+  initialData?: AddressModalData | null
   mode: 'create' | 'edit' | 'delete'
   userId?: number
 }
@@ -66,8 +82,6 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialDat
   const [isMobile, setIsMobile] = useState(false)
 
   const isLoading = isSubmitting || actionLoadingState !== null
-
-  useBodyScrollLock(isOpen)
 
   useEffect(() => {
     if (!isOpen) { 
@@ -132,11 +146,11 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialDat
         await dispatch(createAddress({ ...formData, userId: userId || 0, isActive: true, latitude: formData.latitude ?? undefined, longitude: formData.longitude ?? undefined })).unwrap()
         onClose()
       } else if (mode === 'edit' && initialData) {
-        await dispatch(updateAddress({ id: initialData.userAddressId, data: { ...formData, userAddressId: initialData.userAddressId,  isActive: initialData.isActive, latitude: formData.latitude ?? undefined, longitude: formData.longitude ?? undefined } })).unwrap()
+        await dispatch(updateAddress({ id: initialData.userAddressId, data: { ...formData, userAddressId: initialData.userAddressId, isActive: initialData.isActive ?? true, latitude: formData.latitude ?? undefined, longitude: formData.longitude ?? undefined } })).unwrap()
         onClose()
       }
-    } catch (err: any) {
-      setLocalError(typeof err === 'string' ? err : err?.message || 'خطا در عملیات')
+    } catch (err: unknown) {
+      setLocalError(typeof err === 'string' ? err : err instanceof Error ? err.message : 'خطا در عملیات')
     } finally {
       setIsSubmitting(false)
     }
@@ -148,15 +162,14 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialDat
     try {
       await dispatch(deleteAddress(initialData.userAddressId)).unwrap()
       onClose()
-    } catch (err: any) { setLocalError(err?.message || 'خطا') } finally { setIsSubmitting(false) }
+    } catch (err: unknown) { setLocalError(err instanceof Error ? err.message : 'خطا') } finally { setIsSubmitting(false) }
   }
 
   if (!isOpen) return null
 
   if (mode === 'delete') {
     return (
-      <div className={styles.modalOverlay} onClick={isLoading ? undefined : onClose}>
-        <div className={styles.modalContainerDelete} onClick={e => e.stopPropagation()}>
+      <Dialog open={isOpen} onClose={onClose} closeOnBackdrop={!isLoading} title="حذف آدرس" overlayClassName={styles.modalOverlay} contentClassName={styles.modalContainerDelete}>
           <div className={styles.deleteContent}>
             <Trash2 size={48} className={styles.deleteIcon} />
             <h4>حذف آدرس</h4>
@@ -168,18 +181,16 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialDat
               </button>
             </div>
           </div>
-        </div>
-      </div>
+      </Dialog>
     )
   }
 
   return (
-    <div className={styles.modalOverlay} onClick={isLoading ? undefined : onClose}>
-      <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
+    <Dialog open={isOpen} onClose={onClose} closeOnBackdrop={!isLoading} title={mode === 'create' ? 'آدرس جدید' : 'ویرایش آدرس'} overlayClassName={styles.modalOverlay} contentClassName={styles.modalContainer}>
         
         <div className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>{mode === 'create' ? 'آدرس جدید' : 'ویرایش آدرس'}</h3>
-          <button className={styles.closeBtn} onClick={onClose} disabled={isLoading}>
+          <button type="button" className={styles.closeBtn} onClick={onClose} disabled={isLoading}>
             <X size={20} strokeWidth={1.5} />
           </button>
         </div>
@@ -203,7 +214,7 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialDat
             <div className={styles.formGrid}>
               <div className={`${styles.formGroup} ${formErrors.province ? styles.hasError : ''}`}>
                 <label className={styles.floatingLabel}>استان</label>
-                <select name="province" value={formData.province} onChange={handleInputChange} className={styles.input}>
+                <select name="province" value={formData.province} onChange={handleInputChange} className={`${styles.input} unifiedSelect`}>
                   <option value="">انتخاب...</option>
                   <option value="تهران">تهران</option>
                   <option value="اصفهان">اصفهان</option>
@@ -211,7 +222,7 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialDat
               </div>
               <div className={`${styles.formGroup} ${formErrors.city ? styles.hasError : ''}`}>
                 <label className={styles.floatingLabel}>شهر</label>
-                <select name="city" value={formData.city} onChange={handleInputChange} className={styles.input}>
+                <select name="city" value={formData.city} onChange={handleInputChange} className={`${styles.input} unifiedSelect`}>
                   <option value="">انتخاب...</option>
                   <option value="تهران">تهران</option>
                   <option value="اصفهان">اصفهان</option>
@@ -262,8 +273,7 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, initialDat
           </button>
         </div>
 
-      </div>
-    </div>
+    </Dialog>
   )
 }
 

@@ -39,29 +39,29 @@
 }
 
 /* ============ 🖥️ دسکتاپ بزرگ (1400px و بالاتر) ============ */
-@media (min-width: 1400px) {
+@media (min-width: $breakpoint-xxl) {
   .container {
     // استایل پایه
   }
 }
 
 /* ============ 🖥️ دسکتاپ متوسط (1200px تا 1399px) ============ */
-@media (min-width: 1200px) and (max-width: 1399.98px) {
+@media (min-width: $breakpoint-xl) and (max-width: 1399.98px) {
   // تنظیمات خاص اگر نیاز است
 }
 
 /* ============ 💻 لپ‌تاپ (992px تا 1199px) ============ */
-@media (min-width: 992px) and (max-width: 1199.98px) {
+@media (min-width: $breakpoint-lg) and (max-width: 1199.98px) {
   // تنظیمات خاص اگر نیاز است
 }
 
 /* ============ 📱 تبلت و موبایل بزرگ (768px تا 991px) ============ */
-@media (min-width: 768px) and (max-width: 991.98px) {
+@media (min-width: $breakpoint-md) and (max-width: 991.98px) {
   // تنظیمات خاص اگر نیاز است
 }
 
 /* ============ 📱 موبایل (767px و پایین) ============ */
-@media (max-width: 767.98px) {
+@media (max-width: calc($breakpoint-md - 0.02px)) {
   .bottomHeaderContainer {
     display: none; // در موبایل توسط MobileMenu جایگزین می‌شود
   }

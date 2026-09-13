@@ -1,57 +1,29 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getMediaUrl } from '@/utils/media/getMediaUrl';
 import Image from 'next/image';
 import { useAppSelector } from '@/store/hooks'; 
 import { selectProductDetails, selectDetailsLoading } from '@/store/feature/product/productSelectors'; 
 import { Heart, Scale, ImageIcon, Loader2 } from 'lucide-react';
 import styles from './ProductGallery.module.scss';
 import { wishlistApi } from '@/features/wishlist/api/wishlistApi';
+import { getAccessToken } from '@/services/api/common/authTokenStorage';
+import type { Product } from '@/models/product/Product';
+import type { ProductDetails } from '@/models/product/ProductDetails';
 
 // تابع کمکی برای ساخت آدرس صحیح عکس
-const getValidImageUrl = (rawUrl?: string): string | null => {
-  if (!rawUrl) return null;
-  
-  // حذف wwwroot از ابتدای مسیر
-  let cleanPath = rawUrl.replace(/^wwwroot[\\/]/i, '');
-  
-  // مطمئن می‌شویم که با اسلش شروع می‌شود
-  if (!cleanPath.startsWith('/')) {
-    cleanPath = '/' + cleanPath;
-  }
-  
-  // آدرس پایه بک‌اند
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:7191';
-  
-  return `${backendBaseUrl}${cleanPath}`;
-};
+const getValidImageUrl = (rawUrl?: string) => getMediaUrl(rawUrl);
 
-// کامپوننت Fallback برای وقتی تصویر لود نمیشه
-const ImageWithFallback = ({ src, alt, ...props }: any) => {
-  const [error, setError] = useState(false);
-  
-  if (error || !src) {
-    return (
-      <div className={styles.noImageFallback}>
-        <ImageIcon size={48} color="#64748b" />
-        <p>تصویری موجود نیست</p>
-      </div>
-    );
-  }
-  
-  return (
-    <Image
-      src={src}
-      alt={alt || 'تصویر محصول'}
-      onError={() => setError(true)}
-      {...props}
-    />
-  );
-};
+interface ProductGalleryProps {
+  productOverride?: Product | ProductDetails;
+}
 
-export default function ProductGallery() {
-  const product = useAppSelector(selectProductDetails);
-  const isLoading = useAppSelector(selectDetailsLoading);
+export default function ProductGallery({ productOverride }: ProductGalleryProps = {}) {
+  const selectedProduct = useAppSelector(selectProductDetails);
+  const detailsLoading = useAppSelector(selectDetailsLoading);
+  const product = productOverride ?? selectedProduct;
+  const isLoading = productOverride ? false : detailsLoading;
   
   const [activeIndex, setActiveIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -62,7 +34,7 @@ export default function ProductGallery() {
   useEffect(() => {
     if (!product?.productId) return;
 
-    const token = localStorage.getItem('token'); 
+    const token = getAccessToken();
 
     if (token) {
       if ('isFavorite' in product) {
@@ -83,7 +55,7 @@ export default function ProductGallery() {
   }
 
   // 🔥 تبدیل images به آرایه (اگر string باشه از SSR)
-  let images = product.images || [];
+  let images = 'images' in product ? product.images || [] : [];
   if (typeof images === 'string') {
     try {
       images = JSON.parse(images);
@@ -96,13 +68,22 @@ export default function ProductGallery() {
     images = [];
   }
 
+  if (images.length === 0 && product.imageUrl) {
+    images = [{
+      imageId: 0,
+      imageUrl: product.imageUrl,
+      isMain: true,
+      displayOrder: 0,
+    }];
+  }
+
   const currentImageRaw = images[activeIndex]?.imageUrl;
   const currentImage = getValidImageUrl(currentImageRaw);
 
   const handleWishlistToggle = async () => {
     if (!product.productId || isWishlistLoading) return;
 
-    const token = localStorage.getItem('token');
+    const token = getAccessToken();
 
     if (token) {
       setIsWishlistLoading(true);
@@ -169,7 +150,7 @@ export default function ProductGallery() {
 
         {/* تصویر اصلی */}
         <div className={styles.mainImage}>
-          {currentImage ? (
+          {currentImage && !imageErrors[activeIndex] ? (
             <Image
               src={currentImage}
               alt={product.productName || 'تصویر محصول'}
@@ -177,7 +158,6 @@ export default function ProductGallery() {
               sizes="(max-width: 768px) 100vw, 400px"
               className={styles.imageConfig}
               priority
-              unoptimized={process.env.NODE_ENV === 'development'}
               onError={() => {
                 setImageErrors(prev => ({ ...prev, [activeIndex]: true }));
               }}
@@ -212,7 +192,6 @@ export default function ProductGallery() {
                     fill
                     sizes="80px"
                     className={styles.imageConfig}
-                    unoptimized={process.env.NODE_ENV === 'development'}
                   />
                 ) : (
                   <ImageIcon size={24} color="#ccc" />

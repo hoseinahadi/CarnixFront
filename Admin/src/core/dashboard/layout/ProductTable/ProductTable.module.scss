@@ -1,7 +1,7 @@
 .tableContainer {
   width: 100%;
   overflow-x: auto;
-  background: #fff;
+  background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
@@ -10,11 +10,11 @@
   width: 100%;
   border-collapse: collapse;
   text-align: right;
-  white-space: nowrap; // جلوگیری از شکستن خطوط در جدول‌های شلوغ
+  white-space: nowrap;
 
   th, td {
     padding: 14px 16px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eeeeee;
     vertical-align: middle;
   }
 
@@ -60,7 +60,7 @@
   text-align: left;
   color: #6c757d;
   font-size: 0.9rem;
-  direction: ltr; // اضافه شده برای نمایش صحیح کدهای انگلیسی/اعداد
+  direction: ltr;
 }
 
 .badge {
@@ -81,29 +81,50 @@
   color: #721c24;
 }
 
+.actionCell {
+  width: 120px;
+}
+
 .actions {
   display: flex;
   gap: 8px;
+  justify-content: flex-end;
+}
 
-  button {
-    padding: 6px 12px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: background-color 0.2s ease;
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  background-color: #f1f5f9;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
 
-    &.editBtn {
-      background-color: #ffc107;
-      color: #000;
-      &:hover { background-color: #e0a800; }
-    }
+  &.viewBtn {
+    color: #0284c7;
+    background-color: #e0f2fe;
+    &:hover { background-color: #bae6fd; }
+  }
 
-    &.deleteBtn {
-      background-color: #dc3545;
-      color: #fff;
-      &:hover { background-color: #c82333; }
-    }
+  &.editBtn {
+    color: #d97706;
+    background-color: #fef3c7;
+    &:hover { background-color: #fde68a; }
+  }
+
+  &.deleteBtn {
+    color: #e11d48;
+    background-color: #ffe4e6;
+    &:hover { background-color: #fecdd3; }
   }
 }
 
@@ -111,7 +132,7 @@
   text-align: center;
   padding: 32px;
   color: #6c757d;
-  background: #fff;
+  background: #ffffff;
   border-radius: 8px;
   border: 1px dashed #ced4da;
 }

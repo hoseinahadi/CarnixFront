@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 import {
   useEffect,
   useMemo,
@@ -385,13 +385,12 @@ export default function ProductReviews({
                         styles.previewItem
                       }
                     >
-                      <Image
+                      <OptimizedImage
                         src={url}
                         alt={`پیش‌نمایش ${
                           index + 1
                         }`}
                         fill
-                        unoptimized
                         className={
                           styles.previewImg
                         }

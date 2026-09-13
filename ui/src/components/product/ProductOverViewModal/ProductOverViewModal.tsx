@@ -86,7 +86,7 @@ const ProductOverViewModal = (props: any) => {
                     
                     {/* سمت راست: گالری عکس */}
                     <div className={styles.productGalleryContainer}>
-                        <ProductGallery  />
+                        <ProductGallery productOverride={product} />
                     </div>
 
                     {/* سمت چپ: اطلاعات محصول */}

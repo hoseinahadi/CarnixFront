@@ -12,7 +12,8 @@ export const selectProfileSuccessMessage = (state: RootState) => state.profile.s
 export const selectUserFullName = (state: RootState) => {
   const profile = state.profile.data;
   if (!profile) return '';
-  return `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
+  const fullName = `${profile.firstName || profile.userProfile?.firstName || ''} ${profile.lastName || profile.userProfile?.lastName || ''}`.trim();
+  return fullName || profile.userName || profile.phoneNumber || '';
 };
 
 export const selectUserAvatar = (state: RootState) => {
