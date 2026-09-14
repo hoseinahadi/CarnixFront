@@ -282,6 +282,17 @@
   width: 100%;
 }
 
+.categoryArrow {
+  flex-shrink: 0;
+  color: $color-text-muted;
+  transition: transform 0.2s ease, color 0.2s ease;
+
+  .brandCard:hover & {
+    color: $color-primary;
+    transform: translateX(-4px);
+  }
+}
+
 /* ================= Skeleton Loader ================= */
 .skeletonCard {
   display: flex;

@@ -3,43 +3,67 @@
 
 .filterContainer {
   width: 100%;
-  margin-bottom: $spacing-xxl;
-  overflow-x: auto; // اسکرول افقی برای حالت موبایل
-  touch-action: pan-y; // اجازه اسکرول عمودی روی دکمه‌ها
-  @include custom-scrollbar(4px);
-  padding-bottom: $spacing-sm; 
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid $color-border-light;
+  touch-action: pan-x pan-y;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: inline proximity;
+
+  &::-webkit-scrollbar { display: none; }
 }
 
 .categoryList {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
   list-style: none;
   padding: 0;
   margin: 0;
-  min-width: max-content; 
-  justify-content: center;
-
-  @include respond-down('md') {
-    justify-content: flex-start; // در موبایل لیست از سمت راست شروع شود (RTL)
-  }
+  min-width: max-content;
+  justify-content: flex-start;
 }
 
 .categoryBtn {
-  background-color: $color-white;
-  border: 1px solid $color-border-light;
+  position: relative;
+  appearance: none;
+  background: transparent;
+  border: 0;
   color: $color-text-muted;
-  padding: $spacing-sm $spacing-lg;
-  border-radius: $border-radius-full;
+  padding: 9px 2px 13px;
   font-family: $font-family-main;
-  font-size: $font-size-sm;
+  font-size: clamp(.9rem, 1.35vw, 1.05rem);
   font-weight: $font-weight-medium;
+  white-space: nowrap;
   cursor: pointer;
-  @include transition-ease;
+  scroll-snap-align: start;
+  transition: color .2s ease;
 
-  &.active, &:hover {
-    background-color: $color-primary;
-    color: $color-white;
-    border-color: $color-primary;
+  &::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: transparent;
+    content: '';
+    transition: background-color .2s ease;
+  }
+
+  &:hover { color: $color-primary; }
+
+  &.active {
+    color: $color-primary;
+    font-weight: $font-weight-bold;
+
+    &::after { background: $color-primary; }
+  }
+
+  @include respond-down('md') {
+    padding: 6px 1px 9px;
+    font-size: .7rem;
   }
 }

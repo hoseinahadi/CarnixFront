@@ -14,11 +14,14 @@ interface Props {
 
 const BlogCategoryFilter: React.FC<Props> = ({ categories, activeCategoryId, onSelect }) => {
   return (
-    <div className={styles.filterContainer}>
-      <ul className={styles.categoryList}>
+    <div className={styles.filterContainer} aria-label="دسته‌بندی مقالات">
+      <ul className={styles.categoryList} role="tablist">
         {categories.map((cat) => (
           <li key={cat.id}>
             <button
+              type="button"
+              role="tab"
+              aria-selected={activeCategoryId === cat.id}
               className={`${styles.categoryBtn} ${activeCategoryId === cat.id ? styles.active : ''}`}
               onClick={() => onSelect(cat.id)}
             >

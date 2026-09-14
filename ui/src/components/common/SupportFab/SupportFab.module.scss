@@ -5,7 +5,7 @@
 
 .fabContainer {
   position: fixed;
-  bottom: $spacing-xl;
+  bottom: calc($spacing-xl + env(safe-area-inset-bottom, 0px));
   left: $spacing-xl;
   z-index: 60; // بالاتر از سایدبار، پایین‌تر از مدال
   display: flex;
@@ -21,7 +21,7 @@
   }
 
   @media (max-width: $breakpoint-md) {
-    bottom: $spacing-lg;
+    bottom: calc($spacing-lg + env(safe-area-inset-bottom, 0px));
     left: $spacing-lg;
   }
 }

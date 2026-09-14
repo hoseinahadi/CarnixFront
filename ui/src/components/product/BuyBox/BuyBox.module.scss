@@ -8,18 +8,31 @@
   padding: $spacing-lg;
   display: flex;
   flex-direction: column;
+  min-width: 0;
   
   @include respond-down('md') {
     position: fixed;
     bottom: 0;
     left: 0;
+    right: 0;
     width: 100%;
+    box-sizing: border-box;
     z-index: $z-index-sticky;
     border-radius: $border-radius-lg $border-radius-lg 0 0;
     border: none;
     border-top: 1px solid $color-border-light;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
-    padding: $spacing-md;
+    padding: 10px max(10px, env(safe-area-inset-right)) 10px max(10px, env(safe-area-inset-left));
+    margin-top: 0;
+  }
+}
+
+.hiddenAtFooter {
+  @include respond-down('md') {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(110%);
   }
 }
 
@@ -98,6 +111,7 @@
     flex-direction: row;
     justify-content: space-between;
     gap: $spacing-sm;
+    align-items: center;
   }
 }
 
@@ -109,6 +123,8 @@
   
   @include respond-down('md') {
     align-items: flex-start;
+    flex: 0 0 auto;
+    width: auto;
   }
 
   .finalPrice {
@@ -117,7 +133,7 @@
     color: $color-text-main;
 
     @include respond-down('sm') {
-      font-size: $font-size-lg;
+      font-size: clamp(14px, 4vw, $font-size-lg);
     }
 
     .currency {
@@ -129,6 +145,7 @@
 
 .buttonContainer {
   width: 100%;
+  min-width: 0;
 
   .addToCartBtn {
     width: 100%;
@@ -145,7 +162,8 @@
 
     @include respond-down('sm') {
       height: 44px;
-      font-size: $font-size-sm;
+      font-size: clamp(11px, 3.2vw, $font-size-sm);
+      padding-inline: 8px;
     }
 
     &:hover:not(:disabled) {

@@ -38,7 +38,7 @@ const LatestBlogs: React.FC = () => {
         ) : (
           <div className={styles.grid}>
             {articles.map((article) => (
-              <BlogCard key={article.id} article={article} />
+              <BlogCard key={article.dynamicContentId} article={article} />
             ))}
           </div>
         )}

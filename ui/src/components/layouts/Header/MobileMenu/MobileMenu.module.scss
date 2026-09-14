@@ -8,9 +8,11 @@
   left: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   background-color: rgba(0, 0, 0, 0.6);
   z-index: $z-index-modal;
   animation: fadeIn 0.2s ease-out;
+  overscroll-behavior: none;
 }
 
 @keyframes fadeIn {
@@ -25,12 +27,15 @@
   width: 85%;
   max-width: 380px;
   height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
   background-color: $color-white;
   z-index: $z-index-modal + 1;
   animation: slideIn 0.3s ease-out;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 @keyframes slideIn {
@@ -45,6 +50,8 @@
   justify-content: space-between;
   align-items: center;
   min-height: 64px;
+  flex-shrink: 0;
+  padding-top: max($spacing-md, env(safe-area-inset-top));
 
   h3 {
     color: $color-white;
@@ -73,8 +80,13 @@
 
 .content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: $spacing-md $spacing-lg;
+  padding-bottom: calc($spacing-xl + env(safe-area-inset-bottom, 0px));
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   @include custom-scrollbar(4px, $color-gray-300);
 
   .section {
@@ -88,6 +100,23 @@
       font-weight: $font-weight-bold;
       color: $color-text-main;
       margin-bottom: $spacing-md;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font-family: inherit;
+      text-align: right;
+      cursor: pointer;
+
+      .arrowIcon {
+        margin-right: auto;
+        color: $color-text-muted;
+      }
+
+      .openArrow {
+        transform: rotate(-90deg);
+        color: $color-primary;
+      }
 
       svg {
         color: $color-primary;

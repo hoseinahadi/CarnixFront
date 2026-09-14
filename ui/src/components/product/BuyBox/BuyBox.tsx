@@ -32,7 +32,11 @@ import {
 import styles from './BuyBox.module.scss';
 import { formatPrice } from '@/utils/price';
 
-export default function BuyBox() {
+interface BuyBoxProps {
+  hideOnFooter?: boolean;
+}
+
+export default function BuyBox({ hideOnFooter = false }: BuyBoxProps) {
   const dispatch = useAppDispatch();
   const product = useAppSelector(
     selectProductDetails,
@@ -141,7 +145,9 @@ export default function BuyBox() {
   };
 
   return (
-    <div className={styles.buyBoxContainer}>
+    <div
+      className={`${styles.buyBoxContainer} ${hideOnFooter ? styles.hiddenAtFooter : ''}`}
+    >
       <div className={styles.featuresList}>
         <div className={styles.featureItem}>
           <ShieldCheck

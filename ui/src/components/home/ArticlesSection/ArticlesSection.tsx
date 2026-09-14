@@ -61,9 +61,8 @@ const ArticlesSection = () => {
 
       <div className={styles.grid}>
         {articles.slice(0, pageSize).map((article, index) => (
-  // اگر article.id وجود نداشت، از اندیس استفاده کن (هرچند id اولویت دارد)
   <ArticleCard 
-    key={article.id || `article-${index}`} 
+    key={article.dynamicContentId || `article-${index}`}
     article={article} 
   />
 ))}

@@ -19,6 +19,8 @@ jobs:
 
   build-and-deploy:
     name: Build & Deploy Carnix Frontend
+    timeout-minutes: 40
+    environment: production
 
     runs-on:
       - self-hosted
@@ -38,6 +40,27 @@ jobs:
       # ==========================================================
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify self-hosted runner prerequisites
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          foreach ($command in @("node", "npm", "npx")) {
+            if (-not (Get-Command $command -ErrorAction SilentlyContinue)) {
+              throw "Required command '$command' is not available on this runner."
+            }
+          }
+
+          node --version
+          npm --version
+          npx pm2 --version
+
+          if (-not (Test-Path "C:\Deploy")) {
+            New-Item -ItemType Directory -Path "C:\Deploy" -Force | Out-Null
+          }
 
 
       # ==========================================================

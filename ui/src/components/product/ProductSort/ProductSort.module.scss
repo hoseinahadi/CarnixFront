@@ -53,6 +53,26 @@ font-family: 'IRANYEKAN';
   }
 }
 
+// آرشیو مقالات روی موبایل فقط آیکون مرتب‌سازی را نشان می‌دهد.
+.blogSort .sortLabel {
+  display: none;
+}
+
+.blogSort .sortButton {
+  @include respond-down('md') {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: $spacing-sm;
+  }
+}
+
+.blogSort .sortLabel {
+  @include respond-to('lg') {
+    display: inline;
+  }
+}
+
 // ==================== دراپ‌داون دسکتاپ ====================
 .dropdown {
   position: absolute;

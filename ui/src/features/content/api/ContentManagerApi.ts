@@ -38,11 +38,23 @@ export interface FullContentDisplayDto {
 }
 
 export interface ContentSummaryDto {
-  id: number;
+  dynamicContentId: number;
   title: string;
   slug: string;
   excerpt: string;
   imageUrl: string;
+  articleCategory?: string | null;
+  displayOrder: number;
+  isFeatured: boolean;
+  createdAt: string;
+  readingTimeMinutes: number;
+}
+
+export interface ContentArchiveDto {
+  items: ContentSummaryDto[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
 }
 
 const CONTENT_CACHE_TTL_MS = 2 * 60_000;
@@ -90,6 +102,16 @@ export const ContentManagerApi = {
       'content:all',
       () => axiosClient.get<OperationResult<ContentSummaryDto[]>>(
         '/ContentManager/all'
+      ),
+      CONTENT_CACHE_TTL_MS,
+    ),
+
+  getArticleArchive: (category?: string) =>
+    getCachedRequest(
+      `content:articles:${category ?? 'all'}`,
+      () => axiosClient.get<OperationResult<ContentArchiveDto>>(
+        '/ContentManager/articles',
+        { params: { page: 1, pageSize: 50, ...(category ? { category } : {}) } },
       ),
       CONTENT_CACHE_TTL_MS,
     ),

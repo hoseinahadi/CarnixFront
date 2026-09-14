@@ -159,6 +159,7 @@ const FrontMenu = () => {
           ref={category.refs.setReference}
           className={`${styles.trigger} ${styles.categoryTrigger}`}
           {...categoryInteractions.getReferenceProps()}
+          onClick={() => router.push('/categories')}
         >
           <LayoutGrid size={20} />
 

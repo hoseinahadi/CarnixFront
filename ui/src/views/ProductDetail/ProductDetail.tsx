@@ -172,6 +172,8 @@ export default function ProductDetailPageClient({
   );
   const tabsSectionRef =
     useRef<HTMLDivElement>(null);
+  const [isFooterVisible, setIsFooterVisible] =
+    useState(false);
 
   const product =
     storeProduct?.productId ===
@@ -212,6 +214,21 @@ export default function ProductDetailPageClient({
       dispatch(clearProductDetail());
     };
   }, [dispatch, initialProduct]);
+
+  useEffect(() => {
+    const footer = document.querySelector('footer');
+    if (!footer || !('IntersectionObserver' in window)) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsFooterVisible(entry.isIntersecting),
+      { threshold: 0.01 },
+    );
+
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
 
   const handleNavigateToTab = (
     tabId: string,
@@ -362,7 +379,7 @@ export default function ProductDetailPageClient({
         </div>
 
         <div className={styles.buyBoxColumn}>
-          <BuyBox />
+          <BuyBox hideOnFooter={isFooterVisible} />
         </div>
       </section>
 

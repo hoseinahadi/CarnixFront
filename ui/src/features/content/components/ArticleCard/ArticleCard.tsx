@@ -2,23 +2,15 @@ import React from 'react';
 import Link from 'next/link';
 import styles from './ArticleCard.module.scss';
 import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
-
-// این تایپ باید بر اساس خروجی لیست مقالات از بک‌اند تنظیم شود
-export interface ArticleSummary {
-  id: number;
-  title: string;
-  slug: string;
-  excerpt: string; // خلاصه متن
-  imageUrl: string;
-}
+import type { ContentSummaryDto } from '@/features/content/api/ContentManagerApi';
 
 interface ArticleCardProps {
-  article: ArticleSummary;
+  article: ContentSummaryDto;
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article }) => {
   return (
-    <Link href={`/blog/${article.slug}`} className={styles.card}>
+    <Link href={`/blog/${article.slug || article.dynamicContentId}`} className={styles.card}>
       <div className={styles.imageWrapper}>
         {article.imageUrl ? (
           <OptimizedImage

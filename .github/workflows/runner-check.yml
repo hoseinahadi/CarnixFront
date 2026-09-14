@@ -1,0 +1,54 @@
+name: Carnix Self-hosted Runner Check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    name: Windows runner diagnostics
+    runs-on: [self-hosted, Windows, X64, carnix-frontend]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Report runner capabilities
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          Write-Host "Runner: $env:RUNNER_NAME"
+          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
+          Write-Host "OS: $([System.Environment]::OSVersion.VersionString)"
+
+          foreach ($command in @("git", "node", "npm", "npx")) {
+            $resolved = Get-Command $command -ErrorAction SilentlyContinue
+            if (-not $resolved) { throw "Missing required command: $command" }
+            Write-Host "$command => $($resolved.Source)"
+          }
+
+          node --version
+          npm --version
+          npx pm2 --version
+
+      - name: Verify deployment paths and local health endpoint
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $deployRoot = "C:\Deploy"
+          if (-not (Test-Path $deployRoot)) {
+            Write-Host "Deployment path does not exist yet: $deployRoot"
+            exit 0
+          }
+
+          Write-Host "Deployment path exists: $deployRoot"
+          try {
+            $response = Invoke-WebRequest -Uri "http://localhost:3000/" -UseBasicParsing -TimeoutSec 5
+            Write-Host "Current storefront HTTP status: $($response.StatusCode)"
+          } catch {
+            Write-Host "Storefront is not currently responding on port 3000. First deployment can still proceed."
+          }

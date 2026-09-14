@@ -46,6 +46,7 @@ export default function NotFound() {
             <span>مسیرهای پیشنهادی:</span>
             <Link href="/vehicles">ماشین‌ها</Link>
             <Link href="/brands">برندها</Link>
+            <Link href="/categories">دسته‌بندی‌ها</Link>
             <Link href="/faq">سوالات متداول</Link>
           </div>
         </div>

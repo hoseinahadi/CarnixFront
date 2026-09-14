@@ -1,1 +1,25 @@
-"use client";import {useParams} from 'next/navigation';import {resources} from '@/lib/resources';import {ResourceManager} from '@/components/ResourceManager';import {Permissions,Reviews} from '@/components/SpecialSections';import {InventoryManager,OrdersManager,ContentManagerSection} from '@/components/OperationsSections';import {ProductTools} from '@/components/ProductTools';export default function Page(){const p=useParams<{section:string}>();const s=String(p.section);if(s==='permissions')return <Permissions/>;if(s==='productTools')return <ProductTools/>;if(s==='reviews')return <Reviews/>;if(s==='inventory')return <InventoryManager/>;if(s==='orders')return <OrdersManager/>;if(s==='contents')return <ContentManagerSection/>;const c=resources[s];if(!c)return <div className="error-state card"><b>بخش پیدا نشد</b><span>کلید «{s}» در تنظیمات پنل وجود ندارد.</span></div>;return <ResourceManager config={c}/>}
+'use client';
+
+import { useParams } from 'next/navigation';
+import { resources } from '@/lib/resources';
+import { ResourceManager } from '@/components/ResourceManager';
+import { Permissions, Reviews } from '@/components/SpecialSections';
+import { InventoryManager, OrdersManager } from '@/components/OperationsSections';
+import { ArticleContentManager } from '@/components/ArticleContentManager';
+import { ProductTools } from '@/components/ProductTools';
+
+export default function Page() {
+  const params = useParams<{ section: string }>();
+  const section = String(params.section);
+
+  if (section === 'permissions') return <Permissions />;
+  if (section === 'productTools') return <ProductTools />;
+  if (section === 'reviews') return <Reviews />;
+  if (section === 'inventory') return <InventoryManager />;
+  if (section === 'orders') return <OrdersManager />;
+  if (section === 'contents') return <ArticleContentManager />;
+
+  const config = resources[section];
+  if (!config) return <div className="error-state card"><b>بخش پیدا نشد</b><span>کلید «{section}» در تنظیمات پنل وجود ندارد.</span></div>;
+  return <ResourceManager config={config} />;
+}

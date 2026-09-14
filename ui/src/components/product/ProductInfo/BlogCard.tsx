@@ -12,7 +12,7 @@ interface BlogCardProps {
 const BlogCard: React.FC<BlogCardProps> = ({ article }) => {
   return (
     <article className={styles.card}>
-      <Link href={`/blog/${article.slug}`} className={styles.imageWrapper}>
+      <Link href={`/blog/${article.slug || article.dynamicContentId}`} className={styles.imageWrapper}>
         <OptimizedImage 
           src={article.imageUrl || '/images/placeholder.jpg'} // در صورت نبود عکس، از پلیس‌هولدر استفاده می‌شود
           alt={article.title} 
@@ -23,11 +23,11 @@ const BlogCard: React.FC<BlogCardProps> = ({ article }) => {
         />
       </Link>
       <div className={styles.content}>
-        <Link href={`/blog/${article.slug}`}>
+        <Link href={`/blog/${article.slug || article.dynamicContentId}`}>
           <h3 className={styles.title}>{article.title}</h3>
         </Link>
         <p className={styles.excerpt}>{article.excerpt}</p>
-        <Link href={`/blog/${article.slug}`} className={styles.readMore}>
+        <Link href={`/blog/${article.slug || article.dynamicContentId}`} className={styles.readMore}>
           <span>ادامه مطلب</span>
           <ArrowLeft size={16} />
         </Link>

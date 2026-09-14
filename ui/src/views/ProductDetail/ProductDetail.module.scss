@@ -62,6 +62,51 @@
   }
 }
 
+// On narrow screens the breadcrumb is a single scrollable line instead of
+// forcing long product names into the content width.
+@include respond-down('md') {
+  .breadcrumb {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+    gap: 4px;
+    font-size: clamp(11px, 3.2vw, 14px);
+    margin-bottom: $spacing-md;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .breadcrumbLink,
+    .current,
+    .separator {
+      flex: 0 0 auto;
+    }
+
+    .current {
+      max-width: 58vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+}
+
+@include respond-down('vsm') {
+  .pageContainer {
+    padding-inline: 10px;
+  }
+
+  .breadcrumb .current {
+    max-width: 52vw;
+  }
+}
+
 .topSection {
   display: flex;
   flex-direction: column;
@@ -311,4 +356,13 @@
   color: $color-text-main;
   font-size: $font-size-base;
   line-height: 2;
+}
+
+@include respond-down('md') {
+  .buyBoxColumn {
+    position: static;
+    padding: 0;
+    box-shadow: none;
+    z-index: auto;
+  }
 }

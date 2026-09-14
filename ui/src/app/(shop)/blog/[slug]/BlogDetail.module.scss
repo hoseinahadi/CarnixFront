@@ -1,167 +1,49 @@
 @use '@/assets/styles/utils/variables' as *;
 @use '@/assets/styles/utils/mixins' as *;
 
-.container {
-  max-width: 800px; // عرض استاندارد و بهینه برای خوانایی چشم در مقالات
-  margin: $spacing-xxl auto;
-  padding: 0 $spacing-md;
-  font-family: $font-family-main;
+.page, .container { width: min(calc(100% - 2rem), 1180px); margin: 0 auto; padding: clamp(1rem, 3vw, 2.5rem) 0 4rem; font-family: $font-family-main; direction: rtl; }
+.breadcrumb { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: 1.25rem; color: $color-text-muted; font-size: .72rem; a { color: inherit; text-decoration: none; &:hover { color: $color-primary; } } }
+.header { width: min(100%, 850px); margin: 0 0 1.5rem auto; }
+.title { margin: 0 0 .65rem; color: $color-text-main; font-size: clamp(1.25rem, 2.4vw, 2rem); line-height: 1.65; }
+.meta { display: flex; flex-wrap: wrap; gap: 1rem; color: $color-text-muted; font-size: .72rem; span { display: inline-flex; align-items: center; gap: .3rem; } }
+.articleLayout { display: grid; grid-template-columns: minmax(0, 850px) minmax(220px, 280px); grid-template-areas: 'article related' 'comments .'; gap: clamp(1rem, 3vw, 2.5rem); align-items: start; }
+.articleColumn { grid-area: article; min-width: 0; }
+.cover { position: relative; width: 100%; aspect-ratio: 16 / 8.5; overflow: hidden; border-radius: 8px; background: $color-neutral-50; }
+.coverImage { object-fit: cover; }
+.bodyContent { padding-top: 1rem; color: $color-text-main; font-size: clamp(.88rem, 1.25vw, 1rem); line-height: 2.15;
+  h2, h3, h4 { margin: 1.8rem 0 .65rem; color: $color-text-main; line-height: 1.7; }
+  h2 { font-size: 1.25rem; } h3 { font-size: 1.08rem; }
+  p { margin: 0 0 1rem; text-align: justify; }
+  img { max-width: 100%; height: auto; margin: 1rem auto; border-radius: 6px; }
+  a { color: $color-primary; } ul, ol { padding-right: 1.4rem; }
+  blockquote { margin: 1.25rem 0; padding: .8rem 1rem; border-right: 3px solid $color-primary; background: $color-neutral-50; }
 }
+.related { grid-area: related; position: sticky; top: 1rem; h2 { margin: 0 0 .75rem; font-size: 1rem; } }
+.relatedCard { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: .65rem; align-items: center; padding: .55rem 0; border-bottom: 1px solid $color-border-light; color: $color-text-main; text-decoration: none; h3 { margin: 0 0 .3rem; font-size: .76rem; line-height: 1.7; @include line-clamp(2); } span { color: $color-text-muted; font-size: .65rem; } }
+.relatedImage { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 5px; }
+.shareRow { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.75rem 0; padding-block: .8rem; border-top: 1px solid $color-border-light; border-bottom: 1px solid $color-border-light; color: $color-text-muted; font-size: .76rem; span, button { display: inline-flex; align-items: center; gap: .4rem; } button { padding: .5rem .8rem; border: 1px solid $color-primary; border-radius: 5px; background: white; color: $color-primary; font-family: inherit; cursor: pointer; } }
+.comments { grid-area: comments; h2 { margin: 0 0 1rem; font-size: 1.05rem; } }
+.emptyComment { margin-bottom: 1rem; padding: 1rem; border: 1px solid $color-border-light; background: $color-neutral-50; color: $color-text-muted; font-size: .78rem; }
+.commentForm { display: grid; gap: .75rem; padding-top: 1rem; h3 { margin: 0; font-size: .95rem; } input, textarea { width: 100%; border: 1px solid $color-border-light; border-radius: 5px; padding: .72rem; font: inherit; outline: 0; &:focus { border-color: $color-primary; } } textarea { min-height: 140px; resize: vertical; } > button { justify-self: start; min-width: 120px; padding: .65rem 1rem; border: 0; border-radius: 5px; background: $color-primary; color: white; font-family: inherit; cursor: pointer; } }
+.formRow { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.formMessage { margin: .75rem 0 0; color: $color-primary; font-size: .78rem; }
+.skeletonTitle, .skeletonImage, .skeletonText { margin-bottom: 1rem; border-radius: 6px; background: linear-gradient(90deg, $color-neutral-50 25%, $color-on-primary 50%, $color-neutral-50 75%); background-size: 200% 100%; animation: loading 1.4s infinite; }
+.skeletonTitle { width: 65%; height: 42px; } .skeletonImage { height: 380px; } .skeletonText { height: 18px; }
+@keyframes loading { to { background-position: -200% 0; } }
+.error { min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; color: $color-danger; text-align: center; }
+.backToBlogBtn { padding: .65rem 1rem; border-radius: 5px; background: $color-primary; color: white; text-decoration: none; }
 
-.breadcrumb {
-  margin-bottom: $spacing-lg;
-  
-  .backLink {
-    display: inline-flex;
-    align-items: center;
-    gap: $spacing-xs;
-    color: $color-text-muted;
-    text-decoration: none;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-    @include transition-ease;
-
-    &:hover {
-      color: $color-primary;
-    }
-  }
-}
-
-.header {
-  margin-bottom: $spacing-xl;
-}
-
-.title {
-  font-size: $font-size-xxl;
-  font-weight: $font-weight-bold;
-  color: $color-text-main;
-  margin-bottom: $spacing-md;
-  line-height: 1.6;
-  
-  @include respond-down('md') {
-    font-size: $font-size-xl;
-  }
-}
-
-.meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: $spacing-lg;
-  color: $color-text-muted;
-  font-size: $font-size-sm;
-  padding-bottom: $spacing-md;
-  border-bottom: 1px solid $color-border-light;
-
-  .metaItem {
-    display: flex;
-    align-items: center;
-    gap: $spacing-xs;
-  }
-}
-
-// استایل‌دهی به تگ‌های HTML که از ادیتور (مثل CKEditor) می‌آیند
-.bodyContent {
-  font-size: $font-size-base;
-  line-height: 2.2; // فاصله خطوط زیاد برای خستگی کمتر چشم
-  color: $color-text-main;
-
-  h2, h3, h4 {
-    color: $color-primary-dark;
-    margin-top: $spacing-xl;
-    margin-bottom: $spacing-md;
-    font-weight: $font-weight-bold;
-    line-height: 1.5;
-  }
-
-  h2 { font-size: $font-size-xl; }
-  h3 { font-size: $font-size-lg; }
-
-  p {
-    margin-bottom: $spacing-lg;
-    text-align: justify;
-  }
-
-  img {
-    max-width: 100%;
-    height: auto;
-    border-radius: $border-radius-lg;
-    margin: $spacing-md 0;
-    box-shadow: $shadow-md;
-  }
-
-  a {
-    color: $color-primary;
-    text-decoration: none;
-    font-weight: $font-weight-medium;
-    
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  ul, ol {
-    margin-bottom: $spacing-lg;
-    padding-right: $spacing-xl;
-    
-    li {
-      margin-bottom: $spacing-xs;
-    }
-  }
-  
-  // استایل جذاب برای نقل‌قول‌ها داخل متن
-  blockquote {
-    border-right: 4px solid $color-primary;
-    margin: $spacing-lg 0;
-    padding: $spacing-md $spacing-lg;
-    background-color: $color-neutral-50;
-    border-radius: $border-radius-md;
-    font-style: italic;
-    color: $color-text-secondary;
-  }
-}
-
-// ===============================
-// Skeleton Loaders & Error State
-// ===============================
-.skeletonTitle, .skeletonMeta, .skeletonImage, .skeletonText {
-  background: linear-gradient(90deg, $color-neutral-50 25%, $color-on-primary 50%, $color-neutral-50 75%);
-  background-size: 200% 100%;
-  animation: skeletonLoading 1.5s infinite;
-  border-radius: $border-radius-sm;
-  margin-bottom: $spacing-md;
-}
-
-.skeletonTitle { height: 48px; width: 70%; }
-.skeletonMeta { height: 24px; width: 30%; margin-bottom: $spacing-xl; }
-.skeletonImage { height: 350px; width: 100%; border-radius: $border-radius-lg; margin-bottom: $spacing-xl; }
-.skeletonText { height: 20px; width: 100%; }
-
-@keyframes skeletonLoading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-.error {
-  min-height: 280px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 32px 16px;
-  color: $color-danger;
-  text-align: center;
-  font-size: $font-size-base;
-}
-
-.backToBlogBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 10px 16px;
-  border-radius: $border-radius-md;
-  background: $color-primary;
-  color: $color-white;
-  font-size: $font-size-base;
+@include respond-down('md') {
+  .page, .container { width: min(calc(100% - 1rem), 1180px); padding-top: .75rem; }
+  .breadcrumb { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .header { width: 100%; margin-bottom: .9rem; }
+  .title { font-size: 1rem; }
+  .meta { gap: .65rem; font-size: .65rem; }
+  .articleLayout { grid-template-columns: 1fr; grid-template-areas: 'article' 'related' 'comments'; }
+  .cover { aspect-ratio: 16 / 9; border-radius: 5px; }
+  .bodyContent { font-size: .78rem; line-height: 2.05; h2 { font-size: 1rem; } h3 { font-size: .9rem; } }
+  .related { position: static; }
+  .relatedCard { grid-template-columns: 86px minmax(0, 1fr); }
+  .formRow { grid-template-columns: 1fr; }
+  .commentForm textarea { min-height: 120px; }
 }

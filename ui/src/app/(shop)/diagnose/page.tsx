@@ -7,6 +7,7 @@ import VehicleSelect from '@/features/vehicle/components/VehicleSelect';
 import ProductCard from '@/components/product/productCard/ProductCard';
 import type { Product } from '@/models/product/Product';
 import { p4Api, parseList, type DiagnosticEvaluation, type DiagnosticRule, type GarageVehicle } from '@/features/p4/p4Api';
+import { getAccessToken } from '@/services/api/common/authTokenStorage';
 import s from '@/components/p4/P4.module.scss';
 import styles from './Diagnose.module.scss';
 import DiagnosisCarMap from './DiagnosisCarMap';
@@ -29,11 +30,50 @@ export default function Diagnose() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    p4Api.diagnostics.list()
-      .then(setRules)
-      .catch(() => setError('دریافت اطلاعات عیب‌یاب انجام نشد.'))
-      .finally(() => setLoading(false));
-    p4Api.garage.list().then(setGarage).catch(() => undefined);
+    let cancelled = false;
+
+    const loadDiagnostics = async () => {
+      const retryDelays = [0, 350, 900];
+
+      for (const delay of retryDelays) {
+        if (delay > 0) {
+          await new Promise((resolve) => window.setTimeout(resolve, delay));
+        }
+
+        try {
+          const result = await p4Api.diagnostics.list();
+          if (cancelled) return;
+
+          setRules(result);
+          setError('');
+          setLoading(false);
+          return;
+        } catch {
+          if (cancelled) return;
+        }
+      }
+
+      if (!cancelled) {
+        setError('دریافت اطلاعات عیب‌یاب انجام نشد. دوباره تلاش کنید.');
+        setLoading(false);
+      }
+    };
+
+    void loadDiagnostics();
+
+    // The garage endpoint is protected. Do not fire it for anonymous users:
+    // a 401 from an optional request must not invalidate the public diagnosis.
+    if (getAccessToken()) {
+      p4Api.garage.list()
+        .then((result) => {
+          if (!cancelled) setGarage(result);
+        })
+        .catch(() => undefined);
+    }
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const systems = useMemo(() => [...new Map(rules.map((rule) => [rule.systemKey, rule.systemTitle])).entries()], [rules]);
