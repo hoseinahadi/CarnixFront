@@ -469,7 +469,12 @@ jobs:
           Write-Host "Starting/restarting carnix-front..."
 
 
-          npx pm2 startOrRestart `
+          # Remove any process created by an older ecosystem definition so
+          # PM2 cannot retain the old next-start script path.
+          cmd /c "npx pm2 delete carnix-front >nul 2>&1"
+          $global:LASTEXITCODE = 0
+
+          npx pm2 start `
             ecosystem.config.js `
             --env production `
             --update-env
