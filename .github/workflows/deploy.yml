@@ -192,6 +192,20 @@ jobs:
           }
 
 
+          # Stop the legacy PM2 process name as well. Older deployments
+          # registered the app as CarnixFront (capitalized), which can keep
+          # files locked during robocopy even after carnix-front is stopped.
+          cmd /c "npx pm2 describe CarnixFront >nul 2>&1"
+          $legacyDescribeExitCode = $LASTEXITCODE
+          if ($legacyDescribeExitCode -eq 0) {
+              Write-Host "Stopping legacy CarnixFront process..."
+              npx pm2 stop CarnixFront -s
+              if ($LASTEXITCODE -ne 0) {
+                  throw "Failed to stop legacy CarnixFront in PM2."
+              }
+          }
+
+
           # ------------------------------------------------------
           # Clear native command exit code
           # ------------------------------------------------------
