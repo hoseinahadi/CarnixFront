@@ -228,7 +228,7 @@ jobs:
             $env:GITHUB_WORKSPACE `
             "ui"
 
-          $target = "C:\Deploy\CarnixFront"
+          $target = "C:\Carnix\Apps\CarnixFront"
 
 
           Write-Host ""
@@ -413,7 +413,7 @@ jobs:
       # ==========================================================
       - name: Start Carnix Frontend
         if: ${{ always() && steps.stop_pm2.outcome == 'success' }}
-        working-directory: C:\Deploy\CarnixFront
+        working-directory: C:\Carnix\Apps\CarnixFront
         shell: powershell
         run: |
 
