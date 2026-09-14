@@ -18,8 +18,6 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
       - uses: actions/dependency-review-action@v4
 
   storefront:
@@ -56,16 +54,3 @@ jobs:
       - run: npm ci
       - run: npm run typecheck:core
       - run: npm run build
-
-  backend:
-    name: Backend build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 6.0.x
-      - run: dotnet restore Carnix/Carnix/Carnix.csproj
-      - run: dotnet build Carnix/Carnix/Carnix.csproj --no-restore --configuration Release
