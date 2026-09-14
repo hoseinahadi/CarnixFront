@@ -2,8 +2,10 @@ module.exports = {
   apps: [
     {
       name: 'carnix-front',
-      script: './node_modules/next/dist/bin/next',
-      args: 'start',
+      // The app uses output: 'standalone'; run the generated server directly.
+      script: './.next/standalone/server.js',
+      args: '',
+      interpreter: 'node',
       env: {
         PORT: 3000,
         NODE_ENV: 'production',
