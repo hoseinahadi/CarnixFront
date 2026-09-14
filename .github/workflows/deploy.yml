@@ -151,7 +151,10 @@ jobs:
           # ------------------------------------------------------
           # Check whether carnix-front already exists
           # ------------------------------------------------------
-          npx pm2 describe carnix-front *> $null
+          # PM2 returns exit code 1 (and writes a warning) when the app is
+          # not registered yet. Suppress that expected stderr output so
+          # PowerShell's ErrorActionPreference does not abort the job.
+          & npx pm2 describe carnix-front 2>$null
 
           $describeExitCode = $LASTEXITCODE
 
