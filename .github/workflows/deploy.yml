@@ -154,7 +154,7 @@ jobs:
           # PM2 returns exit code 1 (and writes a warning) when the app is
           # not registered yet. Suppress that expected stderr output so
           # PowerShell's ErrorActionPreference does not abort the job.
-          & npx pm2 describe carnix-front 2>$null
+          cmd /c "npx pm2 describe carnix-front >nul 2>&1"
 
           $describeExitCode = $LASTEXITCODE
 
