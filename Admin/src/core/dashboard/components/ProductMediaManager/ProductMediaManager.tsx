@@ -27,7 +27,7 @@ const getValidImageUrl = (rawUrl?: string) => {
   if (!rawUrl) return '';
   let cleanPath = rawUrl.replace(/^wwwroot[\\/]/i, '');
   if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
-  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:7191';
+  const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.carnix.ir';
   return `${backendBaseUrl}${cleanPath}`;
 };
 

@@ -1,4 +1,6 @@
-export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://localhost:7191').replace(/\/$/, '');
+// Keep local development configurable while ensuring a production build never
+// silently points at the server's loopback interface.
+export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.carnix.ir').replace(/\/$/, '');
 const TOKEN_KEY = 'carnix_admin_api_token';
 export const tokenStore = {
   get: () => typeof window === 'undefined' ? null : localStorage.getItem(TOKEN_KEY),
@@ -37,7 +39,7 @@ export async function api<T=any>(path:string, options:ApiOptions = {}):Promise<T
 }
 export function unwrapList(input:any):any[]{
   if(Array.isArray(input)) return input;
-  const paths=[input?.data,input?.items,input?.records,input?.result,input?.data?.items,input?.data?.records,input?.data?.data,input?.value,input?.data?.value];
+  const paths=[input?.data,input?.items,input?.records,input?.result,input?.mainResults,input?.data?.items,input?.data?.records,input?.data?.data,input?.data?.mainResults,input?.mainResults?.items,input?.mainResults?.records,input?.value,input?.data?.value];
   for(const p of paths) if(Array.isArray(p)) return p;
   if(input && typeof input==='object'){
     const arr=Object.values(input).find(Array.isArray); if(Array.isArray(arr)) return arr;

@@ -160,7 +160,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className={styles.topbarEnd}>
             <span className={styles.connection}><i /> API متصل</span>
-            <Link href={process.env.NEXT_PUBLIC_STORE_URL || 'http://localhost:7191'} target="_blank" rel="noreferrer" className={styles.storeLink}>مشاهده فروشگاه <ChevronLeft size={15} /></Link>
+            <Link href={process.env.NEXT_PUBLIC_STORE_URL || 'https://carnix.ir'} target="_blank" rel="noreferrer" className={styles.storeLink}>مشاهده فروشگاه <ChevronLeft size={15} /></Link>
             <div className={styles.topAvatar}>{initials}</div>
           </div>
         </header>
