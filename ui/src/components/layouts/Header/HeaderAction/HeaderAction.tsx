@@ -36,6 +36,7 @@ import { getMeThunk, logoutThunk } from '@/store/feature/auth/authThunks'
 import CartDropdown from '@/features/cart/components/CartDropdown/CartDropdown'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { getUserSnapshot } from '@/services/api/common/authTokenStorage'
+import { useHasMechanicRole } from '@/hooks/useMechanicRole'
 
 /* -------------------------------------------------------------------------- */
 /* FloatingDropdown                                                           */
@@ -127,6 +128,7 @@ const FloatingDropdown = ({
 const HeaderAction = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
+  const hasMechanicRole = useHasMechanicRole()
 
   const { cart, loading: cartLoading } = useAppSelector(
     (state) => state.cart
@@ -309,16 +311,18 @@ const HeaderAction = () => {
             <div className={styles.divider}></div>
 
             <div className={styles.menuGroup}>
-              <button
-                className={styles.menuItem}
-                onClick={() => {
-                  closeAll()
-                  router.push('/mechanics/dashboard')
-                }}
-              >
-                <IconSettings size={20} stroke={1.5} />
-                پنل مکانیک
-              </button>
+              {hasMechanicRole && (
+                <button
+                  className={styles.menuItem}
+                  onClick={() => {
+                    closeAll()
+                    router.push('/mechanics/dashboard')
+                  }}
+                >
+                  <IconSettings size={20} stroke={1.5} />
+                  پنل مکانیک
+                </button>
+              )}
 
               <button
                 className={styles.menuItem}

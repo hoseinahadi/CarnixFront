@@ -21,6 +21,7 @@ import {
 export interface AuthState {
   userDetail: UserDetail | null;
   roles: UserRole | null;
+  rolesLoading: boolean;
   token: string | null;
   isAuthenticated: boolean;
   /**
@@ -37,6 +38,7 @@ const initialState: AuthState = {
   token: null,
   userDetail: null,
   roles: null,
+  rolesLoading: false,
   isAuthenticated: false,
   initialized: false,
   meLoading: false,
@@ -58,6 +60,8 @@ const authSlice = createSlice({
     ) => {
       state.token = action.payload.token ? HTTP_ONLY_SESSION_MARKER : null;
       state.userDetail = action.payload.userDetail;
+      state.roles = null;
+      state.rolesLoading = false;
       state.isAuthenticated = Boolean(action.payload.token);
       state.initialized = true;
       state.error = null;
@@ -67,6 +71,7 @@ const authSlice = createSlice({
       state.token = null;
       state.userDetail = null;
       state.roles = null;
+      state.rolesLoading = false;
       state.isAuthenticated = false;
       state.initialized = true;
       state.meLoading = false;
@@ -178,10 +183,15 @@ const authSlice = createSlice({
       });
 
     builder
+      .addCase(getRolesThunk.pending, (state) => {
+        state.rolesLoading = true;
+      })
       .addCase(getRolesThunk.fulfilled, (state, action) => {
+        state.rolesLoading = false;
         state.roles = action.payload;
       })
       .addCase(getRolesThunk.rejected, (state, action) => {
+        state.rolesLoading = false;
         if (!state.error) {
           state.error = action.payload ?? 'دریافت نقش‌ها انجام نشد.';
         }
@@ -195,6 +205,7 @@ const authSlice = createSlice({
         state.token = null;
         state.userDetail = null;
         state.roles = null;
+        state.rolesLoading = false;
         state.isAuthenticated = false;
         state.initialized = true;
         state.meLoading = false;

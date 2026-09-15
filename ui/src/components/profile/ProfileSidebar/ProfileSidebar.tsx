@@ -24,6 +24,7 @@ import { fetchMyProfile } from '@/store/feature/profile/profileThunks'
 import styles from './ProfileSidebar.module.scss'
 import classNames from 'classnames'
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
+import { useHasMechanicRole } from '@/hooks/useMechanicRole'
 
 const menuItems = [
   { title: 'گاراژ من', icon: IconCar, path: '/profile/garage' },
@@ -71,6 +72,10 @@ const ProfileSidebar = () => {
   const fullName = useAppSelector(selectUserFullName)
   const profile = useAppSelector(selectProfile)
   const phoneNumber = profile?.phoneNumber || ''
+  const hasMechanicRole = useHasMechanicRole()
+  const visibleMenuItems = hasMechanicRole
+    ? menuItems
+    : menuItems.filter((item) => item.path !== '/mechanics/dashboard')
 
   useEffect(() => {
     void dispatch(fetchMyProfile(undefined))
@@ -160,7 +165,7 @@ const ProfileSidebar = () => {
 
       {/* منو */}
       <nav className={styles.menu}>
-        {menuItems.map((item, index) => {
+        {visibleMenuItems.map((item, index) => {
           const Icon = item.icon
           const isActive = pathname === item.path
 
