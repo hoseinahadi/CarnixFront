@@ -19,12 +19,25 @@ npm run build
 
 پنل به‌صورت پیش‌فرض روی `http://localhost:3001` اجرا می‌شود. CORS فعلی بک‌اند Carnix پورت 3001 را مجاز کرده است.
 
-در `.env.local` آدرس API را تنظیم کنید:
+در توسعه محلی، `.env.development` آدرس API را روی سرویس HTTPS محلی می‌گذارد:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:7191
-NEXT_PUBLIC_STORE_URL=http://localhost:7191
+NEXT_PUBLIC_API_URL=https://localhost:7191/api
+NEXT_PUBLIC_API_BASE_URL=https://localhost:7191
+NEXT_PUBLIC_BACKEND_URL=https://localhost:7191
+NEXT_PUBLIC_STORE_URL=http://localhost:3000
 ```
+
+برای انتشار، `npm run build` مقادیر `.env.production` را در bundle مرورگر قرار می‌دهد. این فایل باید از آدرس‌های production استفاده کند:
+
+```env
+NEXT_PUBLIC_API_URL=https://api.carnix.ir/api
+NEXT_PUBLIC_API_BASE_URL=https://api.carnix.ir
+NEXT_PUBLIC_BACKEND_URL=https://api.carnix.ir
+NEXT_PUBLIC_STORE_URL=https://carnix.ir
+```
+
+تغییر env بعد از build اثر ندارد؛ پس از هر تغییر آدرس API، ادمین را دوباره build و سپس سرویس PM2 را restart کنید.
 
 ## Authentication
 
