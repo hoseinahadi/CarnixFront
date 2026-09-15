@@ -44,7 +44,20 @@ const cartSlice = createSlice({
       .addCase(fetchMyCart.fulfilled, (state, action) => {
         state.fetchStatus = 'succeeded';
         state.loading = false;
-        state.cart = action.payload.cart;
+
+        const previousItemCount = state.cart?.items?.length ?? 0;
+        const nextItemCount = action.payload.cart?.items?.length ?? 0;
+        const isEmptyResponse = !action.payload.cart || nextItemCount === 0;
+        const shouldPreserveExistingCart =
+          isEmptyResponse &&
+          previousItemCount > 0 &&
+          !action.meta.arg?.force;
+
+        // یک پاسخ خالی موقت (مثلاً هم‌زمان با hydrate شدن نشست) نباید
+        // سبد معتبر فعلی را تا refresh بعدی از UI ناپدید کند.
+        if (!shouldPreserveExistingCart) {
+          state.cart = action.payload.cart;
+        }
         state.lastFetchedAt = action.payload.fetchedAt;
       })
       .addCase(fetchMyCart.rejected, (state, action) => {
