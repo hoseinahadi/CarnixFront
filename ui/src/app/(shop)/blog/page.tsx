@@ -39,7 +39,7 @@ export default function BlogArchivePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<BlogSortValue>('displayOrder');
+  const [sortBy, setSortBy] = useState<BlogSortValue>('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
 

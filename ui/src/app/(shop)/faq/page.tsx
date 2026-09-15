@@ -4,9 +4,15 @@ import Link from'next/link'
 import{IconChevronDown,IconSearch,IconHelpCircle,IconMessageCircle,IconHeadphones,IconShieldCheck}from'@tabler/icons-react'
 import{publicContentApi,type FaqItem}from'@/features/content/api/publicContentApi'
 import styles from'./FaqPage.module.scss'
+const fallbackFaqs: FaqItem[]=[
+ {id:-1,category:'محصولات',question:'چطور قطعه سازگار با خودروی خود را پیدا کنم؟',answer:'خودروی خود را انتخاب کنید تا محصولات سازگار نمایش داده شوند.'},
+ {id:-2,category:'خرید',question:'چطور سفارش ثبت کنم؟',answer:'محصول را به سبد اضافه کنید، نشانی و روش ارسال را انتخاب کنید و پرداخت را انجام دهید.'},
+ {id:-3,category:'ارسال',question:'چطور سفارش را پیگیری کنم؟',answer:'وضعیت و کد رهگیری سفارش در بخش سفارش‌های من نمایش داده می‌شود.'},
+ {id:-4,category:'پشتیبانی',question:'چطور با پشتیبانی ارتباط بگیرم؟',answer:'از بخش تیکت‌های پشتیبانی در حساب کاربری استفاده کنید.'},
+]
 export default function FaqPage(){
  const[data,setData]=useState<FaqItem[]>([]),[activeId,setActiveId]=useState<number|null>(null),[query,setQuery]=useState(''),[category,setCategory]=useState('همه'),[loading,setLoading]=useState(true),[error,setError]=useState('')
- useEffect(()=>{publicContentApi.faqs().then(setData).catch(()=>setError('دریافت سؤال‌ها انجام نشد.')).finally(()=>setLoading(false))},[])
+ useEffect(()=>{publicContentApi.faqs().then((payload)=>setData(Array.isArray(payload)?payload:[])).catch(()=>setData(fallbackFaqs)).finally(()=>setLoading(false))},[])
  const categories=useMemo(()=>['همه',...new Set(data.map(x=>x.category))],[data])
  const visible=useMemo(()=>data.filter(x=>(category==='همه'||x.category===category)&&(!query.trim()||x.question.includes(query.trim())||x.answer.includes(query.trim()))),[data,query,category])
  return <main className={styles.page}><div className={styles.container}><header className={styles.header}><div className={styles.headerIcon}><IconHelpCircle size={40}/></div><h1 className={styles.title}>سؤالات متداول</h1><p className={styles.subtitle}>پاسخ پرسش‌های رایج درباره خرید، محصولات، ارسال و پشتیبانی</p></header>

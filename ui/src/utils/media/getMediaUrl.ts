@@ -24,7 +24,7 @@ export const getMediaUrl = (
 
   // Assets shipped with the Next.js app live in /public and must stay on the
   // frontend origin; backend media paths continue through backendOrigin below.
-  if (cleanPath.startsWith('/figma-assets/') || cleanPath.startsWith('/images/')) {
+  if (cleanPath.startsWith('/figma-assets/') || (cleanPath.startsWith('/images/') && !cleanPath.startsWith('/images/og/'))) {
     return cleanPath;
   }
 

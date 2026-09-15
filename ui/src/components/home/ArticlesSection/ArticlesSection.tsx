@@ -48,12 +48,9 @@ const ArticlesSection = () => {
     <section className={styles.section}>
       <div className={styles.header}>
         <h2 className={styles.title}>مقالات</h2>
-        <Link href="/blog" className={styles.link}>
-          <div style={{width:'100%'}}>
-
-            مشاهده همه
-          </div>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{maxWidth:'24'}}>
+        <Link href="/blog?sortBy=newest" className={styles.link}>
+          مشاهده همه
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </Link>
