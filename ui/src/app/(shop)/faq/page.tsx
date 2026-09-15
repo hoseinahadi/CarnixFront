@@ -12,7 +12,18 @@ const fallbackFaqs: FaqItem[]=[
 ]
 export default function FaqPage(){
  const[data,setData]=useState<FaqItem[]>([]),[activeId,setActiveId]=useState<number|null>(null),[query,setQuery]=useState(''),[category,setCategory]=useState('همه'),[loading,setLoading]=useState(true),[error,setError]=useState('')
- useEffect(()=>{publicContentApi.faqs().then((payload)=>setData(Array.isArray(payload)?payload:[])).catch(()=>setData(fallbackFaqs)).finally(()=>setLoading(false))},[])
+ useEffect(()=>{
+  let active=true
+  publicContentApi.faqs()
+   .then((payload)=>{
+    if(!active)return
+    // پاسخ خالی یا نامعتبرِ API نباید صفحه را بدون محتوا نمایش دهد.
+    setData(Array.isArray(payload)&&payload.length?payload:fallbackFaqs)
+   })
+   .catch(()=>{if(active)setData(fallbackFaqs)})
+   .finally(()=>{if(active)setLoading(false)})
+  return()=>{active=false}
+ },[])
  const categories=useMemo(()=>['همه',...new Set(data.map(x=>x.category))],[data])
  const visible=useMemo(()=>data.filter(x=>(category==='همه'||x.category===category)&&(!query.trim()||x.question.includes(query.trim())||x.answer.includes(query.trim()))),[data,query,category])
  return <main className={styles.page}><div className={styles.container}><header className={styles.header}><div className={styles.headerIcon}><IconHelpCircle size={40}/></div><h1 className={styles.title}>سؤالات متداول</h1><p className={styles.subtitle}>پاسخ پرسش‌های رایج درباره خرید، محصولات، ارسال و پشتیبانی</p></header>
