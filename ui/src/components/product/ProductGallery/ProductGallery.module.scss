@@ -1,154 +1,54 @@
 @use '@/assets/styles/utils/variables' as *;
 @use '@/assets/styles/utils/mixins' as *;
 
-.galleryContainer {
-  @include flex-column;
-  gap: $spacing-md;
-}
+.galleryContainer { @include flex-column; gap: $spacing-md; min-width: 0; }
+.mainImageWrapper { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid #e2e8f0; border-radius: $border-radius-lg; background: #fff; }
+.mainImage { position: relative; display: block; width: 100%; height: 100%; border: 0; padding: 20px; color: inherit; background: #fff; cursor: zoom-in; }
+.imageConfig { object-fit: contain; object-position: center; }
 
-.mainImageWrapper {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4/3;
-  border-radius: $border-radius-lg;
-  overflow: hidden;
-  background-color: #1a1a1a; // پس‌زمینه تیره طبق عکس
-}
+.actionIcons { position: absolute; top: $spacing-md; right: $spacing-md; z-index: 10; display: flex; flex-direction: column; padding: 4px; border: 1px solid #dbe3ef; border-radius: $border-radius-md; color: #334155; background: rgba(255, 255, 255, .94); box-shadow: 0 8px 24px rgba(15, 23, 42, .1); backdrop-filter: blur(8px); }
+.iconBtn { display: flex; align-items: center; justify-content: center; border: 0; padding: $spacing-xs; color: inherit; background: transparent; cursor: pointer; transition: color .2s ease, transform .2s ease; &:hover:not(:disabled) { color: $color-primary; transform: scale(1.08); } &:disabled { cursor: default; opacity: .4; } }
+.favoriteIcon { color: #ef4444; }
+.iconDivider { height: 1px; margin: 2px 4px; background: #dbe3ef; }
+.noImageFallback { width: 100%; height: 100%; @include flex-center; flex-direction: column; gap: 10px; color: #64748b; background: #fff; }
 
-.actionIcons {
-  position: absolute;
-  top: $spacing-md;
-  right: $spacing-md;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: $border-radius-md;
-  background-color: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(4px);
-  padding: 4px;
-}
+.galleryNav, .lightboxNav { position: absolute; z-index: 8; display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #dbe3ef; border-radius: 50%; color: #1e3a8a; background: rgba(255, 255, 255, .94); box-shadow: 0 5px 18px rgba(15, 23, 42, .13); cursor: pointer; }
+.galleryNav { top: 50%; transform: translateY(-50%); }
+.galleryPrevious { right: 14px; }
+.galleryNext { left: 14px; }
 
-.iconBtn {
-  background: none;
-  border: none;
-  padding: $spacing-xs;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
+.thumbnailList { display: flex; gap: $spacing-sm; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+.thumbnailItem { position: relative; flex: 0 0 80px; width: 80px; aspect-ratio: 4 / 3; overflow: hidden; display: grid; place-items: center; border: 2px solid transparent; border-radius: $border-radius-sm; padding: 5px; color: #94a3b8; background: #fff; cursor: pointer; transition: border-color .2s ease, box-shadow .2s ease; &:hover { border-color: #93c5fd; } }
+.activeThumbnail { border-color: $color-primary; box-shadow: 0 0 0 2px rgba(37, 99, 235, .1); }
+.skeletonGallery { width: 100%; aspect-ratio: 4 / 3; border-radius: $border-radius-lg; background: $color-gray-100; animation: pulse 1.5s infinite ease-in-out; }
 
-  &:hover {
-    transform: scale(1.1);
-  }
-}
+.lightbox { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 28px; background: rgba(15, 23, 42, .86); backdrop-filter: blur(8px); }
+.lightboxStage { position: relative; width: min(1120px, 92vw); height: min(820px, 86vh); overflow: hidden; border-radius: 18px; background: #fff; box-shadow: 0 28px 80px rgba(0, 0, 0, .38); }
+.lightboxImage { position: relative; width: 100%; height: 100%; padding: 36px; background: #fff; }
+.lightboxClose { position: fixed; top: 20px; right: 20px; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.35); border-radius: 50%; color: #fff; background: rgba(15,23,42,.55); cursor: pointer; }
+.lightboxNav { top: 50%; transform: translateY(-50%); }
+.lightboxPrevious { right: 20px; }
+.lightboxNext { left: 20px; }
+.lightboxCounter { position: absolute; right: 50%; bottom: 14px; transform: translateX(50%); padding: 5px 12px; border-radius: 999px; color: #fff; background: rgba(15,23,42,.72); font-size: .875rem; }
+.spinner { animation: gallerySpinner .8s linear infinite; }
 
-.iconDivider {
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.4);
-  margin: 2px 4px;
-}
-
-.mainImage {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-.imageConfig {
-  object-fit: contain; 
-}
-
-.noImageFallback {
-  width: 100%;
-  height: 100%;
-  @include flex-center;
-  background-color: $color-gray-100;
-}
-
-.thumbnailList {
-  display: flex;
-  gap: $spacing-sm;
-  flex-wrap: wrap; // اگه عکس‌ها زیاد بود به خط بعد بره
-}
-
-.thumbnailItem {
-  position: relative;
-  width: 80px;
-  aspect-ratio: 4/3;
-  border-radius: $border-radius-sm;
-  overflow: hidden;
-  border: 2px solid transparent;
-  background-color: $color-gray-100;
-  cursor: pointer;
-  padding: 0;
-
-  &.activeThumbnail {
-    border-color: $color-primary;
-  }
-}
-
-.skeletonGallery {
-  width: 100%;
-  aspect-ratio: 4/3;
-  background-color: $color-gray-100;
-  border-radius: $border-radius-lg;
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-.spinner {
-  animation: gallerySpinner 0.8s linear infinite;
-}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+@keyframes gallerySpinner { to { transform: rotate(360deg); } }
 
 @media (max-width: $breakpoint-md) {
-  .galleryContainer {
-    width: 100%;
-    gap: $spacing-sm;
-  }
-
-  .mainImageWrapper {
-    width: 100%;
-    min-height: 190px;
-    max-height: min(48dvh, 280px);
-    aspect-ratio: 4 / 3;
-    border-radius: $border-radius-md;
-    background-color: $color-gray-100;
-  }
-
-  .mainImage,
-  .noImageFallback {
-    min-height: 190px;
-  }
-
-  .actionIcons {
-    top: $spacing-sm;
-    right: $spacing-sm;
-  }
-
-  .thumbnailList {
-    width: 100%;
-    justify-content: center;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  .thumbnailItem {
-    flex: 0 0 64px;
-    width: 64px;
-  }
-}
-
-@keyframes gallerySpinner {
-  to { transform: rotate(360deg); }
+  .galleryContainer { width: 100%; gap: $spacing-sm; }
+  .mainImageWrapper { min-height: 250px; max-height: min(52dvh, 420px); border-radius: $border-radius-md; }
+  .mainImage { min-height: 250px; padding: 12px; }
+  .actionIcons { top: $spacing-sm; right: $spacing-sm; }
+  .galleryNav { width: 36px; height: 36px; }
+  .galleryPrevious { right: 8px; }
+  .galleryNext { left: 8px; }
+  .thumbnailList { flex-wrap: nowrap; scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
+  .thumbnailItem { flex-basis: 64px; width: 64px; }
+  .lightbox { padding: 12px; }
+  .lightboxStage { width: 100%; height: min(78vh, 680px); border-radius: 14px; }
+  .lightboxImage { padding: 18px; }
+  .lightboxClose { top: 12px; right: 12px; }
+  .lightboxPrevious { right: 10px; }
+  .lightboxNext { left: 10px; }
 }

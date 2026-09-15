@@ -1,6 +1,7 @@
 export interface ProductImageSimple {
     imageId: number;
     imageUrl: string;
-    isMain: boolean;
+    isPrimary?: boolean;
+    isMain?: boolean;
     displayOrder: number;
 }

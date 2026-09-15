@@ -42,7 +42,7 @@ export async function generateMetadata({
       `خرید ${product.productName} با تضمین اصالت کالا از فروشگاه کارنیکس`;
 
     const mainImage =
-      product.images?.find((image) => image.isMain)?.imageUrl ||
+      product.images?.find((image) => image.isPrimary || image.isMain)?.imageUrl ||
       product.images?.[0]?.imageUrl ||
       product.imageUrl;
 

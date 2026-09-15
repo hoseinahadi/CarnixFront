@@ -8,6 +8,7 @@ import styles from './CartStep1.module.scss';
 import { calculateRoundedCartSubtotal, calculateTaxFreeCartTotal, formatPrice } from '@/utils/price';
 import toast from 'react-hot-toast'; // 🟢
 import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
+import { getProductImageSource } from '@/utils/media/getProductImageSource';
 
 interface CartStep1Props {
   cart: any;
@@ -51,17 +52,20 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
         <div className={styles.cartItems}>
           {cart.items.map((item: any) => {
             const currentItemId = item.cartItemId || item.id || item.productId;
+            const imageSource = getProductImageSource(item);
 
             return (
               <div key={currentItemId} className={styles.cartItem}>
                 <div className={styles.image}>
-                  <OptimizedImage 
-                    src={item.imageUrl || item.product?.imageUrl} 
-                    alt={item.productName || item.product?.productName} 
-                    width={96}
-                    height={96}
-                    sizes="96px"
-                  />
+                  {imageSource ? (
+                    <OptimizedImage
+                      src={imageSource}
+                      alt={item.productName || item.product?.productName || 'محصول'}
+                      width={96}
+                      height={96}
+                      sizes="96px"
+                    />
+                  ) : <span>بدون تصویر</span>}
                 </div>
                 <div className={styles.itemContent}>
                   <div className={styles.details}>

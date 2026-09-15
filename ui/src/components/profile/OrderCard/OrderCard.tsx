@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useRef } from 'react';
-import { getMediaUrl } from '@/utils/media/getMediaUrl';
+import { getProductImageSource } from '@/utils/media/getProductImageSource';
 import { useRouter } from 'next/navigation';
 import { OrderDto } from '@/models/order/OrderDto';
 import styles from './OrderCard.module.scss';
@@ -19,8 +19,6 @@ import {
 interface OrderCardProps {
   order: OrderDto;
 }
-
-const getValidImageUrl = (rawUrl?: string) => getMediaUrl(rawUrl);
 
 const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
   const router = useRouter();
@@ -102,7 +100,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         <div className={styles.sliderWindow} ref={scrollRef}>
           {itemsList.length > 0 ? (
             itemsList.map((item, idx) => {
-              const currentImage = getValidImageUrl(item.imageUrl);
+              const currentImage = getProductImageSource(item);
               
               return (
                 <div key={idx} className={styles.imageWrapper}>

@@ -11,6 +11,7 @@ import styles from './CartDropdown.module.scss'
 import { Cart } from '@/models/cart/Cart'
 import { calculateTaxFreeCartTotal, formatPrice } from '@/utils/price'
 import toast from 'react-hot-toast' // 🟢
+import { getProductImageSource } from '@/utils/media/getProductImageSource'
 
 interface CartDropdownProps {
   cart: Cart | null
@@ -90,14 +91,15 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
             {cart.items.map((item: any, index) => {
               const currentItemId = item.cartItemId || item.id || item.productId;
               const isThisItemLoading = updatingItemId === currentItemId;
+              const imageSource = getProductImageSource(item);
 
               return (
                 <div key={`cart-item-${currentItemId}-${index}`} className={styles.cartItem}>
                   <div className={styles.imageContainer}>
-                    {item.product?.imageUrl ? (
+                    {imageSource ? (
                       <OptimizedImage
-                        src={item.product.imageUrl}
-                        alt={item.product.productName || 'بدون نام'}
+                        src={imageSource}
+                        alt={item.product?.productName || item.productName || 'بدون نام'}
                         width={60}
                         height={60}
                         sizes="60px"

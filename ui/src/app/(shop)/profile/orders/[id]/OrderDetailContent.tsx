@@ -30,6 +30,7 @@ import {
   IconCar
 } from '@tabler/icons-react';
 import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
+import { getProductImageSource } from '@/utils/media/getProductImageSource';
 
 interface ShippingMethod {
   shippingMethodId: number;
@@ -291,7 +292,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
             {order.items?.map((item: any, index: number) => (
               <div key={index} className={styles.productCard}>
                 <div className={styles.productImgBox}>
-                  {item.imageUrl ? <OptimizedImage src={item.imageUrl} alt={item.productName} width={80} height={80} sizes="80px" /> : <IconPackage className={styles.placeholder} />}
+                  {getProductImageSource(item) ? <OptimizedImage src={getProductImageSource(item)} alt={item.productName} width={80} height={80} sizes="80px" /> : <IconPackage className={styles.placeholder} />}
                 </div>
                 <div className={styles.productInfo}>
                   <h4 className={styles.productName}>
@@ -325,7 +326,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
                     <td>
                       <div className={styles.tdProduct}>
                         <div className={styles.tdImgBox}>
-                          {item.imageUrl ? <OptimizedImage src={item.imageUrl} alt={item.productName} width={64} height={64} sizes="64px" /> : <IconPackage />}
+                          {getProductImageSource(item) ? <OptimizedImage src={getProductImageSource(item)} alt={item.productName} width={64} height={64} sizes="64px" /> : <IconPackage />}
                         </div>
                         <div className={styles.tdInfo}>
                           <span className={styles.tdName}>{item.productName}</span>
