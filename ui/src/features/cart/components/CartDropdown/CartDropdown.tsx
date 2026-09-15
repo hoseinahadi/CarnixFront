@@ -9,7 +9,7 @@ import { useAppDispatch } from '@/store/hooks'
 import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks'
 import styles from './CartDropdown.module.scss'
 import { Cart } from '@/models/cart/Cart'
-import { calculateTaxFreeCartTotal, formatPrice } from '@/utils/price'
+import { calculateTaxFreeCartTotal, formatDisplayPrice, formatPrice } from '@/utils/price'
 import toast from 'react-hot-toast' // 🟢
 import { getProductImageSource } from '@/utils/media/getProductImageSource'
 
@@ -19,7 +19,7 @@ interface CartDropdownProps {
   onClose: () => void
 }
 
-const FREE_SHIPPING_THRESHOLD = 5000000;
+const FREE_SHIPPING_THRESHOLD = 5_000_000;
 
 const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
   const router = useRouter()
@@ -172,7 +172,7 @@ const CartDropdown = ({ cart, loading, onClose }: CartDropdownProps) => {
 
             <div className={styles.grandTotal}>
               <span>جمع کل سبد خرید:</span>
-              <strong>{formatPrice(currentTotal)} تومان</strong>
+              <strong>{formatDisplayPrice(currentTotal)} تومان</strong>
             </div>
 
             <div className={styles.actionButtons}>

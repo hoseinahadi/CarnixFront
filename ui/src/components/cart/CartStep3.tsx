@@ -40,7 +40,7 @@ import {
   calculateRoundedCartDiscount,
   calculateRoundedCartSubtotal,
   calculateTaxFreeCartTotal,
-  formatPrice,
+  formatDisplayPrice,
   roundPrice,
 } from '@/utils/price';
 
@@ -109,7 +109,7 @@ const CartStep3: React.FC<CartStep3Props> = ({
 
   const finalAmount = Math.max(0, backendCartTotal + roundedShippingCost);
 
-  const formatCurrency = (amount: number) => formatPrice(amount);
+  const formatCurrency = (amount: number) => formatDisplayPrice(amount);
 
   const getPaymentIcon = (methodType: string) => {
     switch (methodType) {

@@ -35,6 +35,10 @@
   font-size: 19px;
 }
 
+.trigger:nth-child(n + 3) {
+  margin-right: clamp(4px, 0.75vw, 14px);
+}
+
 .overlay {
   position: fixed;
   top: 0;

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { OrderDto } from '@/models/order/OrderDto';
 import styles from './OrderCard.module.scss';
 import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
-import { calculateTaxFreeOrderTotal, formatPrice } from '@/utils/price';
+import { calculateTaxFreeOrderTotal, formatDisplayPrice } from '@/utils/price';
 import { 
   IconChevronLeft, 
   IconChevronRight, 
@@ -81,7 +81,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
         {/* برای حالت موبایل، کلاس‌های اختصاصی دادیم تا ترتیبشان عوض شود */}
         <div className={`${styles.infoItem} ${styles.mobileDate}`}>{persianDate}</div>
         <div className={`${styles.infoItem} ${styles.desktopOnly}`}>کد سفارش {order.orderNumber}</div>
-        <div className={`${styles.infoItem} ${styles.mobileAmount}`}>مبلغ کل {formatPrice(calculateTaxFreeOrderTotal(order))} تومان</div>
+        <div className={`${styles.infoItem} ${styles.mobileAmount}`}>مبلغ کل {formatDisplayPrice(calculateTaxFreeOrderTotal(order))} تومان</div>
         <div className={`${styles.infoItem} ${styles.desktopOnly}`}>ارسال با {shippingMethod}</div>
       </div>
 

@@ -1,9 +1,10 @@
 /**
  * قوانین نمایش قیمت در فرانت:
- * - مبلغ‌ها با واحد واقعی تومان نمایش داده می‌شوند و گرد کردن درشت ندارند.
+ * - مبلغ نهایی همیشه رو به بالا و با گام ۱۰۰٬۰۰۰ تومان رند می‌شود.
  * - مالیات در جمع‌های سمت فرانت لحاظ نمی‌شود.
  */
-export const PRICE_ROUNDING_STEP = 1;
+export const PRICE_ROUNDING_STEP = 100_000;
+export const PRICE_SOURCE_ROUNDING_STEP = PRICE_ROUNDING_STEP;
 
 export const roundPrice = (value: number | null | undefined): number => {
   const numericValue = Number(value ?? 0);
@@ -14,12 +15,17 @@ export const roundPrice = (value: number | null | undefined): number => {
 
   return Math.max(
     0,
-    Math.round(numericValue / PRICE_ROUNDING_STEP) * PRICE_ROUNDING_STEP,
+    Math.ceil(numericValue / PRICE_ROUNDING_STEP) * PRICE_ROUNDING_STEP,
   );
 };
 
 export const formatPrice = (value: number | null | undefined): string =>
   new Intl.NumberFormat('fa-IR').format(roundPrice(value));
+
+export const formatDisplayPrice = (value: number | null | undefined): string => {
+  const numericValue = Number(value ?? 0);
+  return new Intl.NumberFormat('fa-IR').format(Number.isFinite(numericValue) ? Math.max(0, numericValue) : 0);
+};
 
 
 export const calculateRoundedCartSubtotal = (cart: any): number => {

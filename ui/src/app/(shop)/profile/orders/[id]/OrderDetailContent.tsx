@@ -14,7 +14,7 @@ import {
 import { clearSelectedOrder } from '@/store/feature/orders/orderSlice';
 import { CheckoutReferenceApi } from '@/features/checkout/api/referenceDataApi';
 import styles from './OrderDetail.module.scss';
-import { calculateTaxFreeOrderTotal, formatPrice, roundPrice } from '@/utils/price';
+import { calculateTaxFreeOrderTotal, formatDisplayPrice, formatPrice, roundPrice } from '@/utils/price';
 import { toast } from 'react-hot-toast';
 import { addToCart } from '@/store/feature/cart/cartThunks';
 import {
@@ -273,7 +273,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
               </div>
               <div className={styles.summaryItem}>
                 <span className={styles.label}>مبلغ کل</span>
-                <span className={styles.value}>{formatPrice(calculateTaxFreeOrderTotal(order))} تومان</span>
+                <span className={styles.value}>{formatDisplayPrice(calculateTaxFreeOrderTotal(order))} تومان</span>
               </div>
               <div className={styles.summaryItem}>
                 <span className={styles.label}>ارسال با</span>
@@ -337,7 +337,7 @@ export default function OrderDetailContent({ params }: ComponentProps) {
                       </div>
                     </td>
                     <td><div className={styles.tdQty}>{item.quantity} عدد</div></td>
-                    <td><div className={styles.tdPrice}>{formatPrice(roundPrice(item.unitPrice) * item.quantity)} تومان</div></td>
+                    <td><div className={styles.tdPrice}>{formatDisplayPrice(roundPrice(item.unitPrice) * item.quantity)} تومان</div></td>
                   </tr>
                 ))}
               </tbody>

@@ -5,7 +5,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks';
 import { Trash2, Minus, Plus } from 'lucide-react';
 import styles from './CartStep1.module.scss';
-import { calculateRoundedCartSubtotal, calculateTaxFreeCartTotal, formatPrice } from '@/utils/price';
+import { calculateRoundedCartSubtotal, calculateTaxFreeCartTotal, formatDisplayPrice, formatPrice } from '@/utils/price';
 import toast from 'react-hot-toast'; // 🟢
 import OptimizedImage from '@/components/common/OptimizedImage/OptimizedImage';
 import { getProductImageSource } from '@/utils/media/getProductImageSource';
@@ -128,7 +128,7 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
             </div>
             <div className={styles.summaryRow}>
               <span>قیمت کالاها</span>
-              <span>{formatPrice(calculateRoundedCartSubtotal(cart))} تومان</span>
+              <span>{formatDisplayPrice(calculateRoundedCartSubtotal(cart))} تومان</span>
             </div>
             <div className={styles.summaryRow}>
               <span>سود شما از خرید</span>
@@ -145,7 +145,7 @@ const CartStep1: React.FC<CartStep1Props> = ({ cart, actionLoading, onNext }) =>
             </div>
             <div className={styles.summaryRowTotal}>
               <span>جمع مبلغ قابل پرداخت</span>
-              <span>{formatPrice(calculateTaxFreeCartTotal(cart))} تومان</span>
+              <span>{formatDisplayPrice(calculateTaxFreeCartTotal(cart))} تومان</span>
             </div>
           </div>
 

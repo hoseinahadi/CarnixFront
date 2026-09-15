@@ -11,7 +11,7 @@ import { AppDispatch } from '@/store';
 // اضافه کردن سلکتور و تانک‌های مربوط به آپدیت و حذف
 import { addToCart, updateItemQuantity, removeCartItem } from '@/store/feature/cart/cartThunks'; 
 import { selectCartActionLoading, selectCart } from '@/store/feature/cart/cartSelectors';
-import { formatPrice, roundPrice } from '@/utils/price';
+import { formatDisplayPrice, formatPrice, roundPrice } from '@/utils/price';
 
 const ProductOverViewModal = (props: any) => {
     const { isOpen, modalClose, product } = props;
@@ -101,7 +101,7 @@ const ProductOverViewModal = (props: any) => {
                                 </span>
                             )}
                             <span className={styles.priceValue}>
-                                {formatPrice(finalPrice)} <span className={styles.currency}>تومان</span>
+                                {formatDisplayPrice(finalPrice)} <span className={styles.currency}>تومان</span>
                             </span>
                         </div>
 
@@ -135,7 +135,7 @@ const ProductOverViewModal = (props: any) => {
                                 <div className={styles.inCartHeader}>
                                     <span>در سبد خرید شما:</span>
                                     <span className={styles.totalPriceCart}>
-                                        {formatPrice(roundPrice(cartItem.unitPrice) * cartItem.quantity)} تومان
+                                        {formatDisplayPrice(roundPrice(cartItem.unitPrice) * cartItem.quantity)} تومان
                                     </span>
                                 </div>
                                 <div className={styles.cartQuantityControl}>

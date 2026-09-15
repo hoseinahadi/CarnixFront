@@ -144,14 +144,15 @@
 .popularGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(.75rem, 2vw, 1.25rem);
+  gap: clamp(1rem, 2.4vw, 1.75rem);
 }
 
 .popularCard {
   display: grid;
-  grid-template-columns: minmax(130px, .72fr) minmax(0, 1fr);
-  gap: $spacing-md;
-  padding: $spacing-sm;
+  grid-template-columns: minmax(160px, .55fr) minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  min-height: 184px;
+  padding: $spacing-md;
   border: 1px solid $color-border-light;
   border-radius: $border-radius-md;
   background: $color-white;
@@ -160,25 +161,25 @@
   a { text-decoration: none; }
 
   h3 {
-    margin: 6px 0;
+    margin: 8px 0 10px;
     color: $color-text-main;
     font-size: clamp(.85rem, 1.7vw, 1rem);
-    line-height: 1.75;
-    @include line-clamp(2);
+    line-height: 1.95;
+    @include line-clamp(3);
   }
 
   p {
     margin: 0;
     color: $color-text-muted;
-    font-size: .76rem;
-    line-height: 1.8;
-    @include line-clamp(2);
+    font-size: .8rem;
+    line-height: 2.05;
+    @include line-clamp(4);
   }
 }
 
 .popularImage {
   position: relative;
-  min-height: 128px;
+  min-height: 150px;
   overflow: hidden;
   border-radius: $border-radius-sm;
   background: $color-neutral-50;

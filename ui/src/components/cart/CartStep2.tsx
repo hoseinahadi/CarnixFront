@@ -51,6 +51,7 @@ import {
   calculateRoundedCartDiscount,
   calculateRoundedCartSubtotal,
   calculateTaxFreeCartTotal,
+  formatDisplayPrice,
   formatPrice,
   roundPrice,
 } from '@/utils/price';
@@ -600,13 +601,13 @@ const CartStep2 = ({
 
             <div className={styles.summaryRow}>
               <span>قیمت کالاها</span>
-              <span>{formatCurrency(cartSubTotal)} تومان</span>
+              <span>{formatDisplayPrice(cartSubTotal)} تومان</span>
             </div>
 
             {cartDiscount > 0 && (
               <div className={styles.summaryRow}>
                 <span>تخفیف</span>
-                <span>-{formatCurrency(cartDiscount)} تومان</span>
+                <span>-{formatDisplayPrice(cartDiscount)} تومان</span>
               </div>
             )}
 
@@ -629,7 +630,7 @@ const CartStep2 = ({
 
             <div className={styles.summaryRowTotal}>
               <span>جمع کل</span>
-              <span>{formatCurrency(finalTotal)} تومان</span>
+              <span>{formatDisplayPrice(finalTotal)} تومان</span>
             </div>
           </div>
 
